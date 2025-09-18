@@ -31,4 +31,4 @@ sub :: Point -> Point -> Point. Resta un punto de otro, devolviendo un nuevo pun
 
 perp :: Vector -> Vector. Calcula el Vector perpendicular a un punto dado (tratado como Vector).
 
--- isInBounds :: Point -> Size -> Bool. Verifica si un punto se encuentra dentro de los límites definidos por un tamaño dado.
+isInBounds :: Point -> Size -> Bool. Verifica si un punto se encuentra dentro de los límites definidos por un tamaño dado.
