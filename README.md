@@ -36,18 +36,26 @@ isInBounds :: Point -> Size -> Bool. Verifica si un punto se encuentra dentro de
 
 ## ENTREGA 2
 
-## Analizar, pesar y realizar la declaración de tipos
+## Analizar, pensar y realizar la declaración de tipos
 
+Se deberían añadir los siguientes tipos:
 
+- Health: Tipo que define la salud del robot, Float.
+- IsAlive: Tipo que define si el robot está vivo o muerto, Boolean (No Necesario).
+- HaveDetected: Tipo que define si un robot ha detectaado a otro, Boolean.
+- NRobots: Número de robots que hay en juego, Int.
+- NProjectiles: Número de proyectiles que hay en juego, Int.
+- NExplotions: Número de explosiones simultáneas, Int.
+- Velocity: Velocidad que toman el robot y proyectiles, (Float, Float).
+- Damage: Daño que realiza el proyectil, Float (No Necesario).
 
+Se deberían añadir los siguientes data types:
 
-
-
-
-
-
-
-
+- Projectile: Reúne los tipos necesarios para crear un proyectil.
+- Turret: Reúne los tipos necesarios para crear una torreta.
+- Action: Se define por 5 tipos de acciones: Arriba, Abajo, Derecha, Izquierda, Parar.
+- Robot: Reúne los tipos necesarios para crear un robot.
+- World: Reúne los tipos necesarios para crear un mundo.
 
 ## Refactorización de funciones
 
@@ -62,15 +70,23 @@ NOTA: No sé si este cambio ha sido muy útil, pero prefiero dejar todos los cas
 
 ## Implementación de las nuevas funciones
 
+- detectedAgent :: Position -> Position -> Distance -> HaveDetected.
+Hace uso de la función ya definida "distanceBetween" y una operación lógica para calcular si un robot ha detectado a otro.
 
+- isRobotAlive :: Health -> isAlive
+Si la salud es <0, entonces isAlive será false, e.o.c true.
 
+- countActiveRobots :: [Health] -> NRobots
+Dada la salud de los robots, calcula cuántos hay activos.
 
+- updateRobotVelocity :: Robot -> Velocity -> Robot
+Actualiza la velocidad del robot que se pasa por parámetro.
 
+- updateVelocity :: Velocity -> Action -> Velocity
+Actualiza la velocidad según el movimiento que se toma. Ya que se hace un cambio de sentido, se define una velocidad base (En realidad, me gustaría mejorarlo para que tome la velocidad del robot).
 
+- updatePosition :: Position -> Vector -> Float -> Position
+Actualiza la posición del robot después de un tiempo según su velocidad.
 
-
-
-
-
-
-
+- mul :: Point -> Point -> Point
+Multiplica las componentes de dos puntos

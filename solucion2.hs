@@ -6,7 +6,6 @@ type Distance = Float
 type Position = (Float, Float)
 type Size = (Float, Float)
 
-
 -- 1. Analiza el funcionamiento del juego y piensa en los tipos que son necesarios. Realiza una lista durante el análisis visual y posteriormente implementa dichos TADs.
 
 type Health = Float -- Salud del robot
@@ -14,14 +13,12 @@ type IsAlive = Bool -- Indica si el robot está vivo
 type HaveDetected = Bool -- Indica si un robot ha detectado a otro
 type NRobots = Int -- Número de robots en juego en el mundo
 type NProjectiles = Int -- Número de proyectiles en juego en el mundo
-type NExplosions = Int -- Número de explosiones en juego en el mundo
+type NExplosions = Int -- Número de explosiones simultáneas en el mundo
 type Velocity = (Float, Float) -- Velocidad del robot y/o proyectil en x e y
-
--- EXTRAS
 type Damage = Float -- Daño que realiza el proyectil 
 
 -- "Objetos" del mundo
-data Proyectile = Projectile { positionP :: Position
+data Projectile = Projectile { positionP :: Position
                          , velocityP :: Velocity
                          , damageP :: Damage
                          , rangeP :: Distance
@@ -29,7 +26,7 @@ data Proyectile = Projectile { positionP :: Position
 
 data Turret = Turret { vectorT :: Vector
                    , angleT :: Angle
-                   , proyectileT :: Proyectile
+                   , projectileT :: Projectile
                    } deriving (Show, Eq)
 
 data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop deriving (Show, Eq)
@@ -43,7 +40,7 @@ data Robot = Robot { positionR :: Position
                    } deriving (Show, Eq)
 
 data World = World { robots :: [Robot]
-                   , projectiles :: [Proyectile]
+                   , projectiles :: [Projectile]
                     , turrets :: [Turret]
                     } deriving (Show, Eq)
                   
@@ -143,17 +140,16 @@ updatePosition (px, py) (vx, vy) dt = (px + vxf * dt, py + vyf * dt)
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)
 
-
 -- Tests
 
 robot1 = Robot (10, 20) (0, 0) 100 50 (10, 10) turret1 
 robot2 = Robot (30, 40) (0, 0) 0 50 (10, 10) turret2
 robot3 = Robot (15, 25) (0, 0) 50 50 (10, 10) turret3
 
-turret1 = Turret (1, 0) 0 proyectile1
-turret2 = Turret (0, 1) 90 proyectile1
-turret3 = Turret (1, 1) 45 proyectile1
+turret1 = Turret (1, 0) 0 projectile1
+turret2 = Turret (0, 1) 90 projectile1
+turret3 = Turret (1, 1) 45 projectile1
 
-proyectile1 = Projectile (5, 5) (1, 1) 10 100
+projectile1 = Projectile (5, 5) (1, 1) 10 100
 
-world = World [robot1, robot2, robot3] [proyectile1] [turret1, turret2, turret3]
+world = World [robot1, robot2, robot3] [projectile1] [turret1, turret2, turret3]
