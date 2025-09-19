@@ -36,7 +36,7 @@ isInBounds :: Point -> Size -> Bool. Verifica si un punto se encuentra dentro de
 
 ## ENTREGA 2
 
-## Analizar, pensar y realizar la declaración de tipos
+### Analizar, pensar y realizar la declaración de tipos
 
 Se deberían añadir los siguientes tipos:
 
@@ -57,9 +57,9 @@ Se deberían añadir los siguientes data types:
 - Robot: Reúne los tipos necesarios para crear un robot.
 - World: Reúne los tipos necesarios para crear un mundo.
 
-## Refactorización de funciones
+### Refactorización de funciones
 
-Para esta función, distanceBetween, el cambio ha sido muy pequeño; se ha añadido un where para definir dx y dy como la diferencia de los componentes de las posiciones, con el fin de sumarle claridad al código.
+Para la función distanceBetween, el cambio ha sido muy pequeño; se ha añadido un where para definir dx y dy como la diferencia de los componentes de las posiciones, con el fin de sumarle claridad al código.
 
 En la función angleToTarget, se sigue el mismo objetivo que la función anterior; con where se añade claridad al código, indagando en cada operación hecha por separado.
 
@@ -68,7 +68,7 @@ getVertices se ha modificado según la recomendación del profesor, es decir, se
 La última función refactorizada fue isInBounds, que además se ha mejorado la funcionalidad. Por una parte, se ha hecho uso del case-of, estudiando los casos en que cada componente del "Size" sean positivos y/o negativos. Por otra parte, se ha mejorado la funcionalidad de la siguiente manera: Previamente a esta mejora, esta función solamente admitía tratar con componentes positivas, es decir, aunque se introdujera un punto negativo que está dentro de el tamaño dado por parámetro, éste no se consideraba dentro del área. 
 NOTA: No sé si este cambio ha sido muy útil, pero prefiero dejar todos los casos posibles cubiertos, incluso los quue podrían no tener sentido (tamaños negativos)
 
-## Implementación de las nuevas funciones
+### Implementación de las nuevas funciones
 
 - detectedAgent :: Position -> Position -> Distance -> HaveDetected. 
 Hace uso de la función ya definida "distanceBetween" y una operación lógica para calcular si un robot ha detectado a otro.
