@@ -70,23 +70,23 @@ NOTA: No sé si este cambio ha sido muy útil, pero prefiero dejar todos los cas
 
 ## Implementación de las nuevas funciones
 
-- detectedAgent :: Position -> Position -> Distance -> HaveDetected.
+- detectedAgent :: Position -> Position -> Distance -> HaveDetected. 
 Hace uso de la función ya definida "distanceBetween" y una operación lógica para calcular si un robot ha detectado a otro.
 
-- isRobotAlive :: Health -> isAlive
+- isRobotAlive :: Health -> isAlive. 
 Si la salud es <0, entonces isAlive será false, e.o.c true.
 
-- countActiveRobots :: [Health] -> NRobots
+- countActiveRobots :: [Health] -> NRobots. 
 Dada la salud de los robots, calcula cuántos hay activos.
 
-- updateRobotVelocity :: Robot -> Velocity -> Robot
+- updateRobotVelocity :: Robot -> Velocity -> Robot. 
 Actualiza la velocidad del robot que se pasa por parámetro.
 
-- updateVelocity :: Velocity -> Action -> Velocity
+- updateVelocity :: Velocity -> Action -> Velocity. 
 Actualiza la velocidad según el movimiento que se toma. Ya que se hace un cambio de sentido, se define una velocidad base (En realidad, me gustaría mejorarlo para que tome la velocidad del robot).
 
-- updatePosition :: Position -> Vector -> Float -> Position
+- updatePosition :: Position -> Vector -> Float -> Position. 
 Actualiza la posición del robot después de un tiempo según su velocidad.
 
-- mul :: Point -> Point -> Point
+- mul :: Point -> Point -> Point. 
 Multiplica las componentes de dos puntos
