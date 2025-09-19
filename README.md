@@ -32,3 +32,45 @@ sub :: Point -> Point -> Point. Resta un punto de otro, devolviendo un nuevo pun
 perp :: Vector -> Vector. Calcula el Vector perpendicular a un punto dado (tratado como Vector).
 
 isInBounds :: Point -> Size -> Bool. Verifica si un punto se encuentra dentro de los límites definidos por un tamaño dado.
+
+
+## ENTREGA 2
+
+## Analizar, pesar y realizar la declaración de tipos
+
+
+
+
+
+
+
+
+
+
+
+
+## Refactorización de funciones
+
+Para esta función, distanceBetween, el cambio ha sido muy pequeño; se ha añadido un where para definir dx y dy como la diferencia de los componentes de las posiciones, con el fin de sumarle claridad al código.
+
+En la función angleToTarget, se sigue el mismo objetivo que la función anterior; con where se añade claridad al código, indagando en cada operación hecha por separado.
+
+getVertices se ha modificado según la recomendación del profesor, es decir, se sustituye el uso de let-in al uso del where, ya que queda más "declarativa". Además, se cambia la función map por el uso de listas por comprensión.
+
+La última función refactorizada fue isInBounds, que además se ha mejorado la funcionalidad. Por una parte, se ha hecho uso del case-of, estudiando los casos en que cada componente del "Size" sean positivos y/o negativos. Por otra parte, se ha mejorado la funcionalidad de la siguiente manera: Previamente a esta mejora, esta función solamente admitía tratar con componentes positivas, es decir, aunque se introdujera un punto negativo que está dentro de el tamaño dado por parámetro, éste no se consideraba dentro del área. 
+NOTA: No sé si este cambio ha sido muy útil, pero prefiero dejar todos los casos posibles cubiertos, incluso los quue podrían no tener sentido (tamaños negativos)
+
+## Implementación de las nuevas funciones
+
+
+
+
+
+
+
+
+
+
+
+
+
