@@ -1,5 +1,43 @@
 # ProyectoHaskell
 
+Instrucciones
+
+
+
+1. Analiza el funcionamiento del juego y piensa en los tipos que son necesarios. Realiza una lista durante el análisis visual y posteriormente implementa dichos TADs.
+
+
+
+2. Refactoriza las funciones implementadas hasta ahora para usar pattern matching, listas por comprensión y cláusulas where, if-then-else, guardas o case-of cuando proceda.
+
+
+
+3. Implementa las siguientes funciones usando pattern matching con los TADs definidos anteriormente:
+
+
+
+  - detectedAgent: Determinar si un agente ha detectado a otro en caso de encontrarse dentro del rango de su radar
+
+  - isRobotAlive: True si la energía del robot es mayor a 0
+
+  - countActiveRobots: Contar los robots que están vivos
+
+  - updateRobotVelocity: Actualiza la velocidad de un robot con una velocidad dada
+
+  - updateVelocity: Actualizar velocidad basada en la acción de movimiento
+
+  - updatePosition: Actualizar una posición en función de la velocidad y el incremento de tiempo
+
+  - mul: tal que (w,h) `mul` (sw,sh) = (w * sw, h * sh)
+
+
+
+Nota sobre el uso de LLMs
+
+
+
+Si usas ChatGPT o cualquier otro LLM, incluye en tu entrega los prompts que has usado e indica si posteriormente has realizado modificaciones.
+
 ## ENTREGA 1
 
 ### Tipos 
@@ -41,13 +79,11 @@ isInBounds :: Point -> Size -> Bool. Verifica si un punto se encuentra dentro de
 Se deberían añadir los siguientes tipos:
 
 - Health: Tipo que define la salud del robot, Float.
-- IsAlive: Tipo que define si el robot está vivo o muerto, Boolean (No Necesario).
-- HaveDetected: Tipo que define si un robot ha detectaado a otro, Boolean.
-- NRobots: Número de robots que hay en juego, Int.
-- NProjectiles: Número de proyectiles que hay en juego, Int.
-- NExplotions: Número de explosiones simultáneas, Int.
 - Velocity: Velocidad que toman el robot y proyectiles, (Float, Float).
 - Damage: Daño que realiza el proyectil, Float (No Necesario).
+- HaveExploded: Indica si ha habido un impacto, Bool.
+- Shoot: Define cada cuanto dispara una torreta.
+- TurretAction: Define los grados que gira la torreta desde la posicion actual y el robot al que hace referencia, Float y Int.
 
 Se deberían añadir los siguientes data types:
 
@@ -55,7 +91,9 @@ Se deberían añadir los siguientes data types:
 - Turret: Reúne los tipos necesarios para crear una torreta.
 - Action: Se define por 5 tipos de acciones: Arriba, Abajo, Derecha, Izquierda, Parar.
 - Robot: Reúne los tipos necesarios para crear un robot.
-- World: Reúne los tipos necesarios para crear un mundo.
+- World: Reúne los tipos necesarios para crear un mundo. (Número de robots, robots restantes (en el video se llama explosions), mapa)
+ 
+
 
 ### Refactorización de funciones
 

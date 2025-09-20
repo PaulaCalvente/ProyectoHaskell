@@ -8,44 +8,56 @@ type Size = (Float, Float)
 
 -- 1. Analiza el funcionamiento del juego y piensa en los tipos que son necesarios. Realiza una lista durante el análisis visual y posteriormente implementa dichos TADs.
 
+type Id = Int -- Ids de los elementos
 type Health = Float -- Salud del robot
-type IsAlive = Bool -- Indica si el robot está vivo
-type HaveDetected = Bool -- Indica si un robot ha detectado a otro
-type NRobots = Int -- Número de robots en juego en el mundo
-type NProjectiles = Int -- Número de proyectiles en juego en el mundo
-type NExplosions = Int -- Número de explosiones simultáneas en el mundo
 type Velocity = (Float, Float) -- Velocidad del robot y/o proyectil en x e y
 type Damage = Float -- Daño que realiza el proyectil 
+type HaveExploded = Bool 
+type Shoot = Float
+type TurretAction = Float
+type Duration = Float
 
 -- "Objetos" del mundo
-data Projectile = Projectile { positionP :: Position
+data Projectile = Projectile { idP :: Id
+                         , positionP :: Position
                          , velocityP :: Velocity
                          , damageP :: Damage
                          , rangeP :: Distance
                          } deriving (Show, Eq)
 
-data Turret = Turret { vectorT :: Vector
+data Turret = Turret { idT :: Id -- Que coincide con su robot asociado 
+                   , vectorT :: Vector
                    , angleT :: Angle
                    , projectileT :: Projectile
+                   , turretAction :: TurretAction
+                    , shoot :: Shoot
                    } deriving (Show, Eq)
 
 data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop deriving (Show, Eq)
 
-data Robot = Robot { positionR :: Position
+data Robot = Robot { idR :: Id
+                   , positionR :: Position
                    , velocityR :: Velocity
-                   , health :: Health
+                   , healthR :: Health
                    , radarRange :: Distance
                    , sizeR :: Size
                    , turret :: Turret
                    } deriving (Show, Eq)
 
+
 data World = World { robots :: [Robot]
                    , projectiles :: [Projectile]
                     , turrets :: [Turret]
                     } deriving (Show, Eq)
+
+data Explosion = Explosion { positionE :: Position
+                           , sizeE :: Size
+                           , durationE :: Duration
+                           } deriving (Show, Eq)
                   
 baseSpeed :: Float
-baseSpeed = 5.0              
+baseSpeed = 5.0  
+
 
 -- 2. Refactoriza las funciones implementadas hasta ahora para usar pattern matching, listas por comprensión y cláusulas where, if-then-else
   -- , guardas o case-of cuando proceda.
@@ -66,6 +78,12 @@ deg2rad a = a * pi / 180
 
 rad2deg :: Angle -> Angle
 rad2deg a = a * 180 / pi
+
+-- subVec' :: Vector -> Vector -> Vector
+-- subVec r1 r2 = (x1- x2, y1-y2)
+  -- where
+    -- r1 = (x1, y1)
+    -- r2 = (x2, y2)
 
 subVec :: Vector -> Vector -> Vector
 subVec (x1, y1) (x2, y2) = (x1 - x2, y1 - y2)
@@ -94,22 +112,26 @@ isInBounds (x, y) (w, h) =
     (False, True)  -> (x <= 0 && x >= w) && (y >= 0 && y <= h)
     (False, False) -> (x <= 0 && x >= w) && (y <= 0 && y >= h)
 
-
 -- 3. Implementa las siguientes funciones usando pattern matching con los TADs definidos anteriormente:
 
 --   - detectedAgent: Determinar si un agente ha detectado a otro en caso de encontrarse dentro del rango de su radar~
-
-detectedAgent :: Position -> Position -> Distance -> HaveDetected
-detectedAgent p1 p2 r = distanceBetween p1 p2 <= r
+detectedAgent :: Robot -> Robot -> Bool
+detectedAgent Robot{ positionR = (x1,y1), radarRange = r }
+              Robot{ positionR = (x2,y2) } 
+  | dist <= r = True
+  | otherwise  = False
+  where
+    dist = distanceBetween (x1, y1) (x2, y2)
 
 --  - isRobotAlive: True si la energía del robot es mayor a 0
-
-isRobotAlive :: Health -> IsAlive
-isRobotAlive s = s > 0
+isRobotAlive :: Robot -> Bool
+isRobotAlive Robot{ healthR = h}
+ | h > 0 = True
+ | otherwise = False
 
 --  - countActiveRobots: Contar los robots que están vivos
 
-countActiveRobots :: [Health] -> NRobots
+countActiveRobots :: [Robot] -> Int
 countActiveRobots ss = length [s | s <- ss, isRobotAlive s]
 
 --  - updateRobotVelocity: Actualiza la velocidad de un robot con una velocidad dada
@@ -119,8 +141,8 @@ updateRobotVelocity robot newVel = robot { velocityR = newVel }
 
 --  - updateVelocity: Actualizar velocidad basada en la acción de movimiento
 
-updateVelocity :: Velocity -> Action -> Velocity
-updateVelocity _ action =
+updateVelocity :: Action -> Velocity
+updateVelocity action =
   case action of
     MoveUp    -> (0, baseSpeed)
     MoveDown  -> (0, -baseSpeed)
@@ -129,27 +151,11 @@ updateVelocity _ action =
     Stop      -> (0, 0)
 
 --  - updatePosition: Actualizar una posición en función de la velocidad y el incremento de tiempo
-
-updatePosition :: Position -> Vector -> Float -> Position
-updatePosition (px, py) (vx, vy) dt = (px + vxf * dt, py + vyf * dt)
-  where
-    vxf = fromIntegral vx
-    vyf = fromIntegral vy
+updatePosition :: Float -> Position -> Velocity -> Position
+updatePosition dt (px, py) (vx, vy) = (px + vx * dt, py + vy * dt)
 
 --  - mul: tal que (w,h) `mul` (sw,sh) = (wsw, hsh)
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)
 
--- Tests
-
-robot1 = Robot (10, 20) (0, 0) 100 50 (10, 10) turret1 
-robot2 = Robot (30, 40) (0, 0) 0 50 (10, 10) turret2
-robot3 = Robot (15, 25) (0, 0) 50 50 (10, 10) turret3
-
-turret1 = Turret (1, 0) 0 projectile1
-turret2 = Turret (0, 1) 90 projectile1
-turret3 = Turret (1, 1) 45 projectile1
-
-projectile1 = Projectile (5, 5) (1, 1) 10 100
-
-world = World [robot1, robot2, robot3] [projectile1] [turret1, turret2, turret3]
+-- Test de las funciones implementadas
