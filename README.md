@@ -2,7 +2,7 @@
 
 ## ENTREGA 1
 
-### Tipos 
+### Tipos 1
 Point: Un punto 2D en el espacio.
 Vector. Vector siempre se considera que empieza en (0,0)
 Angle. Un angulo con decimales
