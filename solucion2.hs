@@ -12,7 +12,7 @@ type Id = Int -- Ids de los elementos
 type Health = Float -- Salud del robot
 type Velocity = (Float, Float) -- Velocidad del robot y/o proyectil en x e y
 type Damage = Float -- Daño que realiza el proyectil 
--- type HaveExploded = Bool 
+type HaveExploded = Bool -- Vemos si un robot ya ha explotado (lo hace cuando su vida llega a 0)
 type Shoot = Float -- Consideramos esto como el cooldown en segundos
 type TurretAction = Float -- Consideramos que es el angulo, en grados, en el que gira la torreta para apuntar
 type Duration = Float
@@ -42,6 +42,7 @@ data Robot = Robot { idR :: Id
                    , radarRange :: Distance
                    , sizeR :: Size -- Podría ponerse en World ya que en principio todos tienen el mismo tamaño
                    , turret :: Turret
+                   , haveExploded :: HaveExploded
                    } deriving (Show, Eq)
 
 
@@ -158,5 +159,3 @@ updatePosition dt (px, py) (vx, vy) = (px + vx * dt, py + vy * dt)
 --  - mul: tal que (w,h) `mul` (sw,sh) = (wsw, hsh)
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)
-
--- Test de las funciones implementadas
