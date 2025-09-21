@@ -12,9 +12,9 @@ type Id = Int -- Ids de los elementos
 type Health = Float -- Salud del robot
 type Velocity = (Float, Float) -- Velocidad del robot y/o proyectil en x e y
 type Damage = Float -- Daño que realiza el proyectil 
-type HaveExploded = Bool 
-type Shoot = Float
-type TurretAction = Float
+-- type HaveExploded = Bool 
+type Shoot = Float -- Consideramos esto como el cooldown en segundos
+type TurretAction = Float -- Consideramos que es el angulo, en grados, en el que gira la torreta para apuntar
 type Duration = Float
 
 -- "Objetos" del mundo
@@ -40,7 +40,7 @@ data Robot = Robot { idR :: Id
                    , velocityR :: Velocity
                    , healthR :: Health
                    , radarRange :: Distance
-                   , sizeR :: Size
+                   , sizeR :: Size -- Podría ponerse en World ya que en principio todos tienen el mismo tamaño
                    , turret :: Turret
                    } deriving (Show, Eq)
 
@@ -54,7 +54,8 @@ data Explosion = Explosion { positionE :: Position
                            , sizeE :: Size
                            , durationE :: Duration
                            } deriving (Show, Eq)
-                  
+
+-- Lo usamos como velocidad base para cualquier robot, a la hora de hacer un cambio de dirección (updateVelocity)             
 baseSpeed :: Float
 baseSpeed = 5.0  
 
@@ -137,7 +138,7 @@ countActiveRobots ss = length [s | s <- ss, isRobotAlive s]
 --  - updateRobotVelocity: Actualiza la velocidad de un robot con una velocidad dada
 
 updateRobotVelocity :: Robot -> Velocity -> Robot
-updateRobotVelocity robot newVel = robot { velocityR = newVel }
+updateRobotVelocity robot newVel = robot { velocityR = newVel } 
 
 --  - updateVelocity: Actualizar velocidad basada en la acción de movimiento
 
