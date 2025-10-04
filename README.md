@@ -90,3 +90,14 @@ Actualiza la posición del robot después de un tiempo según su velocidad.
 
 - mul :: Point -> Point -> Point. 
 Multiplica las componentes de dos puntos
+
+## ENTREGA 3
+
+1º Hemos añadido los tipos vertexX en los data de robot y projectile, que son los vertices que forman la silueta de los objetos
+2º Por lo anterior, el tipo Position será calculado como el centro de los vertices
+3º hemos quitado el tipo size de Robot porque con los vertices ya no es necesario
+4º CheckCollision: Calcula a partir de las proyecciones si dos ejes estan colisionando (Si se puede dibujar un eje separador entre sus proyecciones, no estan colisionando)
+
+
+-- PARA OTRAS ENTREGAS
+IDEA DE EMILIO: Calcular el daño que hacen robot-robot por su velocidad (Mientras mas veloces menos daño de contacto físico)

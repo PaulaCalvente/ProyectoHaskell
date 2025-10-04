@@ -17,7 +17,6 @@ type Shoot = Float -- Consideramos esto como el cooldown en segundos
 type TurretAction = Float -- Consideramos que es el angulo, en grados, en el que gira la torreta para apuntar
 type Duration = Float
 
-
 -- "Objetos" del mundo
 data Projectile = Projectile { idP :: Id 
                          , positionP :: Position
