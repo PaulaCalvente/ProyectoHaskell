@@ -1,0 +1,78 @@
+module Game.Types where
+
+import Game.Utils
+
+-- Tipos básicos del juego
+type Id = Int
+type Health = Float
+type Velocity = (Float, Float)
+type Damage = Float
+type HaveExploded = Bool
+type Shoot = Float
+type TurretAction = Float
+type Duration = Float
+
+-- Objetos del mundo
+data Projectile = Projectile
+  { idP        :: Id
+  , positionP  :: Position
+  , velocityP  :: Velocity
+  , damageP    :: Damage
+  , rangeP     :: Distance
+  } deriving (Show, Eq)
+
+data Turret = Turret
+  { idT          :: Id
+  , vectorT      :: Vector
+  , angleT       :: Angle
+  , projectileT  :: Projectile
+  , turretAction :: TurretAction
+  , shoot        :: Shoot
+  } deriving (Show, Eq)
+
+data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop
+  deriving (Show, Eq)
+
+data Robot = Robot
+  { idR          :: Id
+  , positionR    :: Position
+  , velocityR    :: Velocity
+  , healthR      :: Health
+  , radarRange   :: Distance
+  , sizeR        :: Size
+  , turret       :: Turret
+  , haveExploded :: HaveExploded
+  } deriving (Show, Eq)
+
+data RobotHit
+  = RobotHitByProjectile
+      { idRobot      :: Id
+      , idProjectile :: Id
+      , damageHit    :: Damage
+      , hitAt        :: Position
+      }
+  | RobotCollidedWithRobot
+      { idRobot1    :: Id
+      , idRobot2    :: Id
+      , damageHit1  :: Damage
+      , damageHit2  :: Damage
+      , hitAt       :: Position
+      }
+  deriving (Show, Eq)
+
+data World = World
+  { robots      :: [Robot]
+  , projectiles :: [Projectile]
+  , turrets     :: [Turret]
+  , robotHits   :: [RobotHit]  -- eventos de colisión detectados
+  } deriving (Show, Eq)
+
+data Explosion = Explosion
+  { positionE :: Position
+  , sizeE     :: Size
+  , durationE :: Duration
+  } deriving (Show, Eq)
+
+-- Constantes
+baseSpeed :: Float
+baseSpeed = 5.0
