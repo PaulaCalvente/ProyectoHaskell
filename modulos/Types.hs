@@ -1,6 +1,6 @@
-module Game.Types where
+module Types where
 
-import Game.Utils
+import Utils
 
 -- Tipos básicos del juego
 type Id = Int

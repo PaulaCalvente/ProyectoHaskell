@@ -27,16 +27,6 @@ checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis)
         where   
             projections = map (`dot` eje) pts
 
--- Funciones auxiliares para vectores
-sub :: Point -> Point -> Vector
-sub (x1,y1) (x2,y2) = (x1-x2, y1-y2)
-
-dot :: Vector -> Vector -> Float
-dot (x1,y1) (x2,y2) = x1*x2 + y1*y2
-
-perp :: Vector -> Vector
-perp (x,y) = (-y,x)
-
 
 -- Colisiones Robot-Proyectil
 detectedRobotProjectileCollisions :: [Robot] -> [Projectile] -> ([RobotHit], Int)
@@ -80,8 +70,8 @@ checkCollisions world = totalRP + totalRR
   where
     rs = robots world
     ps = projectiles world
-    totalRP = length [ () | r <- rs, p <- ps
+    totalRP = length [ True | r <- rs, p <- ps
                           , checkCollision (vertexRobot r) (vertexProjectile p) ]
-    totalRR = length [ () | r1 <- rs, r2 <- rs
+    totalRR = length [ True | r1 <- rs, r2 <- rs
                           , idR r1 < idR r2
                           , checkCollision (vertexRobot r1) (vertexRobot r2) ]

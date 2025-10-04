@@ -6,9 +6,9 @@ module BotAction
   , BotCmd(..)
   ) where
 
-import Utils (Id, Position, Vector, Angle, Distance, Duration, angleToTarget, distanceBetween)
-import Memory (MemoryValue)        -- para la memoria del bot
-import Types  (Action, Robot)      
+import Utils 
+import Memory     -- para la memoria del bot
+import Types    
 import Movement                      -- funciones de movimiento: detectedAgent, isRobotAlive, updateVelocity, etc.
 
 -- A qué/Quién apuntamos o seguimos
