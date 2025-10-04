@@ -1,10 +1,9 @@
--- Sirve para hacer pruebas
-
 module Main where
 
 import Types
-import Entities
 import Collision
 import World
 
 
+main :: IO ()
+main = putStrLn "Módulo principal cargado correctamente"
