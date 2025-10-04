@@ -1,8 +1,7 @@
 module Utils where
 
--- Tipos básicos de geometría
 type Point = (Float, Float)
-type Vector = (Int, Int)
+type Vector = (Float, Float)
 type Angle = Float
 type Distance = Float
 type Position = (Float, Float)

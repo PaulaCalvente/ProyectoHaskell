@@ -41,7 +41,7 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, total)
           }
       | r <- robots
       , p <- proyectiles
-      , checkCollision (vertexRobot r) (vertexProjectile p)
+      , checkCollision (pointsR r) (pointsP p)
       ]
     total = length hits
 
@@ -60,7 +60,7 @@ detectRobotRobotCollisions robots = (hits, total)
       | r1 <- robots
       , r2 <- robots
       , idR r1 < idR r2
-      , checkCollision (vertexRobot r1) (vertexRobot r2)
+      , checkCollision (pointsR r1) (pointsR r2)
       ]
     total = length hits
 
@@ -71,7 +71,7 @@ checkCollisions world = totalRP + totalRR
     rs = robots world
     ps = projectiles world
     totalRP = length [ True | r <- rs, p <- ps
-                          , checkCollision (vertexRobot r) (vertexProjectile p) ]
+                          , checkCollision (pointsR r) (pointsP p) ]
     totalRR = length [ True | r1 <- rs, r2 <- rs
                           , idR r1 < idR r2
-                          , checkCollision (vertexRobot r1) (vertexRobot r2) ]
+                          , checkCollision (pointsR r1) (pointsR r2) ]

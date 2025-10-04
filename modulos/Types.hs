@@ -15,6 +15,7 @@ type Duration = Float
 -- Objetos del mundo
 data Projectile = Projectile
   { idP        :: Id
+  , pointsP      :: [Point]
   , positionP  :: Position
   , velocityP  :: Velocity
   , damageP    :: Damage
@@ -35,6 +36,7 @@ data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop
 
 data Robot = Robot
   { idR          :: Id
+  , pointsR      :: [Point]  -- vértices del robot (para colisiones)
   , positionR    :: Position
   , velocityR    :: Velocity
   , healthR      :: Health
@@ -42,6 +44,7 @@ data Robot = Robot
   , sizeR        :: Size
   , turret       :: Turret
   , haveExploded :: HaveExploded
+  , damageR      :: Damage
   } deriving (Show, Eq)
 
 data RobotHit
