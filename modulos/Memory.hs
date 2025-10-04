@@ -1,5 +1,5 @@
 
-module Game.Memory
+module Memory
   ( MemoryValue(..)
   , Memory
   , emptyMemory
@@ -7,17 +7,17 @@ module Game.Memory
   , getMemory
   ) where
 
-import Game.Entities (Point)
+import Game.Utils (Point)
 import qualified Data.Map as M
 import GHC.Generics (Generic)
 
 -- Valores que un agente puede recordar
 data MemoryValue
-  = memInt    Int
-  | memFloat  Float
-  | memString String
-  | memPoint  Point
-  | memBool   Bool
+  = MemInt Int
+  | MemFloat Float
+  | MemString String
+  | MemPoint Point
+  | MemBool Bool
   deriving (Show, Eq, Generic)
 
 -- Diccionario de memoria
