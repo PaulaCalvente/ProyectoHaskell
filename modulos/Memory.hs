@@ -1,15 +1,11 @@
-
 module Memory
   ( MemoryValue(..)
   , Memory
-  , emptyMemory
-  , setMemory
-  , getMemory
   ) where
 
-import Game.Utils (Point)
+import Utils            -- Punto definido en Utils.hs
 import qualified Data.Map as M
-import GHC.Generics (Generic)
+
 
 -- Valores que un agente puede recordar
 data MemoryValue
@@ -18,7 +14,7 @@ data MemoryValue
   | MemString String
   | MemPoint Point
   | MemBool Bool
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq)
 
 -- Diccionario de memoria
 type Memory = M.Map String MemoryValue

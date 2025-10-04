@@ -141,7 +141,7 @@ detectRobotRobotCollisions robots = (hits, total)
   where
     total = length hits
     hits =
-  [ RobotCollidedWithRobot
+  [RobotCollidedWithRobot
       { idRobot1       = idR r1
       , idRobot2       = idR r2
       , damageToRobot1 = d1
@@ -200,6 +200,120 @@ checkCollisions world = totalRP + totalRR
 
 
 -- Crea tipo para definir las acciones que se pueden indicar sobre un Bot.
+-- Game/DSL.hs
+module Game.DSL
+  ( Direction(..)
+  , Target(..)
+  , BotCond(..)
+  , BotCmd(..)
+  ) where
 
+import Game.Entities (Id, Position, Vector, Angle, Distance, Duration)
+import Game.Memory   (MemoryValue)  -- para recordar cosas en la memoria del bot
+
+-- Direcciones básicas (útil para órdenes rápidas)
+data Direction
+  = North | South | East | West
+  deriving (Show, Eq)
+
+-- A qué/Quién apuntamos o seguimos
+data Target
+  = TPoint Position    -- un punto del mundo
+  | TRobot Id          -- otro robot por Id
+  deriving (Show, Eq)
+
+-- Condiciones sencillas para control de flujo del DSL
+data BotCond
+  = MemExists String               -- existe la clave en memoria
+  | MemBool   String Bool          -- la clave es un Bool con ese valor
+  | MemIntGE  String Int           -- la clave Int >= n
+  | MemFloatLE String Float        -- la clave Float <= x
+  | HealthBelow Float              -- la vida actual < x   (si tu runtime lo soporta)
+  | EnemyInRange Distance          -- hay enemigo en rango (evaluado en el runtime)
+  deriving (Show, Eq)
+
+-- DSL de acciones del Bot
+data BotCmd
+  = MoveTo Position                  -- moverse a una posición absoluta
+  | MoveBy Vector                    -- desplazarse relativo (delta x,y)
+  | MoveDir Direction Distance       -- moverse en una dirección una distancia
+  | StopMove                         -- parar movimiento
+
+  | AimAt Target                     -- orientar torreta al objetivo
+  | RotateTurret Angle               -- rotar torreta un ángulo
+  | Shoot                            -- disparar al objetivo actual (si hay)
+  | ShootAt Target                   -- disparar a un objetivo concreto
+
+  | Wait Duration                    -- esperar (cooldowns, sincronización)
+
+  | Remember String MemoryValue      -- escribir en memoria
+  | Forget   String                  -- borrar clave de memoria
+
+  | Follow Target                    -- seguir a un objetivo
+  | Patrol  [Position]               -- patrullar por una serie de puntos
+
+  -- Control de flujo del propio DSL (composición)
+  | Seq    [BotCmd]                  -- secuencia de acciones
+  | Repeat Int [BotCmd]              -- repetir n veces
+  | If BotCond [BotCmd] [BotCmd]     -- condicional (then / else)
+  deriving (Show, Eq)
 
 -- Implementa un bot de ejemplo: Implementa una función que recibe la información sobre el estado del juego y devuelve un conjunto de acciones definidas por el tipo anterior.
+
+Te dejo un bot de ejemplo que, dado el estado del juego, decide acciones usando el DSL del ejercicio 5:
+
+Si hay enemigo en rango, apunta y dispara, y recuerda su última posición.
+
+Si no hay enemigo visible pero recuerda una posición anterior, se mueve hacia allí (y olvida el recuerdo cuando llega).
+
+Si no tiene nada, se para.
+
+-- Game/Bot.hs
+module Game.Bot
+  ( decideBot ) where
+
+import Game.Entities  (World(..), Robot(..), Id, Position, Distance)
+import Game.DSL       (BotCmd(..), Direction(..), Target(..), BotCond(..))
+import Game.Memory    (MemoryValue(..), getMemory)
+import Data.Maybe     (listToMaybe)
+import Data.List      (minimumBy)
+import Data.Ord       (comparing)
+
+-- | Política del bot: dado el mundo y "yo" (robot), devuelve una lista de acciones.
+decideBot :: World -> Robot -> [BotCmd]
+decideBot world me =
+  case nearestEnemyInRange me (robots world) of
+    -- 1) Enemigo visible y en rango: recuerda su posición, apunta y dispara
+    Just enemy ->
+      [ Remember "lastEnemy" (MemPoint (positionR enemy))
+      , AimAt (TRobot (idR enemy))
+      , Shoot
+      ]
+
+    -- 2) Sin enemigo visible, pero recuerdo previo: ve hacia allí; si llegó, olvida
+    Nothing ->
+      case getMemory "lastEnemy" (memory me) of
+        Just (MemPoint pos) ->
+          if dist (positionR me) pos <= arriveEpsilon
+            then [ Forget "lastEnemy", StopMove ]
+            else [ MoveTo pos ]
+        _ -> [ StopMove ]  -- 3) Nada que hacer
+
+  where
+    arriveEpsilon :: Distance
+    arriveEpsilon = 1.5
+
+-- ========= Helpers =========
+
+-- Enemigo más cercano DENTRO del radar (excluyendo a "me")
+nearestEnemyInRange :: Robot -> [Robot] -> Maybe Robot
+nearestEnemyInRange me rs =
+  let others   = filter ((/= idR me) . idR) rs
+      inRange  = filter (\r -> dist (positionR me) (positionR r) <= radarRange me) others
+  in case inRange of
+       [] -> Nothing
+       _  -> Just (minimumBy (comparing (dist (positionR me) . positionR)) inRange)
+
+-- Distancia euclídea entre posiciones
+dist :: Position -> Position -> Float
+dist (x1,y1) (x2,y2) = sqrt ((x1 - x2)^2 + (y1 - y2)^2)
