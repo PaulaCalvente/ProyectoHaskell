@@ -3,25 +3,32 @@ module Movement where
 import Utils
 import Types
 
--- Detectar si un robot detecta a otro
+positionR :: Robot -> Position
+positionR r = position (commonR r)
+
+healthOf :: Robot -> Health
+healthOf = healthR
+
+radarRangeOf :: Robot -> Distance
+radarRangeOf = radarRange
+
 detectedAgent :: Robot -> Robot -> Bool
-detectedAgent Robot{ positionR = (x1,y1), radarRange = r }
-              Robot{ positionR = (x2,y2) } =
-  distanceBetween (x1, y1) (x2, y2) <= r
+detectedAgent r1 r2 =
+  let (x1,y1) = positionR r1
+      (x2,y2) = positionR r2
+      r       = radarRangeOf r1
+  in distanceBetween (x1, y1) (x2, y2) <= r
 
--- Saber si un robot está vivo
 isRobotAlive :: Robot -> Bool
-isRobotAlive Robot{ healthR = h } = h > 0
+isRobotAlive r = healthOf r > 0
 
--- Contar robots vivos
 countActiveRobots :: [Robot] -> Int
 countActiveRobots rs = length [r | r <- rs, isRobotAlive r]
 
--- Actualizar velocidad de un robot
 updateRobotVelocity :: Robot -> Velocity -> Robot
-updateRobotVelocity robot newVel = robot { velocityR = newVel }
+updateRobotVelocity robot newVel =
+  robot { commonR = (commonR robot) { velocity = newVel } }
 
--- Velocidad basada en acción
 updateVelocity :: Action -> Velocity
 updateVelocity action =
   case action of
@@ -31,10 +38,9 @@ updateVelocity action =
     MoveRight -> (baseSpeed, 0)
     Stop      -> (0, 0)
 
--- Actualizar posición en función de dt y velocidad
 updatePosition :: Float -> Position -> Velocity -> Position
-updatePosition dt (px, py) (vx, vy) = (px + vx * dt, py + vy * dt)
+updatePosition dt (px, py) (vx, vy) =
+  (px + vx * dt, py + vy * dt)
 
--- Multiplicación de puntos
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)

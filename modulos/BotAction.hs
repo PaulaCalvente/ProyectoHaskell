@@ -4,20 +4,23 @@ module BotAction
   ( Target(..)
   , BotCond(..)
   , BotCmd(..)
+  , positionR
+  , pointsR
+  , velocityR
+  , healthOf
+  , radarRangeOf
   ) where
 
-import Utils 
+import Utils
 import Memory     -- para la memoria del bot
-import Types    
-import Movement                      -- funciones de movimiento: detectedAgent, isRobotAlive, updateVelocity, etc.
+import Types
+import Movement   -- funciones de movimiento: detectedAgent, isRobotAlive, updateVelocity, etc.
 
--- A qué/Quién apuntamos o seguimos
 data Target
   = TPoint Position    -- un punto del mundo
   | TRobot Id          -- otro robot por Id
   deriving (Show, Eq)
 
--- Condiciones que puede evaluar el bot
 data BotCond
   = MemExists String               -- existe la clave en memoria
   | MemBool   String Bool          -- la clave es un Bool con ese valor
@@ -27,7 +30,6 @@ data BotCond
   | EnemyInRange Distance          -- usa 'detectedAgent' y 'distanceBetween'
   deriving (Show, Eq)
 
--- Comandos que puede ejecutar el bot
 data BotCmd
   = MoveTo Position                  -- moverse a una posición absoluta
   | MoveBy Vector                    -- desplazarse relativo (delta x,y)
@@ -47,7 +49,6 @@ data BotCmd
   | Follow Target                    -- seguir a un objetivo
   | Patrol  [Position]               -- patrullar por una serie de puntos
 
-  -- Control de flujo del propio DSL (composición)
   | Seq    [BotCmd]                  -- secuencia de acciones
   | Repeat Int [BotCmd]              -- repetir n veces
   | If BotCond [BotCmd] [BotCmd]     -- condicional (then / else)

@@ -14,7 +14,9 @@ type Duration = Float
 
 -- Tipo base con datos comunes a objetos con forma y movimiento
 data CommonData = CommonData
-  { position :: Position
+  { id      :: Id
+  , damage  :: Damage
+  , position :: Position
   , velocity :: Velocity
   , size     :: Size
   , points   :: [Point]
@@ -23,7 +25,7 @@ data CommonData = CommonData
 -- Objetos del mundo
 data Projectile = Projectile
   { idP        :: Id
-  , common     :: CommonData   -- ← contiene position, velocity, size, points
+  , commonP     :: CommonData   -- ← contiene position, velocity, size, points
   , damageP    :: Damage
   , rangeP     :: Distance
   } deriving (Show, Eq)
@@ -42,7 +44,7 @@ data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop
 
 data Robot = Robot
   { idR          :: Id
-  , common       :: CommonData   -- ← contiene position, velocity, size, points
+  , commonR       :: CommonData   -- ← contiene position, velocity, size, points
   , healthR      :: Health
   , radarRange   :: Distance
   , turret       :: Turret

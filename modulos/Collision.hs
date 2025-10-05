@@ -5,7 +5,18 @@ module Collision where
 import Types
 import Utils
 
--- SAT: Separating Axis Theorem
+positionR :: Robot -> Position
+positionR r = position (commonR r)
+
+pointsR :: Robot -> [Point]
+pointsR r = points (commonR r)
+
+positionP :: Projectile -> Position
+positionP p = position (commonP p)
+
+pointsP :: Projectile -> [Point]
+pointsP p = points (commonP p)
+
 checkCollision :: [Point] -> [Point] -> Bool
 checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis) ejes
   where
@@ -17,18 +28,16 @@ checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis)
     superposicionPorEje :: [Point] -> [Point] -> Vector -> Bool
     superposicionPorEje p1 p2 eje =
         not (max1 < min2 || max2 < min1)
-        where
-            (min1, max1) = projectPolygon p1 eje
-            (min2, max2) = projectPolygon p2 eje
+      where
+        (min1, max1) = projectPolygon p1 eje
+        (min2, max2) = projectPolygon p2 eje
 
     projectPolygon :: [Point] -> Vector -> (Float, Float)
     projectPolygon pts eje =
         (minimum projections, maximum projections)
-        where   
-            projections = map (`dot` eje) pts
+      where
+        projections = map (`dot` eje) pts
 
-
--- Colisiones Robot-Proyectil
 detectedRobotProjectileCollisions :: [Robot] -> [Projectile] -> ([RobotHit], Int)
 detectedRobotProjectileCollisions robots proyectiles = (hits, total)
   where
@@ -45,7 +54,6 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, total)
       ]
     total = length hits
 
--- Colisiones Robot-Robot
 detectRobotRobotCollisions :: [Robot] -> ([RobotHit], Int)
 detectRobotRobotCollisions robots = (hits, total)
   where
@@ -64,14 +72,13 @@ detectRobotRobotCollisions robots = (hits, total)
       ]
     total = length hits
 
--- Función principal de chequeo
 checkCollisions :: World -> Int
 checkCollisions world = totalRP + totalRR
   where
     rs = robots world
     ps = projectiles world
-    totalRP = length [ True | r <- rs, p <- ps
+    totalRP = length [ () | r <- rs, p <- ps
                           , checkCollision (pointsR r) (pointsP p) ]
-    totalRR = length [ True | r1 <- rs, r2 <- rs
+    totalRR = length [ () | r1 <- rs, r2 <- rs
                           , idR r1 < idR r2
                           , checkCollision (pointsR r1) (pointsR r2) ]
