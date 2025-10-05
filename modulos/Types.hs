@@ -12,12 +12,18 @@ type Shoot = Float
 type TurretAction = Float
 type Duration = Float
 
+-- Tipo base con datos comunes a objetos con forma y movimiento
+data CommonData = CommonData
+  { position :: Position
+  , velocity :: Velocity
+  , size     :: Size
+  , points   :: [Point]
+  } deriving (Show, Eq)
+
 -- Objetos del mundo
 data Projectile = Projectile
   { idP        :: Id
-  , pointsP      :: [Point]
-  , positionP  :: Position
-  , velocityP  :: Velocity
+  , common     :: CommonData   -- ← contiene position, velocity, size, points
   , damageP    :: Damage
   , rangeP     :: Distance
   } deriving (Show, Eq)
@@ -36,12 +42,9 @@ data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop
 
 data Robot = Robot
   { idR          :: Id
-  , pointsR      :: [Point]  -- vértices del robot (para colisiones)
-  , positionR    :: Position
-  , velocityR    :: Velocity
+  , common       :: CommonData   -- ← contiene position, velocity, size, points
   , healthR      :: Health
   , radarRange   :: Distance
-  , sizeR        :: Size
   , turret       :: Turret
   , haveExploded :: HaveExploded
   , damageR      :: Damage
