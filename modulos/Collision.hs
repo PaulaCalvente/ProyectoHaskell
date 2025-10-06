@@ -4,9 +4,7 @@ module Collision where
 
 import Types
 import Utils
-
-positionR :: Robot -> Position
-positionR r = position (commonR r)
+import Movement
 
 pointsR :: Robot -> [Point]
 pointsR r = points (commonR r)

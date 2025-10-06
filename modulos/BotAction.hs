@@ -15,6 +15,7 @@ import Utils
 import Memory     -- para la memoria del bot
 import Types
 import Movement   -- funciones de movimiento: detectedAgent, isRobotAlive, updateVelocity, etc.
+import Collision
 
 data Target
   = TPoint Position    -- un punto del mundo

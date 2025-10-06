@@ -6,6 +6,9 @@ import Types
 positionR :: Robot -> Position
 positionR r = position (commonR r)
 
+velocityR :: Robot -> Velocity
+velocityR r = velocity (commonR r)
+
 healthOf :: Robot -> Health
 healthOf = healthR
 
