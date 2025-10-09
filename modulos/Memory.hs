@@ -17,4 +17,4 @@ data MemoryValue
   deriving (Show, Eq)
 
 -- Diccionario de memoria
-type Memory = M.Map String MemoryValue
+type Memory = M.Map . MemoryValue
