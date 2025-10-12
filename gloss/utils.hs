@@ -3,12 +3,26 @@ import Graphics.Gloss.Interface.Pure.Game
 data Orientacion = Vertical | TumbadoIzq | TumbadoDer
   deriving (Eq, Show)
 
-data Estado = Estado
-  { posX        :: Float
-  , posY        :: Float
-  , velY        :: Float
+-- Redefino el tipo Estado (Ejercicio 3) para que sea un tipo parametrico, es decir, pasarlo a Functor/Applicative. 
+-- Ahora acepta un tipo genérico 'a' para los valores numéricos
+data Estado a = Estado
+  { posX        :: a
+  , posY        :: a
+  , velY        :: a
   , orientacion :: Orientacion
   } deriving (Show)
+ 
+-- Instancia Functor: aplica una función a los tres campos numéricos del estado
+-- Por ejemplo, fmap (+10) (Estado 0 1 2 Vertical) = Estado 10 11 12 Vertical
+instance Functor Estado where
+  fmap f (Estado x y v o) = Estado (f x) (f y) (f v) o
+
+-- Instancia Applicative: permite aplicar funciones dentro de un contexto Estado
+-- Por ejemplo, (Estado (+1) (*2) (+3) Vertical) <*> (Estado 10 20 30 Vertical),da como resultado Estado 11 40 33 Vertical
+instance Applicative Estado where
+  pure a = Estado a a a Vertical
+  (Estado fx fy fv o1) <*> (Estado x y v o2) =
+    Estado (fx x) (fy y) (fv v) (if o1 == Vertical then o2 else o1) 
 
 -- Parámetros físicos
 gravedad :: Float
@@ -50,19 +64,18 @@ main = play
   manejarEvento
   actualizar
 
-estadoInicial :: Estado
-estadoInicial = Estado 0 posYSuelo 0 Vertical
+-- pure 0 crea un Estado 0 0 0 Vertical, y luego con (<$>) aplicamos una función que sustituye solo la coordenada X y deja las demás fijas
+estadoInicial :: Estado Float
+estadoInicial = (\x -> Estado x posYSuelo 0 Vertical) <$> pure 0
 
 estaEnSuelo :: Float -> Bool
 estaEnSuelo y = y <= posYSuelo
 
--- Decide si se muestra el fuego
-mostrarFuego :: Estado -> Bool
-mostrarFuego estado =
-  not (estaEnSuelo (posY estado)) ||  -- en el aire (saltando)
-  orientacion estado /= Vertical       -- o tumbado en el suelo
+-- Decide si se muestra el fuego, combina funciones booleanas, se aplican ambas condiciones al mismo Estado sin tener que escribir 'estado' dos veces.
+mostrarFuego :: Estado Float -> Bool
+mostrarFuego = (||) <$> (not . estaEnSuelo . posY) <*> ((/= Vertical) . orientacion)
 
-dibujarEscena :: Estado -> Picture
+dibujarEscena :: Estado Float -> Picture
 dibujarEscena estado = Pictures [escenaFija, Translate x y dibujoAjustado]
   where
     x = posX estado
@@ -108,7 +121,7 @@ fuegoCohete :: Picture
 fuegoCohete = Color (makeColorI 255 100 0 200) $
   Polygon [ (-20, -60), (20, -60), (0, -90) ]
 
-manejarEvento :: Event -> Estado -> Estado
+manejarEvento :: Event -> Estado Float -> Estado Float
 manejarEvento (EventKey (SpecialKey KeyLeft)  Down _ _) estado = procesarIzquierda estado
 manejarEvento (EventKey (SpecialKey KeyRight) Down _ _) estado = procesarDerecha estado
 manejarEvento (EventKey (SpecialKey KeyUp)    Down _ _) estado = procesarArriba estado
@@ -117,27 +130,34 @@ manejarEvento (EventKey (Char 'd') Down _ _) estado = procesarDerecha estado
 manejarEvento (EventKey (Char 'w') Down _ _) estado = procesarArriba estado
 manejarEvento _ estado = estado
 
-procesarIzquierda :: Estado -> Estado
+
+-- En estas funciones (procesarIzquierda,procesarDerecha, procesarArriba), 'fmap' se aplica al Estado completo:
+-- modifica simultáneamente todos los valores numéricos (posX, posY, velY)
+-- aplicando una función. Aquí solo interesa el desplazamiento en X,
+-- pero se usa así para demostrar el concepto de Functor.
+
+procesarIzquierda :: Estado Float -> Estado Float
 procesarIzquierda estado
   | orientacion estado == Vertical =
       estado { orientacion = TumbadoIzq }
   | orientacion estado == TumbadoIzq && estaEnSuelo (posY estado) =
-      estado { posX = clamp limiteIzq limiteDer (posX estado - 10) }
+      -- fmap aplica la función a todos los campos Float del estado
+      fmap (clamp limiteIzq limiteDer . subtract 10) estado
   | orientacion estado == TumbadoDer =
       estado { orientacion = Vertical }
   | otherwise = estado
 
-procesarDerecha :: Estado -> Estado
+procesarDerecha :: Estado Float -> Estado Float
 procesarDerecha estado
   | orientacion estado == Vertical =
       estado { orientacion = TumbadoDer }
   | orientacion estado == TumbadoDer && estaEnSuelo (posY estado) =
-      estado { posX = clamp limiteIzq limiteDer (posX estado + 10) }
+      fmap (\x -> clamp limiteIzq limiteDer (x + 10)) estado
   | orientacion estado == TumbadoIzq =
       estado { orientacion = Vertical }
   | otherwise = estado
 
-procesarArriba :: Estado -> Estado
+procesarArriba :: Estado Float -> Estado Float
 procesarArriba estado
   | orientacion estado == Vertical && estaEnSuelo (posY estado) =
       estado { velY = impulsoSalto }
@@ -145,22 +165,22 @@ procesarArriba estado
       estado { orientacion = Vertical }
   | otherwise = estado
 
-actualizar :: Float -> Estado -> Estado
-actualizar dt estado = estado'
-  where
-    dt' = realToFrac dt
-    nuevaVelY = velY estado + gravedad * dt'
-    nuevaPosY = posY estado + nuevaVelY * dt'
+-- Aquí se usan fmap, (<$>) y (<*>) para aplicar funciones dentro del contexto del Estado.
+-- 'aplicarGravedad' se aplica a la velocidad (velY) usando fmap.
+-- Luego se calcula la nueva posición combinando (<$>) y (<*>),
+-- mostrando cómo se pueden aplicar funciones a varios campos del Estado a la vez.
 
-    (posYCorregida, velYCorregida) =
-      if nuevaPosY < posYSuelo
+actualizar :: Float -> Estado Float -> Estado Float
+actualizar dt estado =
+  let dt' = realToFrac dt
+      aplicarGravedad = (+ (gravedad * dt'))
+      nuevaVel = aplicarGravedad <$> fmap velY (pure estado)
+      nuevaPos = (+) <$> fmap posY (pure estado) <*> nuevaVel
+      (yFinal, vFinal) =
+        if posY estado + velY estado * dt' < posYSuelo
         then (posYSuelo, 0)
-        else (nuevaPosY, nuevaVelY)
-
-    estado' = estado
-      { posY = posYCorregida
-      , velY = velYCorregida
-      }
+        else (posY estado + velY estado * dt', velY estado + gravedad * dt')
+  in estado { posY = yFinal, velY = vFinal }
 
 clamp :: Float -> Float -> Float -> Float
 clamp minimo maximo valor = max minimo (min maximo valor)
