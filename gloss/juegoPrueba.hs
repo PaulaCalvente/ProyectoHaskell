@@ -29,8 +29,8 @@ posYSuelo = alturaSuelo + radioInferior
 
 -- Límites de la ventana
 anchoVentana, altoVentana :: Float
-anchoVentana = 600
-altoVentana = 600
+anchoVentana = 500
+altoVentana = 500
 
 -- Ancho estimado para colisión (±80)
 anchoConjunto :: Float
@@ -187,20 +187,26 @@ procesarArriba estado =
   estado { velY = impulsoSalto }
 
 actualizar :: Float -> Estado -> Estado
-actualizar dt estado = estado'
+actualizar dt estado = nuevoEstado
   where
     dt' = realToFrac dt
     nuevaVelY = velY estado + gravedad * dt'
     nuevaPosY = posY estado + nuevaVelY * dt'
 
-    (posYCorregida, velYCorregida) =
+    -- Corrige Y (suelo)
+    (yFinal, velFinal) =
       if nuevaPosY < posYSuelo
         then (posYSuelo, 0)
         else (nuevaPosY, nuevaVelY)
 
-    estado' = estado
-      { posY = posYCorregida
-      , velY = velYCorregida
+    -- Corrige X (bordes del cohete, no el centro)
+    xFinal = clamp limiteIzq limiteDer (posX estado)
+
+    -- Nuevo estado actualizado
+    nuevoEstado = estado
+      { posY = yFinal
+      , velY = velFinal
+      , posX = xFinal
       }
 
 clamp :: Float -> Float -> Float -> Float
