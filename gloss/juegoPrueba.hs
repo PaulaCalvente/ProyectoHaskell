@@ -100,28 +100,52 @@ hudInfo estado = Pictures
 escenaFija :: Picture
 escenaFija = Pictures
   [ cielo
-  , sol
+  , estrellas
   , suelo
   ]
   where
     cielo = Color (makeColor 0 0 0.5 1) $
       Polygon [(-400,-300), (400,-300), (400,300), (-400,300)]
-    sol = Translate 200 200 $ Color white $ circleSolid 2
-    suelo = Color green $ Translate 0 alturaSuelo $
-      Polygon [(-400,0), (400,0), (400,-300), (-400,-300)]
+
+    estrellas = Translate 0 (-150) $ Pictures
+      [ Translate x y $ Color white $ circleSolid r
+      | (x, y, r) <-
+          [ (-380, 260, 2.5), (-340, 180, 1.5), (-300, 120, 1.2)
+          , (-260, 240, 1.8), (-220, 60, 2.0), (-180, 280, 1.3)
+          , (-140, 150, 2.2), (-100, 220, 1.0), (-60, 260, 1.7)
+          , (-20, 180, 1.5), (20, 300, 2.5), (60, 240, 1.3)
+          , (100, 180, 1.8), (140, 100, 2.1), (180, 260, 1.2)
+          , (220, 200, 2.0), (260, 300, 1.7), (300, 140, 1.4)
+          , (340, 220, 1.6), (380, 180, 2.3)
+          ]
+      ]
+
+    suelo = Color (makeColorI 20 100 20 255) $
+      Translate 0 alturaSuelo $
+        Polygon [(-400,0), (400,0), (400,-300), (-400,-300)]
+
 
 conjuntoMovil :: Picture
 conjuntoMovil = Pictures
-  [ Color red $ Translate 0 75 $ Polygon [(-50,0), (50,0), (0,70)]
-  , Color white $ Translate 0 25 $ rectangleSolid 100 100
-  , Color (makeColorI 170 210 90 255) $ Polygon [(-40,60),(40,60),(40,20),(-40,20)]
-  , Color (makeColorI 170 210 90 255) $ Polygon [(-40,60),(-80,40),(-40,40)]
-  , Color (makeColorI 170 210 90 255) $ Polygon [(40,60),(80,40),(40,40)]
-  , Color (makeColorI 100 160 255 255) $ Translate 0 (-30) (rectangleSolid 100 100)
-  , Color (makeColorI 0 0 40 255) $
-      Line [(-80,40),(-40,60),(40,60),(80,40),(40,40),(50,20),(0,-60),(-50,20),(-40,40),(-80,40)]
-  , Color black $ Translate (-15) 40 (circleSolid 5)
-  , Color black $ Translate (15) 40 (circleSolid 5)
+  [
+    Color red $ Translate 0 75 $ Polygon [(-50,35), (50,35), (0,100)],
+    Color (makeColorI 220 220 220 255) $ Translate 0 25 $ rectangleSolid 100 170,
+    Color red $ Polygon [(-50,-60), (-90,-70), (-50,-20)],  -- izquierda
+    Color red $ Polygon [(50,-60), (90,-70), (50,-20)],
+    Color (makeColorI 170 170 170 255) $ Translate 0 70 (circleSolid 25),
+
+    Translate 0 20 $ Scale 0.5 0.5 $ Pictures
+      [ Color (makeColorI 170 210 90 255) $
+          Polygon [(-40,10),(40,10),(40,-30),(-40,-30)],
+        Color (makeColorI 170 210 90 255) $
+          Polygon [(-40,-10),(-80,-30),(-40,10)],
+        Color (makeColorI 170 210 90 255) $
+          Polygon [(40,-10),(80,-30),(40,10)],
+        Color (makeColorI 100 160 255 255) $
+          Translate 0 (-80) (rectangleSolid 80 100)
+      ],
+    Color black $ Translate (-12) 15 (circleSolid 4),
+    Color black $ Translate 12 15 (circleSolid 4)
   ]
 
 fuegoCohete :: Picture
@@ -141,7 +165,7 @@ procesarIzquierda :: Estado -> Estado
 procesarIzquierda estado
   | orientacion estado == Vertical =
       estado { orientacion = TumbadoIzq }
-  | orientacion estado == TumbadoIzq && estaEnSuelo (posY estado) =
+  | orientacion estado == TumbadoIzq =
       estado { posX = clamp limiteIzq limiteDer (posX estado - 10) }
   | orientacion estado == TumbadoDer =
       estado { orientacion = Vertical }
@@ -151,19 +175,16 @@ procesarDerecha :: Estado -> Estado
 procesarDerecha estado
   | orientacion estado == Vertical =
       estado { orientacion = TumbadoDer }
-  | orientacion estado == TumbadoDer && estaEnSuelo (posY estado) =
+  | orientacion estado == TumbadoDer =
       estado { posX = clamp limiteIzq limiteDer (posX estado + 10) }
   | orientacion estado == TumbadoIzq =
       estado { orientacion = Vertical }
   | otherwise = estado
 
+
 procesarArriba :: Estado -> Estado
-procesarArriba estado
-  | orientacion estado == Vertical && estaEnSuelo (posY estado) =
-      estado { velY = impulsoSalto }
-  | orientacion estado /= Vertical =
-      estado { orientacion = Vertical }
-  | otherwise = estado
+procesarArriba estado =
+  estado { velY = impulsoSalto }
 
 actualizar :: Float -> Estado -> Estado
 actualizar dt estado = estado'
