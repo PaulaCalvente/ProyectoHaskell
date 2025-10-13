@@ -34,8 +34,8 @@ checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis)
       where
         projections = (`dot` eje) <$> pts
 
-detectedRobotProjectileCollisions :: [Robot] -> [Projectile] -> ([RobotHit], Int)
-detectedRobotProjectileCollisions robots proyectiles = (hits, length hits)
+detectedRobotProjectileCollisions :: [Robot] -> [Projectile] -> ([RobotHit], [Explosion], Int)
+detectedRobotProjectileCollisions robots proyectiles = (hits, explosions, length hits)
   where
     hits =
       [ RobotHitByProjectile
@@ -48,8 +48,24 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, length hits)
       , checkCollision (pointsR r) (pointsP p)
       ]
 
-detectRobotRobotCollisions :: [Robot] -> ([RobotHit], Int)
-detectRobotRobotCollisions robots = (hits, length hits)
+    explosions =
+      [ Explosion
+          { positionE = positionP p
+          , sizeE     = (50, 50)  
+          , durationE = 1.0
+          , source    = RobotHitByProjectile
+                        { idRobot      = idR r
+                        , idProjectile = idP p
+                        , damageHit    = damageP p
+                        , hitAt        = positionP p
+                        }
+          }
+      | (r, p) <- (,) <$> robots <*> proyectiles
+      , checkCollision (pointsR r) (pointsP p)
+      ]
+
+detectRobotRobotCollisions :: [Robot] -> ([RobotHit], [Explosion], Int)
+detectRobotRobotCollisions robots = (hits, explosions, length hits)
   where
     hits =
       [ RobotCollidedWithRobot
@@ -57,7 +73,25 @@ detectRobotRobotCollisions robots = (hits, length hits)
           , idRobot2    = idR r2
           , damageHit1  = damageR r1
           , damageHit2  = damageR r2
-          , hitAt       = positionR r1
+          , hitAt       = positionR r1  
+          }
+      | (r1, r2) <- (,) <$> robots <*> robots
+      , idR r1 < idR r2
+      , checkCollision (pointsR r1) (pointsR r2)
+      ]
+
+    explosions =
+      [ Explosion
+          { positionE = positionR r1
+          , sizeE     = (60, 60)  
+          , durationE = 1.0
+          , source    = RobotCollidedWithRobot
+                        { idRobot1    = idR r1
+                        , idRobot2    = idR r2
+                        , damageHit1  = damageR r1
+                        , damageHit2  = damageR r2
+                        , hitAt       = positionR r1
+                        }
           }
       | (r1, r2) <- (,) <$> robots <*> robots
       , idR r1 < idR r2

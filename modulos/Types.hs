@@ -11,7 +11,7 @@ type Shoot = Float
 type TurretAction = Float
 type Duration = Float
 
--- | Información común de cualquier entidad con posición, velocidad y forma.
+-- Información común de cualquier entidad con posición, velocidad y forma.
 -- Parametrizado en 'a' para poder aplicar Functor y Applicative.
 data CommonData a = CommonData
   { id       :: Id
@@ -22,18 +22,18 @@ data CommonData a = CommonData
   , points   :: [(a, a)] -- lista de puntos
   } deriving (Show, Eq)
 
--- | FUNCTOR: aplica una función a todos los campos numéricos.
+-- FUNCTOR: aplica una función a todos los campos numéricos.
 instance Functor CommonData where
   fmap f (CommonData i d (px, py) (vx, vy) s pts) =
     CommonData i d (f px, f py) (f vx, f vy) s (map (\(x, y) -> (f x, f y)) pts)
 
 instance Applicative CommonData where
   pure x = CommonData 0 0 (x, x) (x, x) (0, 0) [(x, x)]
-  (CommonData _ _ (fx, fy) (fvx, fvy) _ _) <*> (CommonData i d (px, py) (vx, vy) s pts) =
-    CommonData i d (fx px, fy py) (fvx vx, fvy vy) s pts
+  (CommonData i d (fx, fy) (fvx, fvy) s _) <*> (CommonData _ _ (px, py) (vx, vy) _ _) =
+    CommonData i d (fx px, fy py) (fvx vx, fvy vy) s []
 
 
--- | Datos del proyectil
+-- Datos del proyectil
 data Projectile = Projectile
   { idP        :: Id
   , commonP    :: CommonData Float
@@ -41,7 +41,7 @@ data Projectile = Projectile
   , rangeP     :: Distance
   } deriving (Show, Eq)
 
--- | Datos de la torreta
+-- Datos de la torreta
 data Turret = Turret
   { idT          :: Id
   , vectorT      :: Vector
@@ -51,7 +51,7 @@ data Turret = Turret
   , shoot        :: Shoot
   } deriving (Show, Eq)
 
--- | Acciones posibles de un robot
+-- Acciones posibles de un robot
 data Action
   = MoveUp
   | MoveDown
@@ -60,7 +60,7 @@ data Action
   | Stop
   deriving (Show, Eq)
 
--- | Datos del robot
+-- Datos del robot
 data Robot = Robot
   { idR          :: Id
   , commonR      :: CommonData Float
@@ -71,7 +71,7 @@ data Robot = Robot
   , damageR      :: Damage
   } deriving (Show, Eq)
 
--- | Registro de impactos o colisiones
+-- Registro de impactos o colisiones
 data RobotHit
   = RobotHitByProjectile
       { idRobot      :: Id
@@ -88,7 +88,7 @@ data RobotHit
       }
   deriving (Show, Eq)
 
--- | Estado global del mundo
+-- Estado global del mundo
 data World = World
   { robots      :: [Robot]
   , projectiles :: [Projectile]
@@ -96,14 +96,15 @@ data World = World
   , robotHits   :: [RobotHit]
   } deriving (Show, Eq)
 
--- | Información de una explosión
+-- Información de una explosión
 data Explosion = Explosion
-  { positionE :: Position
-  , sizeE     :: Size
-  , durationE :: Duration
+  { positionE   :: Position
+  , sizeE       :: Size
+  , durationE   :: Duration
+  , source     :: RobotHit -- Indicamos de donde ha venido la explosion
   } deriving (Show, Eq)
 
--- | Velocidad base por defecto
+-- Velocidad base por defecto
 baseSpeed :: Float
 baseSpeed = 5.0
 
