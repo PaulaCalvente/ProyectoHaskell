@@ -44,7 +44,7 @@ data BotCmd
 
   | Wait Duration                    -- esperar (cooldowns, sincronización)
 
-  | Remember String MemoryValue      -- escribir en memoria
+  | Remember String (MemoryValue Float)  -- escribir en memoria (aMemoryValue es paramétrico)
   | Forget   String                  -- borrar clave de memoria
 
   | Follow Target                    -- seguir a un objetivo

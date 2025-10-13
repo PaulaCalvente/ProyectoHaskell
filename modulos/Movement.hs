@@ -1,3 +1,4 @@
+{-
 module Movement where
 
 import Utils
@@ -31,6 +32,57 @@ countActiveRobots rs = length [r | r <- rs, isRobotAlive r]
 updateRobotVelocity :: Robot -> Velocity -> Robot
 updateRobotVelocity robot newVel =
   robot { commonR = (commonR robot) { velocity = newVel } }
+
+updateVelocity :: Action -> Velocity
+updateVelocity action =
+  case action of
+    MoveUp    -> (0, baseSpeed)
+    MoveDown  -> (0, -baseSpeed)
+    MoveLeft  -> (-baseSpeed, 0)
+    MoveRight -> (baseSpeed, 0)
+    Stop      -> (0, 0)
+
+updatePosition :: Float -> Position -> Velocity -> Position
+updatePosition dt (px, py) (vx, vy) =
+  (px + vx * dt, py + vy * dt)
+
+mul :: Point -> Point -> Point
+mul (w, h) (sw, sh) = (w * sw, h * sh)
+
+-}
+
+--------------------------------------
+
+module Movement where
+
+import Utils
+import Types
+
+positionR :: Robot -> Position
+positionR = position . commonR
+
+velocityR :: Robot -> Velocity
+velocityR = velocity . commonR
+
+healthOf :: Robot -> Health
+healthOf = healthR
+
+radarRangeOf :: Robot -> Distance
+radarRangeOf = radarRange
+
+detectedAgent :: Robot -> Robot -> Bool
+detectedAgent r1 r2 =
+  distanceBetween <$> positionR r1 <*> positionR r2 <= radarRangeOf r1
+
+isRobotAlive :: Robot -> Bool
+isRobotAlive = (> 0) . healthOf
+
+countActiveRobots :: [Robot] -> Int
+countActiveRobots = length . filter isRobotAlive
+
+updateRobotVelocity :: Robot -> Velocity -> Robot
+updateRobotVelocity robot newVel =
+  robot { commonR = (\c -> c { velocity = newVel }) <$> commonR robot }
 
 updateVelocity :: Action -> Velocity
 updateVelocity action =

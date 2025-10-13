@@ -1,5 +1,3 @@
--- Todo lo relacionado con HAUS3 (SAT y colisiones)
-
 module Collision where
 
 import Types
@@ -7,13 +5,13 @@ import Utils
 import Movement
 
 pointsR :: Robot -> [Point]
-pointsR r = points (commonR r)
+pointsR = points . commonR
 
 positionP :: Projectile -> Position
-positionP p = position (commonP p)
+positionP = position . commonP
 
 pointsP :: Projectile -> [Point]
-pointsP p = points (commonP p)
+pointsP = points . commonP
 
 checkCollision :: [Point] -> [Point] -> Bool
 checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis) ejes
@@ -34,26 +32,24 @@ checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis)
     projectPolygon pts eje =
         (minimum projections, maximum projections)
       where
-        projections = map (`dot` eje) pts
+        projections = (`dot` eje) <$> pts
 
 detectedRobotProjectileCollisions :: [Robot] -> [Projectile] -> ([RobotHit], Int)
-detectedRobotProjectileCollisions robots proyectiles = (hits, total)
+detectedRobotProjectileCollisions robots proyectiles = (hits, length hits)
   where
     hits =
       [ RobotHitByProjectile
-          { idRobot      = idR r  
+          { idRobot      = idR r
           , idProjectile = idP p
           , damageHit    = damageP p
           , hitAt        = positionP p
           }
-      | r <- robots
-      , p <- proyectiles
+      | (r, p) <- (,) <$> robots <*> proyectiles
       , checkCollision (pointsR r) (pointsP p)
       ]
-    total = length hits
 
 detectRobotRobotCollisions :: [Robot] -> ([RobotHit], Int)
-detectRobotRobotCollisions robots = (hits, total)
+detectRobotRobotCollisions robots = (hits, length hits)
   where
     hits =
       [ RobotCollidedWithRobot
@@ -63,20 +59,18 @@ detectRobotRobotCollisions robots = (hits, total)
           , damageHit2  = damageR r2
           , hitAt       = positionR r1
           }
-      | r1 <- robots
-      , r2 <- robots
+      | (r1, r2) <- (,) <$> robots <*> robots
       , idR r1 < idR r2
       , checkCollision (pointsR r1) (pointsR r2)
       ]
-    total = length hits
 
 checkCollisions :: World -> Int
 checkCollisions world = totalRP + totalRR
   where
     rs = robots world
     ps = projectiles world
-    totalRP = length [ () | r <- rs, p <- ps
+    totalRP = length [ () | (r, p) <- (,) <$> rs <*> ps
                           , checkCollision (pointsR r) (pointsP p) ]
-    totalRR = length [ () | r1 <- rs, r2 <- rs
+    totalRR = length [ () | (r1, r2) <- (,) <$> rs <*> rs
                           , idR r1 < idR r2
                           , checkCollision (pointsR r1) (pointsR r2) ]

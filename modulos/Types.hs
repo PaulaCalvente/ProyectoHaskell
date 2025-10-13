@@ -1,8 +1,7 @@
-module Types where
+module Types where 
 
 import Utils
 
--- Tipos básicos del juego
 type Id = Int
 type Health = Float
 type Velocity = (Float, Float)
@@ -12,20 +11,27 @@ type Shoot = Float
 type TurretAction = Float
 type Duration = Float
 
--- Tipo base con datos comunes a objetos con forma y movimiento
-data CommonData = CommonData
-  { id      :: Id
-  , damage  :: Damage
-  , position :: Position
-  , velocity :: Velocity
+data CommonData a = CommonData
+  { id       :: Id
+  , damage   :: Damage
+  , position :: a
+  , velocity :: a
   , size     :: Size
-  , points   :: [Point]
+  , points   :: [a]
   } deriving (Show, Eq)
 
--- Objetos del mundo
+instance Functor CommonData where
+  fmap f (CommonData i d p v s pts) =
+    CommonData i d (f p) (f v) s (fmap f pts)
+
+instance Applicative CommonData where
+  pure x = CommonData 0 0 x x (0, 0) [x]
+  (CommonData i d fp fv s fpts) <*> (CommonData _ _ p v _ pts) =
+    CommonData i d (fp p) (fv v) s (zipWith ($) fpts pts)
+
 data Projectile = Projectile
   { idP        :: Id
-  , commonP     :: CommonData   -- ← contiene position, velocity, size, points
+  , commonP    :: CommonData Float
   , damageP    :: Damage
   , rangeP     :: Distance
   } deriving (Show, Eq)
@@ -44,7 +50,7 @@ data Action = MoveUp | MoveDown | MoveLeft | MoveRight | Stop
 
 data Robot = Robot
   { idR          :: Id
-  , commonR       :: CommonData   -- ← contiene position, velocity, size, points
+  , commonR      :: CommonData Float
   , healthR      :: Health
   , radarRange   :: Distance
   , turret       :: Turret
@@ -72,7 +78,7 @@ data World = World
   { robots      :: [Robot]
   , projectiles :: [Projectile]
   , turrets     :: [Turret]
-  , robotHits   :: [RobotHit]  -- eventos de colisión detectados
+  , robotHits   :: [RobotHit]
   } deriving (Show, Eq)
 
 data Explosion = Explosion
@@ -81,6 +87,5 @@ data Explosion = Explosion
   , durationE :: Duration
   } deriving (Show, Eq)
 
--- Constantes
 baseSpeed :: Float
 baseSpeed = 5.0
