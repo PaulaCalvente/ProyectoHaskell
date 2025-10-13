@@ -1,4 +1,4 @@
-{-
+{--
 module Movement where
 
 import Utils
@@ -49,7 +49,7 @@ updatePosition dt (px, py) (vx, vy) =
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)
 
--}
+--}
 
 --------------------------------------
 
@@ -59,10 +59,10 @@ import Utils
 import Types
 
 positionR :: Robot -> Position
-positionR = position . commonR
+positionR r = position (commonR r)
 
 velocityR :: Robot -> Velocity
-velocityR = velocity . commonR
+velocityR r = velocity (commonR r)
 
 healthOf :: Robot -> Health
 healthOf = healthR
@@ -72,17 +72,20 @@ radarRangeOf = radarRange
 
 detectedAgent :: Robot -> Robot -> Bool
 detectedAgent r1 r2 =
-  distanceBetween <$> positionR r1 <*> positionR r2 <= radarRangeOf r1
+  let (x1,y1) = positionR r1
+      (x2,y2) = positionR r2
+      r       = radarRangeOf r1
+  in distanceBetween (x1, y1) (x2, y2) <= r
 
 isRobotAlive :: Robot -> Bool
-isRobotAlive = (> 0) . healthOf
+isRobotAlive r = healthOf r > 0
 
 countActiveRobots :: [Robot] -> Int
-countActiveRobots = length . filter isRobotAlive
+countActiveRobots rs = length [r | r <- rs, isRobotAlive r]
 
 updateRobotVelocity :: Robot -> Velocity -> Robot
 updateRobotVelocity robot newVel =
-  robot { commonR = (\c -> c { velocity = newVel }) <$> commonR robot }
+  robot { commonR = (commonR robot) { velocity = newVel } }
 
 updateVelocity :: Action -> Velocity
 updateVelocity action =
@@ -99,3 +102,5 @@ updatePosition dt (px, py) (vx, vy) =
 
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)
+
+

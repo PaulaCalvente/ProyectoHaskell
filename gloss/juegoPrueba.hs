@@ -63,7 +63,11 @@ mostrarFuego estado =
   orientacion estado /= Vertical       -- o tumbado en el suelo
 
 dibujarEscena :: Estado -> Picture
-dibujarEscena estado = Pictures [escenaFija, Translate x y dibujoAjustado]
+dibujarEscena estado = Pictures
+  [ escenaFija
+  , Translate x y dibujoAjustado
+  , hudInfo estado
+  ]
   where
     x = posX estado
     y = posY estado
@@ -76,6 +80,22 @@ dibujarEscena estado = Pictures [escenaFija, Translate x y dibujoAjustado]
     dibujoConFuego = Pictures $
       [ conjuntoMovil
       ] ++ if mostrarFuego estado then [fuegoCohete] else []
+
+-- HUD: dos líneas compactas en la esquina superior izquierda
+hudInfo :: Estado -> Picture
+hudInfo estado = Pictures
+  [ Translate (-anchoVentana/2 + 12) (altoVentana/2 - 25) $
+      Scale 0.12 0.12 $
+      Color white $
+      Text ("Estado: " ++ estadoSuelo ++ " | Pos X: " ++ posXStr)
+  , Translate (-anchoVentana/2 + 12) (altoVentana/2 - 45) $
+      Scale 0.12 0.12 $
+      Color white $
+      Text "Controles: A/D ←/→ = Girar/Mover | W/↑ = Saltar"
+  ]
+  where
+    estadoSuelo = if estaEnSuelo (posY estado) then "Suelo" else "Aire"
+    posXStr = show (round (posX estado))
 
 escenaFija :: Picture
 escenaFija = Pictures
