@@ -42,7 +42,7 @@ limiteDer =  anchoVentana / 2 - anchoConjunto / 2
 
 main :: IO ()
 main = play
-  (InWindow "Figura pixel art" (round anchoVentana, round altoVentana) (100, 100))
+  (InWindow "Figura pixel art" (round anchoVentana, round altoVentana) (100, 100)) 
   white
   60
   estadoInicial
@@ -51,10 +51,10 @@ main = play
   actualizar
 
 estadoInicial :: Estado
-estadoInicial = Estado 0 posYSuelo 0 Vertical
+estadoInicial = Estado 0 posYSuelo 0 Vertical -- El estado inicial es posX en 0, la posY la posicion que sea para estar en el suelo, la velocidad 0 y orientacion vertical  
 
 estaEnSuelo :: Float -> Bool
-estaEnSuelo y = y <= posYSuelo
+estaEnSuelo y = y <= posYSuelo -- Esta en el suelo si la posicion Y es menor o igual que la posicion del suelo
 
 -- Decide si se muestra el fuego
 mostrarFuego :: Estado -> Bool
@@ -124,7 +124,6 @@ escenaFija = Pictures
       Translate 0 alturaSuelo $
         Polygon [(-400,0), (400,0), (400,-300), (-400,-300)]
 
-
 conjuntoMovil :: Picture
 conjuntoMovil = Pictures
   [
@@ -176,7 +175,7 @@ procesarDerecha estado
   | orientacion estado == Vertical =
       estado { orientacion = TumbadoDer }
   | orientacion estado == TumbadoDer =
-      estado { posX = clamp limiteIzq limiteDer (posX estado + 10) }
+      estado { posX = clamp limiteIzq limiteDer (posX estado + 10) } -- Si ya esta tumbado calculamos la nueva pos x
   | orientacion estado == TumbadoIzq =
       estado { orientacion = Vertical }
   | otherwise = estado
@@ -209,5 +208,5 @@ actualizar dt estado = nuevoEstado
       , posX = xFinal
       }
 
-clamp :: Float -> Float -> Float -> Float
-clamp minimo maximo valor = max minimo (min maximo valor)
+clamp :: Float -> Float -> Float -> Float 
+clamp minimo maximo valor = max minimo (min maximo valor) -- Esto devuelve el maximo entre el limiteIzq y el minimo entre el limiteDer y el valor

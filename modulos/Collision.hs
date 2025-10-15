@@ -44,7 +44,7 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, explosions, length
           , damageHit    = damageP p
           , hitAt        = positionP p
           }
-      | (r, p) <- (,) <$> robots <*> proyectiles
+      | (r, p) <- (,) <$> robots <*> proyectiles -- Combina en la tupla todos los robots y proyectiles
       , checkCollision (pointsR r) (pointsP p)
       ]
 
