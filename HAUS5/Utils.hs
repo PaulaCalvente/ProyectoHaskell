@@ -1,5 +1,4 @@
 module Utils where
-
 import Graphics.Gloss
 
 -- ================================
@@ -19,10 +18,17 @@ data Chicle = Chicle
   } deriving (Show)
 
 data Mundo = Mundo
-  { ninos :: [Nino]
-  , chicles :: [Chicle]
-  , profe :: (Float, Float)
-  } deriving (Show)
+  { ninos        :: [Nino]
+  , chicles      :: [Chicle]
+  , profe        :: (Float, Float)
+  , modo         :: ModoJuego
+  , imagenInicio :: Picture   -- << Este campo es nuevo
+  , fondoJuego   :: Picture 
+  }
+
+
+data ModoJuego = Inicio | Jugando
+  deriving (Eq, Show)
 
 -- ================================
 -- Constantes generales
