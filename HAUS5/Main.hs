@@ -2,7 +2,7 @@ module Main where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Utils
+import Utils 
 
 -- ================================
 -- Estado inicial
@@ -21,6 +21,7 @@ estadoInicial imagenInicio imagenFondo = Mundo
   , modo    = Inicio
   , imagenInicio = imagenInicio  -- pantalla de inicio BMP
   , fondoJuego   = imagenFondo   -- fondo del juego BMP
+  , explosiones = []
   }
 
 -- ================================
@@ -39,6 +40,7 @@ dibujarJuego m = Pictures
   , dibujarProfe (profe m)
   , Pictures (map dibujarNino (ninos m))
   , Pictures (map dibujarChicle (chicles m))
+  , Pictures (map dibujarExplosion (explosiones m))
   ]
 
 
@@ -97,32 +99,67 @@ moverNino dx dy m = m { ninos = map mover (ninos m) }
   where mover (Nino (x, y) c d) = Nino (x + dx, y + dy) c d
 
 disparar :: Mundo -> Mundo
-disparar m = m { chicles = nuevosChicles ++ chicles m }
+disparar m = m { chicles = nuovi ++ chicles m }
   where
-    nuevosChicles =
-      [ Chicle (x + offset, y + 10) (vx, 0) (makeColorI 180 60 180 230)
-      | (Nino (x,y) _ _, vx, offset) <- zip3 (ninos m) direcciones offsetX
+    ns = ninos m
+    -- Para cada niño con índice i, genera un chicle con dirección alterna
+    nuovi =
+      [ Chicle (x + offset i, y + 10)
+               (vx i, 0)
+               (makeColorI 180 60 180 230)
+               i                  -- ownerIdx = indice del niño
+      | (i, Nino (x,y) _ _) <- zip [0..] ns
       ]
-    direcciones = cycle [ velChicleVel, -velChicleVel ]
-    offsetX = cycle [ 20, -20 ]
+    -- alterna derecha/izquierda por índice
+    vx i     = if even i then velChicleVel  else -velChicleVel
+    offset i = if even i then 20            else -20
+
 
 -- ================================
 -- Actualización
 -- ================================
 
+explosionTTL   :: Float; explosionTTL   = 0.6   -- duran 0.6s
+explosionGrow  :: Float; explosionGrow  = 200   -- px/s de crecimiento del radio
+explosionStart :: Float; explosionStart = 10    -- radio inicial
+
 actualizar :: Float -> Mundo -> Mundo
 actualizar dt m
   | modo m == Inicio = m
-  | otherwise = m
-      { chicles = [ actualizarChicle c | c <- chicles m, dentro (posChicle c) ] }
+  | otherwise =
+      let ns = ninos m
+         -- Recorremos chicles:
+          -- - Avanzamos posición
+          -- - Si sale por X, lo descartamos
+          -- - Si impacta con un niño ≠ owner, eliminamos chicle y creamos explosión
+          -- - Si no impacta, lo dejamos seguir
+          (keepChicles, newExplosions) = foldr (stepChicle ns) ([], []) (chicles m)
+
+         -- Actualizamos explosiones existentes + añadimos las nuevas:
+          -- crecen de radio y decrece su ttl; filtramos las que siguen vivas
+          exps' = [ Explosion p (r + explosionGrow*dt) (ttl - dt)
+                  | Explosion p r ttl <- explosiones m ++ newExplosions
+                  , ttl - dt > 0
+                  ]
+      in m { chicles = keepChicles, explosiones = exps' }
   where
-    actualizarChicle (Chicle (x,y) (vx,vy) col) =
-      let nuevoX = x + vx * dt
-          nuevoY = y + vy * dt
-      in Chicle (nuevoX, nuevoY) (vx, vy) col
+    dentroX x = x > -ancho/2 && x < ancho/2
 
-    dentro (x,_) = x < ancho/2 && x > -ancho/2
-
+        -- Procesa un chicle y acumula (los que siguen, explosiones nuevas)
+    stepChicle :: [Nino] -> Chicle -> ([Chicle],[Explosion]) -> ([Chicle],[Explosion])
+    stepChicle ns (Chicle (x,y) (vx,vy) col owner) (accC, accE) =
+      let x' = x + vx*dt
+          y' = y + vy*dt
+          pos' = (x',y')
+          out  = not (dentroX x')
+           -- Impacta si toca a algún niño distinto al owner
+          hit  = any (\(j,n) -> j /= owner && circleAABB pos' chicleRadius (ninoBox n))
+                     (zip [0..] ns)
+      in if out
+           then (accC, accE)  -- fuera: eliminado
+           else if hit
+                  then (accC, Explosion pos' explosionStart explosionTTL : accE) 
+                  else (Chicle pos' (vx,vy) col owner : accC, accE)              
 -- ================================
 -- Main
 -- ================================

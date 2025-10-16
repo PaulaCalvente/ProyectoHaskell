@@ -15,6 +15,18 @@ data Chicle = Chicle
   { posChicle :: (Float, Float)
   , velChicle :: (Float, Float)
   , colorChicle :: Color
+  , ownerIdx :: Int --ownerIdx (índice del niño que lo lanzó) para
+                    -- ignorar la auto-colisión en el primer frame
+  } deriving (Show)
+
+-- Radio que usamos para colisión del chicle
+chicleRadius :: Float
+chicleRadius = 10
+
+data Explosion = Explosion
+  { posExp  :: (Float, Float) --centro de la explosión
+  , radExp  :: Float      -- radio actual
+  , ttlExp  :: Float      -- tiempo restante
   } deriving (Show)
 
 data Mundo = Mundo
@@ -22,13 +34,26 @@ data Mundo = Mundo
   , chicles      :: [Chicle]
   , profe        :: (Float, Float)
   , modo         :: ModoJuego
-  , imagenInicio :: Picture   -- << Este campo es nuevo
+  , imagenInicio :: Picture   
   , fondoJuego   :: Picture 
+  , explosiones :: [Explosion]
   }
 
+-- Caja aproximada del niño (para colisión), centrada en su pos
+ninoBox :: Nino -> ((Float,Float),(Float,Float))
+ninoBox (Nino (x,y) _ _) = ((x-20,y-25),(x+20,y+25))
 
 data ModoJuego = Inicio | Jugando
   deriving (Eq, Show)
+
+-- Collision entre chicle y rectangulo (niño)
+circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
+circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
+  let clx = max minx (min cx maxx)
+      cly = max miny (min cy maxy)
+      dx  = cx - clx
+      dy  = cy - cly
+  in dx*dx + dy*dy <= r*r
 
 -- ================================
 -- Constantes generales
@@ -83,9 +108,20 @@ dibujarNino (Nino (x,y) c _) = Translate x y $ Pictures
   ]
 
 dibujarChicle :: Chicle -> Picture
-dibujarChicle (Chicle (x,y) _ c) =
-  let r = 8 + 2 * sin (x / 30)  -- efecto leve de “inflado”
+dibujarChicle (Chicle (x,y) _ c _owner) =
+  let r = 8 + 2 * sin (x / 30)  
   in Translate x y $ Color c $ circleSolid r
+
+-- Dibuja una explosión con dos capas y alpha según ttlExp (vida restante).
+dibujarExplosion :: Explosion -> Picture
+dibujarExplosion (Explosion (x,y) r ttl) =
+  let a = max 0 (min 1 (ttl / 0.6))   -- alfa basado en ttl( ttl = 0.6 → alpha ≈ 1; ttl → 0 → alpha → 0);
+  in Translate x y $
+       Pictures
+         [ Color (withAlpha a (makeColorI 255 120 200 255)) $ thickCircle (r*0.6) (r*0.25)
+         , Color (withAlpha (a*0.8) (makeColorI 255 200 255 255)) $ circleSolid (r*0.3)
+         ]
+
 
 -- ================================
 -- Fondo y suelo del aula
@@ -128,7 +164,7 @@ dibujarBancos =
     , banco (-150) (50)
     , banco (150) (50)
     ]
-  where
+  where 
     banco x y = Translate x y $
       Pictures
         [ Color (makeColorI 190 120 60 255) $ rectangleSolid 100 40   -- tablero del banco
