@@ -1,6 +1,11 @@
 module Types where
 
-import Utils
+type Point = (Float, Float)
+type Vector = (Float, Float)
+type Angle = Float
+type Distance = Float
+type Position = (Float, Float)
+type Size = (Float, Float)
 
 type Id = Int
 type Health = Float

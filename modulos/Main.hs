@@ -1,10 +1,16 @@
 module Main where
 
-import Types
-import Movement
-import BotAction
-import Collision
+-- import Types
+-- import Movement
+-- import BotAction
+-- import Collision
 
+import Graphics.Gloss
+import Graphics.Gloss.Interface.Pure.Game
+import World
+import Utils
+
+{-
 myWorld :: World
 myWorld = World
   { robots =
@@ -45,9 +51,17 @@ exampleBot world myId
                         , idR r /= myId -- No soy yo
                         , isRobotAlive r -- Está vivo
                         , detectedAgent myRobot r ] -- Lo detecto con mi radar
+-}
 
 main :: IO ()
 main = do
-  putStrLn "== Mundo de prueba inicializado =="
-  let action = exampleBot myWorld 1
-  putStrLn ("Acción del bot: " ++ show action)
+  inicio <- loadBMP "inicio.bmp"
+  clase  <- loadBMP "clase.bmp"
+  play
+    (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
+    white
+    60
+    (estadoInicial inicio clase)
+    dibujar
+    manejarEvento
+    actualizar
