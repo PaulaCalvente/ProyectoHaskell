@@ -84,13 +84,17 @@ proyectilBase i = Projectile
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
   Inicio  -> Pictures [imagenInicio m, dibujarBoton]
-  Jugando -> Pictures
-    [ fondoJuego m
-    , dibujarProfe (0, 160)
-    , Pictures (map dibujarNino (robots (worldState m)))
-    , Pictures (map dibujarChicle (projectiles (worldState m)))
-    , Pictures (map dibujarExplosion (explosiones m))
-    ]
+  Jugando ->
+    let w = worldState m
+    in Pictures
+      [ fondoJuego m
+      , dibujarProfe (0, 160)
+      , dibujarHUD (robots w)                   -- 🔹 Añadido: dibuja las barras de vida
+      , Pictures (map dibujarNino (robots w))
+      , Pictures (map dibujarChicle (projectiles w))
+      , Pictures (map dibujarExplosion (explosiones m))
+      ]
+
 
 -- ================================
 -- Eventos
@@ -144,6 +148,10 @@ dispararTodos w = w { projectiles = nuevos ++ projectiles w }
 -- Actualización
 -- ================================
 
+-- ================================
+-- Actualización + Daño
+-- ================================
+
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
@@ -151,28 +159,56 @@ actualizar dt m
       let w = worldState m
           rs = robots w
           ps = projectiles w
-          -- Avanzar proyectiles
-          ps' = [ p { commonP = (commonP p) { position = (x + vx*dt, y + vy*dt) } }
-                | p <- ps
-                , let (x, y) = position (commonP p)
-                      (vx, vy) = velocity (commonP p)
-                      dentro = x > -ancho/2 && x < ancho/2
-                , dentro
-                ]
-          -- Detectar impactos
-          (psFinales, nuevasExplosiones) = foldr (procesarProyectil rs) ([], []) ps'
-          -- Actualizar explosiones existentes
-          expsActualizadas = 
-            [ Explosion pos size (ttl - dt) hit
-            | Explosion pos size ttl hit <- explosiones m ++ nuevasExplosiones
+
+          -- Mover proyectiles
+          psMovidos =
+            [ p { commonP = (commonP p)
+                    { position = (x + vx * dt, y + vy * dt) } }
+            | p <- ps
+            , let (x, y) = position (commonP p)
+                  (vx, vy) = velocity (commonP p)
+            , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
+            ]
+
+          -- Detectar colisiones entre proyectiles y robots
+          impactos =
+            [ (idR r, idP p, damageP p, position (commonP p))
+            | r <- rs
+            , p <- psMovidos
+            , idR r /= idP p
+            , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
+            ]
+
+          -- Reducir la vida de los niños golpeados
+          rsDanyados =
+            [ if any (\(idr, _, _, _) -> idr == idR r) impactos
+              then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
+                   in r { healthR = max 0 (healthR r - totalDaño) }
+              else r
+            | r <- rs
+            ]
+
+          -- Crear explosiones visuales en los impactos
+          nuevasExplosiones =
+            [ Explosion pos (30, 0) 0.6
+                (RobotHitByProjectile rid pid dmg pos)
+            | (rid, pid, dmg, pos) <- impactos
+            ]
+
+          -- Eliminar proyectiles que impactaron
+          psRestantes =
+            [ p
+            | p <- psMovidos
+            , not (any (\(_, pid, _, _) -> pid == idP p) impactos)
+            ]
+
+          -- Actualizar explosiones activas (reducir duración)
+          expsAct =
+            [ Explosion pos size (ttl - dt) src
+            | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones
             , ttl - dt > 0
             ]
-      in m { worldState = w { projectiles = psFinales }, explosiones = expsActualizadas }
-  where
-    procesarProyectil :: [Robot] -> Projectile -> ([Projectile], [Explosion]) -> ([Projectile], [Explosion])
-    procesarProyectil rs p (accP, accE) =
-      let pos = position (commonP p)
-          hit = any (\r -> idR r /= idP p && circleAABB pos chicleRadius (ninoBox r)) rs
-      in if hit
-           then (accP, Explosion pos (30, 0) 0.6 (RobotHitByProjectile (idP p) (idP p) (damageP p) pos) : accE)
-           else (p : accP, accE)
+
+          w' = w { robots = rsDanyados, projectiles = psRestantes }
+
+      in m { worldState = w', explosiones = expsAct }

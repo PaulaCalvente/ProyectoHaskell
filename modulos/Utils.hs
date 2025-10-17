@@ -138,3 +138,40 @@ dentroBoton (mx, my) =
 -- ================================
 
 data ModoJuego = Inicio | Jugando deriving (Show, Eq)
+
+------------------------------------------------------------
+-- BARRAS DE VIDA ❤️
+------------------------------------------------------------
+
+-- Dibuja una barra de vida individual para un niño
+dibujarBarraVida :: Robot -> Int -> Picture
+dibujarBarraVida r idx =
+  let vida = healthR r
+      anchoTotal = 120
+      altoBarra  = 16
+      anchoVida  = max 0 (min 1 (vida / 100)) * anchoTotal
+      colorN     = colorJugador r
+      posX       = fromIntegral idx * 150 - 300
+      posY       = 260
+  in Translate posX posY $
+       Pictures
+         [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
+         , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra
+         , Translate (-(anchoTotal - anchoVida)/2) 0 $
+             Color colorN $ rectangleSolid anchoVida altoBarra
+         , Translate (-40) 20 $ Scale 0.15 0.15 $
+             Color black $ Text ("Niño " ++ show (idR r))
+         ]
+
+-- Dibuja todas las barras de vida en la parte superior
+dibujarHUD :: [Robot] -> Picture
+dibujarHUD rs = Pictures [ dibujarBarraVida r i | (i, r) <- zip [1..] rs ]
+
+-- Colores coherentes para cada jugador
+colorJugador :: Robot -> Color
+colorJugador r = case idR r of
+  1 -> orange
+  2 -> blue
+  3 -> red
+  4 -> green
+  _ -> white
