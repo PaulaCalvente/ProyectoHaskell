@@ -140,25 +140,22 @@ moverRobots dx dy m = m { worldState = w' }
 dispararTodos :: World -> World
 dispararTodos w = w { projectiles = nuevos ++ projectiles w }
   where
-    nuevos = 
+    nuevos =
       [ Projectile
           { idP = idR r
-          , commonP = (commonP (projectileT (turret r))) 
-                      { position = (x + offset, y + 10)
-                      , velocity = (vx, 0)
-                      }
+          , commonP = (commonP (projectileT (turret r)))
+              { position = (x + 10 + offset, y + 28)  -- ⬅️ sale desde la boca/pajita
+              , velocity = (vx, 0)
+              }
           , damageP = damageR r
           , rangeP = 1000
           }
       | (i, r) <- zip [0..] (robots w)
-      , let (x, y) = position (commonR r)
-            vx = if even i then velChicleVel else -velChicleVel
+      , let (x, y) = position (commonR r)            -- ⬅️ leemos posición del niño
+            vx     = if even i then velChicleVel else -velChicleVel
             offset = if even i then 20 else -20
       ]
 
--- ================================
--- Actualización
--- ================================
 
 -- ================================
 -- Actualización + Daño

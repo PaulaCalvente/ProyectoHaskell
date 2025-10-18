@@ -13,7 +13,7 @@ import Utils
 {-
 myWorld :: World
 myWorld = World
-  { robots =
+  { robots =    
       [ Robot
           { idR = 1
           , commonR = CommonData 1 10 (0, 0) (0, 0) (10, 10) [(0,0)]

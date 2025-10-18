@@ -84,7 +84,7 @@ dibujarProfe (x,y) = Translate x y $ Pictures
   ]
 
 dibujarNino :: Robot -> Picture
-dibujarNino r = 
+dibujarNino r =
   let (x, y) = position (commonR r)
       c = case idR r of
             1 -> orange
@@ -92,16 +92,39 @@ dibujarNino r =
             3 -> red
             4 -> green
             _ -> white
+      ang = angleT (turret r)
+      rad = deg2rad ang
+      -- longitud y grosor de la pajita
+      len = 25
+      grosor = 4
+      -- posición base (boca del niño)
+      mouthPos = (10, 28)  -- un poco a la derecha de la cabeza
+      (mx, my) = mouthPos
+      -- punta de la pajita (desde la boca)
+      strawEnd = (mx + cos rad * len, my + sin rad * len)
+      -- color de la pajita
+      strawColor = makeColorI 200 200 200 255
   in Translate x y $ Pictures
-     [ Color c $ rectangleSolid 40 50
-     , Translate 0 35 $ Color (makeColorI 255 220 180 255) $ rectangleSolid 30 30
-     , Translate 0 50 $ Color (makeColorI 90 60 20 255) $ rectangleSolid 32 8
-     , Translate (-8) 40 $ Color black $ circleSolid 2.5
-     , Translate (8) 40 $ Color black $ circleSolid 2.5
-     , Translate 0 28 $ Color red $ rectangleSolid 8 2
-     , Translate 0 (-45) $ Color black $ rectangleSolid 30 10
-     , Translate 18 28 $ Color (makeColorI 180 60 180 230) $ circleSolid 6
-     ]
+       [ -- cuerpo
+         Color c $ rectangleSolid 40 50
+         -- cabeza
+       , Translate 0 35 $ Color (makeColorI 255 220 180 255) $ rectangleSolid 30 30
+         -- pelo
+       , Translate 0 50 $ Color (makeColorI 90 60 20 255) $ rectangleSolid 32 8
+         -- ojos y boca
+       , Translate (-8) 40 $ Color black $ circleSolid 2.5
+       , Translate (8) 40 $ Color black $ circleSolid 2.5
+       , Translate 0 28 $ Color red $ rectangleSolid 8 2
+         -- zapatos
+       , Translate 0 (-45) $ Color black $ rectangleSolid 30 10
+         -- rubor o detalle
+       , Translate 18 28 $ Color (makeColorI 180 60 180 230) $ circleSolid 6
+         -- ✅ Pajita que sale de la boca
+       , Translate mx my $
+           Color strawColor $
+             Rotate (-ang) $
+               Translate (len/2) 0 $ rectangleSolid len grosor
+       ]
 
 dibujarChicle :: Projectile -> Picture
 dibujarChicle p = 
@@ -155,7 +178,7 @@ dibujarBarraVida r idx =
          , Translate (-(anchoTotal - anchoVida)/2) 0 $
              Color colorN $ rectangleSolid anchoVida altoBarra
          , Translate (-40) 20 $ Scale 0.15 0.15 $
-             Color black $ Text ("Niño " ++ show (idR r))
+             Color black $ Text ("Alumno " ++ show (idR r))
          ]
 
 -- Dibuja todas las barras de vida en la parte superior
