@@ -42,9 +42,6 @@ isInBounds :: Point -> Size -> Bool
 isInBounds (x, y) (width, height) =
   x >= 0 && x <= width && y >= 0 && y <= height
 
-
-
-
 -----------------------------------------------------------------------------
 
 -- FUNCIONES NECESARIAS PARA HAUS5
@@ -64,17 +61,16 @@ chicleRadius = 10
 
 circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
 circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
-  let clx = max minx (min cx maxx)
-      cly = max miny (min cy maxy)
-      dx  = cx - clx
-      dy  = cy - cly
-  in dx*dx + dy*dy <= r*r
+  dx*dx + dy*dy <= r*r
+  where clx = max minx (min cx maxx)
+        cly = max miny (min cy maxy)
+        dx  = cx - clx
+        dy  = cy - cly
 
 ninoBox :: Robot -> ((Float,Float),(Float,Float))
 ninoBox r = 
   let (x, y) = position (commonR r)
   in ((x-20,y-25),(x+20,y+25))
-
 
 dibujarProfe :: (Float, Float) -> Picture
 dibujarProfe (x,y) = Translate x y $ Pictures
@@ -86,7 +82,6 @@ dibujarProfe (x,y) = Translate x y $ Pictures
   , Translate (10) 45 $ Color black $ circleSolid 3
   , Translate 0 32 $ Color red $ rectangleSolid 10 3
   ]
-
 
 dibujarNino :: Robot -> Picture
 dibujarNino r = 
@@ -137,7 +132,7 @@ dentroBoton (mx, my) =
 -- Estado del juego
 -- ================================
 
-data ModoJuego = Inicio | Jugando deriving (Show, Eq)
+data Modo = Inicio | Jugando | Victoria Int deriving (Eq, Show)
 
 ------------------------------------------------------------
 -- BARRAS DE VIDA ❤️

@@ -8,9 +8,10 @@ import Utils
 -- Estado que usa Gloss
 data MundoGloss = MundoGloss
   { worldState   :: World
-  , modo         :: ModoJuego
+  , modo         :: Modo
   , imagenInicio :: Picture
   , fondoJuego   :: Picture
+  , imagenVictoria :: Picture
   , explosiones  :: [Explosion]
   }
 
@@ -18,8 +19,8 @@ data MundoGloss = MundoGloss
 -- Estado inicial
 -- ================================
 
-estadoInicial :: Picture -> Picture -> MundoGloss
-estadoInicial inicio fondo = MundoGloss
+estadoInicial :: Picture -> Picture -> Picture -> MundoGloss
+estadoInicial inicio fondo victoria = MundoGloss
   { worldState = World
       { robots =
           [ Robot
@@ -66,6 +67,7 @@ estadoInicial inicio fondo = MundoGloss
   , modo = Inicio
   , imagenInicio = inicio
   , fondoJuego = fondo
+  , imagenVictoria = victoria
   , explosiones = []
   }
 
@@ -84,15 +86,25 @@ proyectilBase i = Projectile
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
   Inicio  -> Pictures [imagenInicio m, dibujarBoton]
+
   Jugando ->
     let w = worldState m
     in Pictures
       [ fondoJuego m
       , dibujarProfe (0, 160)
-      , dibujarHUD (robots w)                   -- 🔹 Añadido: dibuja las barras de vida
+      , dibujarHUD (robots w)
       , Pictures (map dibujarNino (robots w))
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
+      ]
+
+  Victoria rid ->
+    Pictures
+      [ imagenVictoria m
+      , Translate (-240) (135) $
+          Scale 0.27 0.27 $
+          Color black $
+          Text ( "Alumno " ++ show rid ++ " es el ganador")
       ]
 
 
@@ -211,4 +223,10 @@ actualizar dt m
 
           w' = w { robots = rsDanyados, projectiles = psRestantes }
 
-      in m { worldState = w', explosiones = expsAct }
+          -- Contar robots vivos
+          vivos = [ r | r <- rsDanyados, healthR r > 0 ]
+
+      in case vivos of
+          [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo) }
+          _        -> m { worldState = w', explosiones = expsAct }
+
