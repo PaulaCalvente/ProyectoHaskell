@@ -55,8 +55,8 @@ exampleBot world myId
 
 main :: IO ()
 main = do
-  inicio <- loadBMP "inicio.bmp"
-  clase  <- loadBMP "clase.bmp"
+  inicio <- loadBMP "imagenes/inicio.bmp"
+  clase  <- loadBMP "imagenes/clase.bmp"
   play
     (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
     white
