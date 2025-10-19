@@ -204,14 +204,20 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       altoBarra   = 14
       anchoVida   = max 0 (min 1 (vida / 100)) * anchoTotal
       colorN      = colorJugador r
-      -- posiciones ajustadas para quedar dentro del panel pegado al borde
       baseY       = (panelY + 60) - fromIntegral idx * 45
       baseX       = panelX - 85
+
+      -- ✨ Animación de parpadeo cuando muere
+      parpadeo    = if vida <= 0 then sin (fromIntegral (idR r) * 10) else 1
+      colorTexto  = if vida <= 0
+                    then makeColor 1 (0.2 + 0.2 * parpadeo) (0.2 + 0.2 * parpadeo) 1
+                    else white
+      nombreTxt   = if vida <= 0
+                    then "Alumno " ++ show (idR r) ++ "  ❌"
+                    else "Alumno " ++ show (idR r)
   in Pictures
        [ Translate baseX (baseY + 10) $
-           Scale 0.15 0.15 $
-             Color white $
-               Text ("Alumno " ++ show (idR r))
+           Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt
        , Translate (panelX - 15) baseY $
            Pictures
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
@@ -220,3 +226,4 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
                  Color colorN $ rectangleSolid anchoVida altoBarra
              ]
        ]
+

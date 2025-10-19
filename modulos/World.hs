@@ -31,7 +31,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               , radarRange = 0
               , turret = Turret 1 (1, 0) 0 (proyectilBase 1) 0 0
               , haveExploded = False
-              , damageR = 10
+              , damageR = 20
               }
           , Robot
               { idR = 2
@@ -49,7 +49,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               , radarRange = 0
               , turret = Turret 3 (1, 0) 0 (proyectilBase 3) 0 0
               , haveExploded = False
-              , damageR = 10
+              , damageR = 20
               }
           , Robot
               { idR = 4
@@ -137,7 +137,7 @@ dibujarPutInfo m =
 
       infoLines =
         [ "INFORMACION"
-        , "Alumnos vivos: " ++ show vivos ++ " / " ++ show total
+        , "Alumnos vivos: " ++ show vivos
         , "Chicles activos: " ++ show proyectilesActivos
         , "Explosiones: " ++ show exps
         ]
@@ -226,14 +226,16 @@ actualizar dt m
             , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
             ]
 
-          -- Detectar colisiones
+          -- 💥 Detectar colisiones solo con los alumnos vivos
           impactos =
             [ (idR r, idP p, damageP p, position (commonP p))
             | r <- rs
+            , healthR r > 0                   -- ✅ solo colisionan los vivos
             , p <- psMovidos
             , idR r /= idP p
             , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
             ]
+
 
           -- Reducir vida de los niños golpeados
           rsDanyados =
@@ -280,11 +282,15 @@ actualizar dt m
             , ttl - dt > 0
             ]
 
+          -- 💡 Mantenemos también los eliminados para que su barra siga visible
+          w' = w { robots = rsDanyados, projectiles = psRestantes }
+
+          -- Pero solo cuentan como "vivos" los que tienen vida > 0
           vivos = [ r | r <- rsDanyados, healthR r > 0 ]
-          w' = w { robots = vivos, projectiles = psRestantes }
 
       in case vivos of
           [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo) }
-          []      -> m { worldState = w', explosiones = expsAct, modo = Victoria 0 }
+          []       -> m { worldState = w', explosiones = expsAct, modo = Victoria 0 }
           _        -> m { worldState = w', explosiones = expsAct }
+
 
