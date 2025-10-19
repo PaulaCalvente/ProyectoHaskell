@@ -109,6 +109,13 @@ data Explosion = Explosion
   , source     :: RobotHit -- Indicamos de donde ha venido la explosion
   } deriving (Show, Eq)
 
+-- Burbuja temporal al morir un alumno
+data BurbujaMuerte = BurbujaMuerte
+  { posBurbuja :: Position
+  , ttlBurbuja :: Float   -- tiempo de vida restante (segundos)
+  } deriving (Show, Eq)
+
+
 -- Velocidad base por defecto
 baseSpeed :: Float
 baseSpeed = 5.0
