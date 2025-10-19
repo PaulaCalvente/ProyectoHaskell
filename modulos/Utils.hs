@@ -94,32 +94,21 @@ dibujarNino r =
             _ -> white
       ang = angleT (turret r)
       rad = deg2rad ang
-      -- longitud y grosor de la pajita
       len = 25
       grosor = 4
-      -- posición base (boca del niño)
-      mouthPos = (10, 28)  -- un poco a la derecha de la cabeza
+      mouthPos = (10, 28)
       (mx, my) = mouthPos
-      -- punta de la pajita (desde la boca)
       strawEnd = (mx + cos rad * len, my + sin rad * len)
-      -- color de la pajita
       strawColor = makeColorI 200 200 200 255
   in Translate x y $ Pictures
-       [ -- cuerpo
-         Color c $ rectangleSolid 40 50
-         -- cabeza
+       [ Color c $ rectangleSolid 40 50
        , Translate 0 35 $ Color (makeColorI 255 220 180 255) $ rectangleSolid 30 30
-         -- pelo
        , Translate 0 50 $ Color (makeColorI 90 60 20 255) $ rectangleSolid 32 8
-         -- ojos y boca
        , Translate (-8) 40 $ Color black $ circleSolid 2.5
        , Translate (8) 40 $ Color black $ circleSolid 2.5
        , Translate 0 28 $ Color red $ rectangleSolid 8 2
-         -- zapatos
        , Translate 0 (-45) $ Color black $ rectangleSolid 30 10
-         -- rubor o detalle
        , Translate 18 28 $ Color (makeColorI 180 60 180 230) $ circleSolid 6
-         -- ✅ Pajita que sale de la boca
        , Translate mx my $
            Color strawColor $
              Rotate (-ang) $
@@ -161,30 +150,6 @@ data Modo = Inicio | Jugando | Victoria Int deriving (Eq, Show)
 -- BARRAS DE VIDA ❤️
 ------------------------------------------------------------
 
--- Dibuja una barra de vida individual para un niño
-dibujarBarraVida :: Robot -> Int -> Picture
-dibujarBarraVida r idx =
-  let vida = healthR r
-      anchoTotal = 120
-      altoBarra  = 16
-      anchoVida  = max 0 (min 1 (vida / 100)) * anchoTotal
-      colorN     = colorJugador r
-      posX       = fromIntegral idx * 150 - 300
-      posY       = 260
-  in Translate posX posY $
-       Pictures
-         [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
-         , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra
-         , Translate (-(anchoTotal - anchoVida)/2) 0 $
-             Color colorN $ rectangleSolid anchoVida altoBarra
-         , Translate (-40) 20 $ Scale 0.15 0.15 $
-             Color black $ Text ("Alumno " ++ show (idR r))
-         ]
-
--- Dibuja todas las barras de vida en la parte superior
-dibujarHUD :: [Robot] -> Picture
-dibujarHUD rs = Pictures [ dibujarBarraVida r i | (i, r) <- zip [1..] rs ]
-
 -- Colores coherentes para cada jugador
 colorJugador :: Robot -> Color
 colorJugador r = case idR r of
@@ -193,3 +158,50 @@ colorJugador r = case idR r of
   3 -> red
   4 -> green
   _ -> white
+
+------------------------------------------------------------
+-- PANEL IZQUIERDO: HUD (pegado totalmente al borde)
+------------------------------------------------------------
+dibujarHUD :: [Robot] -> Picture
+dibujarHUD rs =
+  let num = length rs
+      panelW = 200
+      panelH = fromIntegral num * 45 + 40
+      -- 💡 Ahora completamente pegado al borde izquierdo
+      panelX = -ancho / 2 + panelW / 2 - 10
+      panelY = alto / 2 - panelH / 2 - 20
+
+      fondo = Color (makeColor 0 0 0 0.4) $
+                 Translate panelX panelY $
+                   rectangleSolid panelW panelH
+
+      barras = Pictures
+        [ dibujarBarraVidaVerticalAt panelX panelY r i
+        | (i, r) <- zip [0..] rs ]
+  in Pictures [fondo, barras]
+
+
+-- Barra con su etiqueta encima (misma organización, solo desplazada)
+dibujarBarraVidaVerticalAt :: Float -> Float -> Robot -> Int -> Picture
+dibujarBarraVidaVerticalAt panelX panelY r idx =
+  let vida        = healthR r
+      anchoTotal  = 120
+      altoBarra   = 14
+      anchoVida   = max 0 (min 1 (vida / 100)) * anchoTotal
+      colorN      = colorJugador r
+      -- posiciones ajustadas para quedar dentro del panel pegado al borde
+      baseY       = (panelY + 60) - fromIntegral idx * 45
+      baseX       = panelX - 85
+  in Pictures
+       [ Translate baseX (baseY + 10) $
+           Scale 0.15 0.15 $
+             Color white $
+               Text ("Alumno " ++ show (idR r))
+       , Translate (panelX - 15) baseY $
+           Pictures
+             [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
+             , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra
+             , Translate (-(anchoTotal - anchoVida)/2) 0 $
+                 Color colorN $ rectangleSolid anchoVida altoBarra
+             ]
+       ]

@@ -85,48 +85,85 @@ proyectilBase i = Projectile
 
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
-  Inicio  -> Pictures [imagenInicio m, dibujarBoton]
-
+  Inicio  -> Pictures
+    [ imagenInicio m
+    , dibujarBoton
+    ]  -- ← sin PUTINFO aquí para no tapar el título
   Jugando ->
     let w = worldState m
     in Pictures
       [ fondoJuego m
       , dibujarProfe (0, 160)
-      , dibujarHUD (robots w)
       , Pictures (map dibujarNino (robots w))
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
+      , dibujarHUD (robots w)   -- ← arriba
+      , dibujarPutInfo m        -- ← arriba
       ]
+
 
   Victoria rid ->
     Pictures
       [ imagenVictoria m
+      , dibujarPutInfo m
       , Translate (-240) (135) $
           Scale 0.27 0.27 $
           Color black $
-          Text ( "Alumno " ++ show rid ++ " es el ganador")
+          Text ("Alumno " ++ show rid ++ " es el ganador")
       ]
+
+-- ================================
+-- PUTINFO (esquina superior derecha)
+-- ================================
+dibujarPutInfo :: MundoGloss -> Picture
+dibujarPutInfo m =
+  let w = worldState m
+      vivos = length [ r | r <- robots w, healthR r > 0 ]
+      total = length (robots w)
+      proyectilesActivos = length (projectiles w)
+      exps = length (explosiones m)
+
+      infoLines =
+        [ "INFORMACION"
+        , "Alumnos vivos: " ++ show vivos ++ " / " ++ show total
+        , "Chicles activos: " ++ show proyectilesActivos
+        , "Explosiones: " ++ show exps
+        ]
+
+      fondo = Color (makeColor 0 0 0 0.4) $
+                Translate 220 235 $
+                  rectangleSolid 250 100
+
+      linePictures =
+        [ Translate 130 (260 - fromIntegral i * 25)
+            $ Scale 0.15 0.15
+            $ Color white
+            $ Text line
+        | (i, line) <- zip [0..] infoLines
+        ]
+  in Pictures (fondo : linePictures)
 
 
 -- ================================
 -- Eventos
 -- ================================
-
 manejarEvento :: Event -> MundoGloss -> MundoGloss
+-- ✅ Mantiene el clic en el botón de inicio
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | otherwise = m
 
+-- ✅ Mantiene la tecla Espacio para disparar
 manejarEvento (EventKey (SpecialKey KeySpace) Down _ _) m
   | modo m == Jugando = m { worldState = dispararTodos (worldState m) }
-manejarEvento (EventKey (SpecialKey KeyUp) Down _ _) m
-  | modo m == Jugando = moverRobots 0 10 m
-manejarEvento (EventKey (SpecialKey KeyDown) Down _ _) m
-  | modo m == Jugando = moverRobots 0 (-10) m
-manejarEvento (EventKey (SpecialKey KeyLeft) Down _ _) m
-  | modo m == Jugando = moverRobots (-10) 0 m
-manejarEvento (EventKey (SpecialKey KeyRight) Down _ _) m
-  | modo m == Jugando = moverRobots 10 0 m
+
+-- 🚫 Quitamos movimiento con flechas (no se mueven más)
+manejarEvento (EventKey (SpecialKey KeyUp) Down _ _) m = m
+manejarEvento (EventKey (SpecialKey KeyDown) Down _ _) m = m
+manejarEvento (EventKey (SpecialKey KeyLeft) Down _ _) m = m
+manejarEvento (EventKey (SpecialKey KeyRight) Down _ _) m = m
+
+-- 🔹 Cualquier otro evento se ignora
 manejarEvento _ m = m
 
 moverRobots :: Float -> Float -> MundoGloss -> MundoGloss
