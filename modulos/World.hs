@@ -262,5 +262,6 @@ actualizar dt m
 
       in case vivos of
           [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo) }
+          []      -> m { worldState = w', explosiones = expsAct, modo = Victcd .. oria 0 }
           _        -> m { worldState = w', explosiones = expsAct }
 

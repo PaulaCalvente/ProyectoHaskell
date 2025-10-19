@@ -147,7 +147,7 @@ dentroBoton (mx, my) =
 data Modo = Inicio | Jugando | Victoria Int deriving (Eq, Show)
 
 ------------------------------------------------------------
--- BARRAS DE VIDA ❤️
+-- BARRAS DE VIDA 
 ------------------------------------------------------------
 
 -- Colores coherentes para cada jugador

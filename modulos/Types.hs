@@ -66,6 +66,7 @@ data Action
   deriving (Show, Eq)
 
 -- Datos del robot
+
 data Robot = Robot
   { idR          :: Id
   , commonR      :: CommonData Float
