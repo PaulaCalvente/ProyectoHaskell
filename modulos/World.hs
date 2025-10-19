@@ -208,19 +208,97 @@ dispararTodos w = w { projectiles = nuevos ++ projectiles w }
 -- ================================
 -- Actualización + Daño
 -- ================================
+-- Limita una posición dentro de la ventana (tamaño aprox. del niño: 40x50)
+clampDentro :: (Float,Float) -> (Float,Float)
+clampDentro (x,y) =
+  let halfW = ancho/2
+      halfH = alto/2
+      -- margen para que no se corten en el borde (mitades del sprite)
+      x' = max (-halfW + 20) (min (halfW - 20) x)
+      y' = max (-halfH + 25) (min (halfH - 25) y)
+  in (x', y')
+
+-- Comportamiento por robot (muy simple):
+-- 1: quieto (dispara en pasoShooting)
+-- 2: camina a la derecha (dispara en pasoShooting)
+-- 3: camina lento a la derecha (no dispara)
+-- 4: quieto
+comportamientoNino :: Float -> Robot -> Robot
+comportamientoNino _dt r =
+  case idR r of
+    1 -> r
+    2 -> mover ( 1.0, 0) r
+    3 -> mover ( 0.5, 0) r
+    4 -> r
+    _ -> r
+  where
+    mover (vx,vy) rob =
+      let (x,y) = position (commonR rob)
+          pos'  = clampDentro (x+vx, y+vy)
+      in rob { commonR = (commonR rob) { position = pos' } }
+
+-- Qué robots disparan automáticamente 
+robotQuiereDisparar :: Robot -> Bool
+robotQuiereDisparar r = idR r == 1 || idR r == 2
+
+-- Disparo automático con cooldown.
+-- Si shoot <= 0, el robot está vivo y quiere disparar: crea proyectil horizontal (según vectorT) y reinicia cooldown.
+-- Devuelve (robotsActualizados, proyectilesNuevos).
+pasoShooting :: Float -> [Robot] -> ([Robot], [Projectile])
+pasoShooting dt rs = loop rs [] []
+  where
+    cooldown = 0.6  -- ~un disparo cada 0.6 s
+
+    loop [] accR accP = (reverse accR, reverse accP)
+    loop (r:xs) accR accP =
+      let t0  = shoot (turret r)
+          t1  = max 0 (t0 - dt)
+          rCD = r { turret = (turret r) { shoot = t1 } }
+      in
+        if healthR rCD <= 0 || not (robotQuiereDisparar rCD)
+          then loop xs (rCD:accR) accP                         -- no dispara (muerto o no quiere)
+          else if t1 > 0
+            then loop xs (rCD:accR) accP                       -- en cooldown
+            else
+              -- Disparo horizontal según vectorT de la torreta
+              let (x,y)   = position (commonR rCD)
+                  (vx,vy) = vectorT (turret rCD)
+                  vproj   = (vx * velChicleVel, vy * velChicleVel)
+                  offX    = if vx >= 0 then 20 else -20        -- frente a la "boca"
+                  p = Projectile
+                        { idP     = idR rCD
+                        , commonP = (commonP (projectileT (turret rCD)))
+                                      { position = (x + offX, y + 28)
+                                      , velocity = vproj
+                                      }
+                        , damageP = damageR rCD
+                        , rangeP  = 1000
+                        }
+                  r' = rCD { turret = (turret rCD) { shoot = cooldown } }
+              in loop xs (r':accR) (p:accP)
+
+
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
   | otherwise =
       let w = worldState m
-          rs = robots w
-          ps = projectiles w
+
+          -- movimiento autónomo y límites (todos)
+          rs0 = robots w
+          rs1 = map (comportamientoNino dt) rs0
+
+          -- disparo automático con cooldown (solo vivos disparan internamente)
+          (rs2, nuevosProj) = pasoShooting dt rs1
+
+          -- (proyectiles antes de mover
+          ps0 = projectiles w ++ nuevosProj
 
           -- Mover proyectiles
           psMovidos =
             [ p { commonP = (commonP p)
                     { position = (x + vx * dt, y + vy * dt) } }
-            | p <- ps
+            | p <- ps0
             , let (x, y) = position (commonP p)
                   (vx, vy) = velocity (commonP p)
             , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
@@ -229,8 +307,8 @@ actualizar dt m
           -- 💥 Detectar colisiones solo con los alumnos vivos
           impactos =
             [ (idR r, idP p, damageP p, position (commonP p))
-            | r <- rs
-            , healthR r > 0                   -- ✅ solo colisionan los vivos
+            | r <- rs2
+            , healthR r > 0                   
             , p <- psMovidos
             , idR r /= idP p
             , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
@@ -243,7 +321,7 @@ actualizar dt m
               then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
                    in r { healthR = max 0 (healthR r - totalDaño) }
               else r
-            | r <- rs
+            | r <- rs2
             ]
 
           -- Crear explosiones visuales
