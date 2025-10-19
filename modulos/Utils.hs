@@ -196,7 +196,8 @@ dibujarHUD rs =
   in Pictures [fondo, barras]
 
 
--- Barra con su etiqueta encima (misma organización, solo desplazada)
+-- Barra con su etiqueta encima y "(vida) HP" a la derecha
+-- Barra con su etiqueta encima y "(vida) HP" claramente a la derecha
 dibujarBarraVidaVerticalAt :: Float -> Float -> Robot -> Int -> Picture
 dibujarBarraVidaVerticalAt panelX panelY r idx =
   let vida        = healthR r
@@ -205,7 +206,6 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       anchoVida   = max 0 (min 1 (vida / 100)) * anchoTotal
       colorN      = colorJugador r
       baseY       = (panelY + 60) - fromIntegral idx * 45
-      baseX       = panelX - 85
 
       -- ✨ Animación de parpadeo cuando muere
       parpadeo    = if vida <= 0 then sin (fromIntegral (idR r) * 10) else 1
@@ -215,9 +215,17 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       nombreTxt   = if vida <= 0
                     then "Alumno " ++ show (idR r) ++ "  ❌"
                     else "Alumno " ++ show (idR r)
+
+      -- ✅ Texto simple: "(vida) HP"
+      vidaTxt = show (round vida)
+      -- Posición claramente a la derecha de la barra
+      vidaX = panelX + 60  -- ← clave: fuera de la barra
   in Pictures
-       [ Translate baseX (baseY + 10) $
+       [ -- Nombre del alumno
+         Translate (panelX - 85) (baseY + 10) $
            Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt
+
+         -- Barra de vida
        , Translate (panelX - 15) baseY $
            Pictures
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
@@ -225,5 +233,8 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
              , Translate (-(anchoTotal - anchoVida)/2) 0 $
                  Color colorN $ rectangleSolid anchoVida altoBarra
              ]
-       ]
 
+         -- 💡 Texto de vida, bien a la derecha
+       , Translate vidaX (baseY - 2) $
+           Scale 0.15 0.15 $ Color white $ Text vidaTxt
+       ]

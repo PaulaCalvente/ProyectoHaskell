@@ -1,9 +1,10 @@
 module World where
 
-import Graphics.Gloss
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss hiding (Vector, Point)
+import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
 import Types
 import Utils
+import Movement (positionR, isRobotAlive, detectedAgent)
 
 -- Estado que usa Gloss
 data MundoGloss = MundoGloss
@@ -13,8 +14,15 @@ data MundoGloss = MundoGloss
   , fondoJuego     :: Picture
   , imagenVictoria :: Picture
   , explosiones    :: [Explosion]
-  , burbujas       :: [BurbujaMuerte]   -- 💥 nuevo campo
+  , burbujas       :: [BurbujaMuerte]
   }
+
+-- Genera 4 puntos de patrulla únicos por robot (determinista)
+generarPuntosPatrulla :: Id -> [Position]
+generarPuntosPatrulla id = take 4 $ zip xs ys
+  where
+    xs = [ fromIntegral ((id * i * 123 + i^2) `mod` 500) - 250 | i <- [1..] ]
+    ys = [ fromIntegral ((id * i * 456 + i^3) `mod` 500) - 250 | i <- [1..] ]
 
 -- ================================
 -- Estado inicial
@@ -24,39 +32,55 @@ estadoInicial :: Picture -> Picture -> Picture -> MundoGloss
 estadoInicial inicio fondo victoria = MundoGloss
   { worldState = World
       { robots =
-          [ Robot
+          [ -- Alumno 1: Speedster
+            Robot
               { idR = 1
-              , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) []
-              , healthR = 100
-              , radarRange = 0
-              , turret = Turret 1 (1, 0) 0 (proyectilBase 1) 0 0
+              , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 1)
+              , healthR = 70
+              , radarRange = 120
+              , turret = Turret 1 (1, 0) 0 
+                  (Projectile 1 (CommonData 1 0 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 8 1000)
+                  0    -- turretAction
+                  0.6  -- shoot
               , haveExploded = False
-              , damageR = 20
+              , damageR = 8
               }
-          , Robot
+          , -- Alumno 2: Tank
+            Robot
               { idR = 2
-              , commonR = CommonData 2 0 (150, -100) (0, 0) (40, 50) []
-              , healthR = 100
-              , radarRange = 0
-              , turret = Turret 2 (-1, 0) 180 (proyectilBase 2) 0 0
+              , commonR = CommonData 2 0 (150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 2)
+              , healthR = 180
+              , radarRange = 80
+              , turret = Turret 2 (-1, 0) 180 
+                  (Projectile 2 (CommonData 2 0 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 18 1000)
+                  0    -- turretAction
+                  1.6  -- shoot
               , haveExploded = False
-              , damageR = 10
+              , damageR = 18
               }
-          , Robot
+          , -- Alumno 3: Soporte
+            Robot
               { idR = 3
-              , commonR = CommonData 3 0 (-150, 50) (0, 0) (40, 50) []
-              , healthR = 100
-              , radarRange = 0
-              , turret = Turret 3 (1, 0) 0 (proyectilBase 3) 0 0
+              , commonR = CommonData 3 0 (-150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 3)
+              , healthR = 110
+              , radarRange = 160
+              , turret = Turret 3 (1, 0) 0 
+                  (Projectile 3 (CommonData 3 0 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 6 1000)
+                  0    -- turretAction
+                  1.2  -- shoot
               , haveExploded = False
-              , damageR = 20
+              , damageR = 6
               }
-          , Robot
+          , -- Alumno 4: All-rounder
+            Robot
               { idR = 4
-              , commonR = CommonData 4 0 (150, 50) (0, 0) (40, 50) []
-              , healthR = 100
-              , radarRange = 0
-              , turret = Turret 4 (-1, 0) 180 (proyectilBase 4) 0 0
+              , commonR = CommonData 4 0 (150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 4)
+              , healthR = 110
+              , radarRange = 120
+              , turret = Turret 4 (-1, 0) 180 
+                  (Projectile 4 (CommonData 4 0 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 10 1000)
+                  0    -- turretAction
+                  0.9  -- shoot
               , haveExploded = False
               , damageR = 10
               }
@@ -70,7 +94,7 @@ estadoInicial inicio fondo victoria = MundoGloss
   , fondoJuego = fondo
   , imagenVictoria = victoria
   , explosiones = []
-  , burbujas = []    -- 💥 añadido
+  , burbujas = []
   }
 
 proyectilBase :: Id -> Projectile
@@ -86,34 +110,19 @@ proyectilBase i = Projectile
 -- ================================
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
-  -- Pantalla de inicio
-  Inicio  -> Pictures
-    [ imagenInicio m
-    , dibujarBoton
-    ]  -- No mostramos info aquí para no tapar el título
-
-  -- Pantalla de juego
+  Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
   Jugando ->
     let w = worldState m
     in Pictures
       [ fondoJuego m
       , dibujarProfe (0, 160)
-
-        -- 🧍‍♂️ Niños vivos
       , Pictures (map dibujarNino [r | r <- robots w, healthR r > 0])
-      
-        -- 🫧 Burbujas de niños eliminados (con animación)
       , Pictures (map dibujarBurbujaMuerte (burbujas m))
-
-
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
-
-      , dibujarHUD (robots w)   -- Panel de salud (izquierda)
-      , dibujarPutInfo m        -- Panel informativo (derecha)
+      , dibujarHUD (robots w)
+      , dibujarPutInfo m
       ]
-
-  -- Pantalla de victoria
   Victoria rid ->
     Pictures
       [ imagenVictoria m
@@ -125,65 +134,155 @@ dibujar m = case modo m of
       ]
 
 -- ================================
--- PUTINFO (esquina superior derecha)
+-- PUTINFO
 -- ================================
 dibujarPutInfo :: MundoGloss -> Picture
 dibujarPutInfo m =
   let w = worldState m
       vivos = length [ r | r <- robots w, healthR r > 0 ]
-      total = length (robots w)
       proyectilesActivos = length (projectiles w)
       exps = length (explosiones m)
-
-      infoLines =
-        [ "INFORMACION"
-        , "Alumnos vivos: " ++ show vivos
-        , "Chicles activos: " ++ show proyectilesActivos
-        , "Explosiones: " ++ show exps
-        ]
-
-      fondo = Color (makeColor 0 0 0 0.4) $
-                Translate 220 235 $
-                  rectangleSolid 250 100
-
-      linePictures =
-        [ Translate 130 (260 - fromIntegral i * 25)
-            $ Scale 0.15 0.15
-            $ Color white
-            $ Text line
-        | (i, line) <- zip [0..] infoLines
-        ]
+      infoLines = [ "INFORMACION", "Alumnos vivos: " ++ show vivos, "Chicles activos: " ++ show proyectilesActivos, "Explosiones: " ++ show exps ]
+      fondo = Color (makeColor 0 0 0 0.4) $ Translate 220 235 $ rectangleSolid 250 100
+      linePictures = [ Translate 130 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
   in Pictures (fondo : linePictures)
 
 -- ================================
 -- Eventos
 -- ================================
 manejarEvento :: Event -> MundoGloss -> MundoGloss
--- ✅ Mantiene el clic en el botón de inicio
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | otherwise = m
-
--- ✅ Mantiene la tecla Espacio para disparar
 manejarEvento (EventKey (SpecialKey KeySpace) Down _ _) m
   | modo m == Jugando = m { worldState = dispararTodos (worldState m) }
-
--- 🚫 Quitamos movimiento con flechas (no se mueven más)
-manejarEvento (EventKey (SpecialKey KeyUp) Down _ _) m = m
-manejarEvento (EventKey (SpecialKey KeyDown) Down _ _) m = m
-manejarEvento (EventKey (SpecialKey KeyLeft) Down _ _) m = m
-manejarEvento (EventKey (SpecialKey KeyRight) Down _ _) m = m
-
--- 🔹 Cualquier otro evento se ignora
 manejarEvento _ m = m
 
-moverRobots :: Float -> Float -> MundoGloss -> MundoGloss
-moverRobots dx dy m = m { worldState = w' }
+-- ================================
+-- Patrulla con puntos aleatorios
+-- ================================
+velocidadPorRol :: Id -> Float
+velocidadPorRol 1 = 220
+velocidadPorRol 2 = 60
+velocidadPorRol 3 = 100
+velocidadPorRol 4 = 120
+velocidadPorRol _ = 100
+
+-- Mueve el robot hacia el primer punto de su lista de patrulla
+comportamientoNino :: Float -> Robot -> Robot
+comportamientoNino dt r
+  | healthR r <= 0 = r
+  | otherwise =
+      let pts = points (commonR r)
+          vel = velocidadPorRol (idR r)
+          posActual = position (commonR r)
+      in if null pts
+           then r
+           else
+             let objetivo = head pts
+                 dist = distanceBetween posActual objetivo
+             in if dist < 20
+                  then
+                    let nuevosPts = tail pts ++ [head pts]
+                    in r { commonR = (commonR r) { points = nuevosPts } }
+                  else
+                    let ang = angleToTarget posActual objetivo
+                        rad = deg2rad ang
+                        dx = cos rad * vel * dt
+                        dy = sin rad * vel * dt
+                        nuevaPos = clampDentro (fst posActual + dx, snd posActual + dy)
+                    in r { commonR = (commonR r) { position = nuevaPos } }
+
+-- ================================
+-- Disparo condicional
+-- ================================
+robotQuiereDisparar :: World -> Robot -> Bool
+robotQuiereDisparar world me =
+  any (detectedAgent me) [r | r <- robots world, idR r /= idR me, isRobotAlive r]
+
+pasoShooting :: Float -> World -> ([Robot], [Projectile])
+pasoShooting dt world = loop (robots world) [] []
   where
-    w = worldState m
-    w' = w { robots = map mover (robots w) }
-    mover r = r { commonR = (commonR r) { position = (x + dx, y + dy) } }
-      where (x, y) = position (commonR r)
+    loop [] accR accP = (reverse accR, reverse accP)
+    loop (r:xs) accR accP =
+      let t0  = shoot (turret r)
+          t1  = max 0 (t0 - dt)
+          rCD = r { turret = (turret r) { shoot = t1 } }
+      in
+        if healthR rCD <= 0 || not (robotQuiereDisparar world rCD)
+          then loop xs (rCD:accR) accP
+          else if t1 > 0
+            then loop xs (rCD:accR) accP
+            else
+              let (x, y)   = position (commonR rCD)
+                  (baseVx, _) = velocity (commonP (projectileT (turret rCD)))
+                  vx = if baseVx >= 0 then abs baseVx else -abs baseVx
+                  offX = if vx >= 0 then 20 else -20
+                  p = Projectile
+                        { idP     = idR rCD
+                        , commonP = (commonP (projectileT (turret rCD)))
+                                      { position = (x + offX, y + 28)
+                                      , velocity = (vx, 0)
+                                      }
+                        , damageP = damageR rCD
+                        , rangeP  = 1000
+                        }
+                  cooldown = case idR rCD of
+                    1 -> 0.6
+                    2 -> 1.6
+                    3 -> 1.2
+                    4 -> 0.9
+                    _ -> 1.0
+                  r' = rCD { turret = (turret rCD) { shoot = cooldown } }
+              in loop xs (r':accR) (p:accP)
+
+-- ================================
+-- Apuntar torreta al enemigo más cercano
+-- ================================
+apuntarTorreta :: World -> Robot -> Robot
+apuntarTorreta world r
+  | healthR r <= 0 = r
+  | otherwise =
+      let enemigosVivos = [e | e <- robots world, idR e /= idR r, isRobotAlive e]
+          detectados = filter (detectedAgent r) enemigosVivos
+      in if null detectados
+           then r
+           else
+             let objetivo = head detectados
+                 ang = angleToTarget (positionR r) (positionR objetivo)
+                 rad = deg2rad ang
+                 vec = (cos rad, sin rad)
+             in r { turret = (turret r) { angleT = ang, vectorT = vec } }
+
+-- ================================
+-- Curación automática para el Soporte (Alumno 3)
+-- ================================
+curarSoporte :: Float -> Robot -> Robot
+curarSoporte dt r
+  | idR r /= 3 = r
+  | not (isRobotAlive r) = r
+  | nuevoTiempo >= 10 =
+      r { healthR = vidaNueva
+        , turret = (turret r) { turretAction = 0 }
+        }
+  | otherwise =
+      r { turret = (turret r) { turretAction = nuevoTiempo }
+        }
+  where
+    tiempoActual = turretAction (turret r)
+    nuevoTiempo  = tiempoActual + dt
+    vidaNueva    = min 110 (healthR r + 5)
+
+-- ================================
+-- Actualización
+-- ================================
+clampDentro :: (Float,Float) -> (Float,Float)
+clampDentro (x,y) =
+  let halfW = ancho/2
+      halfH = alto/2
+      x' = max (-halfW + 20) (min (halfW - 20) x)
+      y' = max (-halfH + 25) (min (halfH - 25) y)
+  in (x', y')
 
 dispararTodos :: World -> World
 dispararTodos w = w { projectiles = nuevos ++ projectiles w }
@@ -199,84 +298,11 @@ dispararTodos w = w { projectiles = nuevos ++ projectiles w }
           , rangeP = 1000
           }
       | (i, r) <- zip [0..] (robots w)
-      , healthR r > 0  -- ✅ solo disparan los vivos
+      , healthR r > 0
       , let (x, y) = position (commonR r)
             vx     = if even i then velChicleVel else -velChicleVel
             offset = if even i then 20 else -20
       ]
-
--- ================================
--- Actualización + Daño
--- ================================
--- Limita una posición dentro de la ventana (tamaño aprox. del niño: 40x50)
-clampDentro :: (Float,Float) -> (Float,Float)
-clampDentro (x,y) =
-  let halfW = ancho/2
-      halfH = alto/2
-      -- margen para que no se corten en el borde (mitades del sprite)
-      x' = max (-halfW + 20) (min (halfW - 20) x)
-      y' = max (-halfH + 25) (min (halfH - 25) y)
-  in (x', y')
-
--- Comportamiento por robot (muy simple):
--- 1: quieto (dispara en pasoShooting)
--- 2: camina a la derecha (dispara en pasoShooting)
--- 3: camina lento a la derecha (no dispara)
--- 4: quieto
-comportamientoNino :: Float -> Robot -> Robot
-comportamientoNino _dt r =
-  case idR r of
-    1 -> r
-    2 -> mover ( 1.0, 0) r
-    3 -> mover ( 0.5, 0) r
-    4 -> r
-    _ -> r
-  where
-    mover (vx,vy) rob =
-      let (x,y) = position (commonR rob)
-          pos'  = clampDentro (x+vx, y+vy)
-      in rob { commonR = (commonR rob) { position = pos' } }
-
--- Qué robots disparan automáticamente 
-robotQuiereDisparar :: Robot -> Bool
-robotQuiereDisparar r = idR r == 1 || idR r == 2
-
--- Disparo automático con cooldown.
--- Si shoot <= 0, el robot está vivo y quiere disparar: crea proyectil horizontal (según vectorT) y reinicia cooldown.
--- Devuelve (robotsActualizados, proyectilesNuevos).
-pasoShooting :: Float -> [Robot] -> ([Robot], [Projectile])
-pasoShooting dt rs = loop rs [] []
-  where
-    cooldown = 0.6  -- ~un disparo cada 0.6 s
-
-    loop [] accR accP = (reverse accR, reverse accP)
-    loop (r:xs) accR accP =
-      let t0  = shoot (turret r)
-          t1  = max 0 (t0 - dt)
-          rCD = r { turret = (turret r) { shoot = t1 } }
-      in
-        if healthR rCD <= 0 || not (robotQuiereDisparar rCD)
-          then loop xs (rCD:accR) accP                         -- no dispara (muerto o no quiere)
-          else if t1 > 0
-            then loop xs (rCD:accR) accP                       -- en cooldown
-            else
-              -- Disparo horizontal según vectorT de la torreta
-              let (x,y)   = position (commonR rCD)
-                  (vx,vy) = vectorT (turret rCD)
-                  vproj   = (vx * velChicleVel, vy * velChicleVel)
-                  offX    = if vx >= 0 then 20 else -20        -- frente a la "boca"
-                  p = Projectile
-                        { idP     = idR rCD
-                        , commonP = (commonP (projectileT (turret rCD)))
-                                      { position = (x + offX, y + 28)
-                                      , velocity = vproj
-                                      }
-                        , damageP = damageR rCD
-                        , rangeP  = 1000
-                        }
-                  r' = rCD { turret = (turret rCD) { shoot = cooldown } }
-              in loop xs (r':accR) (p:accP)
-
 
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
@@ -284,54 +310,55 @@ actualizar dt m
   | otherwise =
       let w = worldState m
 
-          -- movimiento autónomo y límites (todos)
+          -- Movimiento con patrulla
           rs0 = robots w
           rs1 = map (comportamientoNino dt) rs0
 
-          -- disparo automático con cooldown (solo vivos disparan internamente)
-          (rs2, nuevosProj) = pasoShooting dt rs1
+          -- Apuntar torretas
+          rs2 = map (apuntarTorreta w) rs1
 
-          -- (proyectiles antes de mover
+          -- Disparo condicional
+          (rs3, nuevosProj) = pasoShooting dt w{robots = rs2}
+
+          -- 💡 Curación para el Soporte
+          rs4 = map (curarSoporte dt) rs3
+
           ps0 = projectiles w ++ nuevosProj
 
           -- Mover proyectiles
           psMovidos =
-            [ p { commonP = (commonP p)
-                    { position = (x + vx * dt, y + vy * dt) } }
+            [ p { commonP = (commonP p) { position = (x + vx * dt, y + vy * dt) } }
             | p <- ps0
             , let (x, y) = position (commonP p)
                   (vx, vy) = velocity (commonP p)
             , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
             ]
 
-          -- 💥 Detectar colisiones solo con los alumnos vivos
+          -- Colisiones
           impactos =
             [ (idR r, idP p, damageP p, position (commonP p))
-            | r <- rs2
+            | r <- rs4
             , healthR r > 0                   
             , p <- psMovidos
             , idR r /= idP p
             , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
             ]
 
-
-          -- Reducir vida de los niños golpeados
+          -- Daño
           rsDanyados =
             [ if any (\(idr, _, _, _) -> idr == idR r) impactos
               then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
                    in r { healthR = max 0 (healthR r - totalDaño) }
               else r
-            | r <- rs2
+            | r <- rs4
             ]
 
-          -- Crear explosiones visuales
+          -- Explosiones y burbujas
           nuevasExplosiones =
-            [ Explosion pos (30, 0) 0.6
-                (RobotHitByProjectile rid pid dmg pos)
+            [ Explosion pos (30, 0) 0.6 (RobotHitByProjectile rid pid dmg pos)
             | (rid, pid, dmg, pos) <- impactos
             ]
 
-          -- 💥 Crear burbujas para los alumnos muertos (duración 5 s)
           nuevasBurbujas =
             [ BurbujaMuerte (position (commonR r)) 5.0
             | r <- rsDanyados
@@ -339,36 +366,16 @@ actualizar dt m
             , not (any (\b -> posBurbuja b == position (commonR r)) (burbujas m))
             ]
 
-          -- Eliminar proyectiles que impactaron
           psRestantes =
-            [ p
-            | p <- psMovidos
-            , not (any (\(_, pid, _, _) -> pid == idP p) impactos)
-            ]
+            [ p | p <- psMovidos, not (any (\(_, pid, _, _) -> pid == idP p) impactos) ]
 
-          -- Actualizar explosiones
-          expsAct =
-            [ Explosion pos size (ttl - dt) src
-            | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones
-            , ttl - dt > 0
-            ]
+          expsAct = [ Explosion pos size (ttl - dt) src | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones, ttl - dt > 0 ]
+          burbAct = [ BurbujaMuerte pos (ttl - dt) | BurbujaMuerte pos ttl <- burbujas m ++ nuevasBurbujas, ttl - dt > 0 ]
 
-          -- Actualizar burbujas (desaparecen tras 5 s)
-          burbAct =
-            [ BurbujaMuerte pos (ttl - dt)
-            | BurbujaMuerte pos ttl <- burbujas m ++ nuevasBurbujas
-            , ttl - dt > 0
-            ]
-
-          -- 💡 Mantenemos también los eliminados para que su barra siga visible
           w' = w { robots = rsDanyados, projectiles = psRestantes }
-
-          -- Pero solo cuentan como "vivos" los que tienen vida > 0
           vivos = [ r | r <- rsDanyados, healthR r > 0 ]
 
       in case vivos of
-          [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo) }
-          []       -> m { worldState = w', explosiones = expsAct, modo = Victoria 0 }
-          _        -> m { worldState = w', explosiones = expsAct }
-
-
+          [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo), burbujas = burbAct }
+          []       -> m { worldState = w', explosiones = expsAct, modo = Victoria 0, burbujas = burbAct }
+          _        -> m { worldState = w', explosiones = expsAct, burbujas = burbAct }
