@@ -7,12 +7,13 @@ import Utils
 
 -- Estado que usa Gloss
 data MundoGloss = MundoGloss
-  { worldState   :: World
-  , modo         :: Modo
-  , imagenInicio :: Picture
-  , fondoJuego   :: Picture
+  { worldState     :: World
+  , modo           :: Modo
+  , imagenInicio   :: Picture
+  , fondoJuego     :: Picture
   , imagenVictoria :: Picture
-  , explosiones  :: [Explosion]
+  , explosiones    :: [Explosion]
+  , burbujas       :: [BurbujaMuerte]   -- 💥 nuevo campo
   }
 
 -- ================================
@@ -69,6 +70,7 @@ estadoInicial inicio fondo victoria = MundoGloss
   , fondoJuego = fondo
   , imagenVictoria = victoria
   , explosiones = []
+  , burbujas = []    -- 💥 añadido
   }
 
 proyectilBase :: Id -> Projectile
@@ -82,31 +84,41 @@ proyectilBase i = Projectile
 -- ================================
 -- Dibujo
 -- ================================
-
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
+  -- Pantalla de inicio
   Inicio  -> Pictures
     [ imagenInicio m
     , dibujarBoton
-    ]  -- ← sin PUTINFO aquí para no tapar el título
+    ]  -- No mostramos info aquí para no tapar el título
+
+  -- Pantalla de juego
   Jugando ->
     let w = worldState m
     in Pictures
       [ fondoJuego m
       , dibujarProfe (0, 160)
-      , Pictures (map dibujarNino (robots w))
+
+        -- 🧍‍♂️ Niños vivos
+      , Pictures (map dibujarNino [r | r <- robots w, healthR r > 0])
+      
+        -- 🫧 Burbujas de niños eliminados (con animación)
+      , Pictures (map dibujarBurbujaMuerte (burbujas m))
+
+
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
-      , dibujarHUD (robots w)   -- ← arriba
-      , dibujarPutInfo m        -- ← arriba
+
+      , dibujarHUD (robots w)   -- Panel de salud (izquierda)
+      , dibujarPutInfo m        -- Panel informativo (derecha)
       ]
 
-
+  -- Pantalla de victoria
   Victoria rid ->
     Pictures
       [ imagenVictoria m
       , dibujarPutInfo m
-      , Translate (-240) (135) $
+      , Translate (-240) 135 $
           Scale 0.27 0.27 $
           Color black $
           Text ("Alumno " ++ show rid ++ " es el ganador")
@@ -142,7 +154,6 @@ dibujarPutInfo m =
         | (i, line) <- zip [0..] infoLines
         ]
   in Pictures (fondo : linePictures)
-
 
 -- ================================
 -- Eventos
@@ -181,23 +192,22 @@ dispararTodos w = w { projectiles = nuevos ++ projectiles w }
       [ Projectile
           { idP = idR r
           , commonP = (commonP (projectileT (turret r)))
-              { position = (x + 10 + offset, y + 28)  -- ⬅️ sale desde la boca/pajita
+              { position = (x + 10 + offset, y + 28)
               , velocity = (vx, 0)
               }
           , damageP = damageR r
           , rangeP = 1000
           }
       | (i, r) <- zip [0..] (robots w)
-      , let (x, y) = position (commonR r)            -- ⬅️ leemos posición del niño
+      , healthR r > 0  -- ✅ solo disparan los vivos
+      , let (x, y) = position (commonR r)
             vx     = if even i then velChicleVel else -velChicleVel
             offset = if even i then 20 else -20
       ]
 
-
 -- ================================
 -- Actualización + Daño
 -- ================================
-
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
@@ -216,7 +226,7 @@ actualizar dt m
             , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
             ]
 
-          -- Detectar colisiones entre proyectiles y robots
+          -- Detectar colisiones
           impactos =
             [ (idR r, idP p, damageP p, position (commonP p))
             | r <- rs
@@ -225,7 +235,7 @@ actualizar dt m
             , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
             ]
 
-          -- Reducir la vida de los niños golpeados
+          -- Reducir vida de los niños golpeados
           rsDanyados =
             [ if any (\(idr, _, _, _) -> idr == idR r) impactos
               then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
@@ -234,11 +244,19 @@ actualizar dt m
             | r <- rs
             ]
 
-          -- Crear explosiones visuales en los impactos
+          -- Crear explosiones visuales
           nuevasExplosiones =
             [ Explosion pos (30, 0) 0.6
                 (RobotHitByProjectile rid pid dmg pos)
             | (rid, pid, dmg, pos) <- impactos
+            ]
+
+          -- 💥 Crear burbujas para los alumnos muertos (duración 5 s)
+          nuevasBurbujas =
+            [ BurbujaMuerte (position (commonR r)) 5.0
+            | r <- rsDanyados
+            , healthR r <= 0
+            , not (any (\b -> posBurbuja b == position (commonR r)) (burbujas m))
             ]
 
           -- Eliminar proyectiles que impactaron
@@ -248,17 +266,22 @@ actualizar dt m
             , not (any (\(_, pid, _, _) -> pid == idP p) impactos)
             ]
 
-          -- Actualizar explosiones activas (reducir duración)
+          -- Actualizar explosiones
           expsAct =
             [ Explosion pos size (ttl - dt) src
             | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones
             , ttl - dt > 0
             ]
 
-          w' = w { robots = rsDanyados, projectiles = psRestantes }
+          -- Actualizar burbujas (desaparecen tras 5 s)
+          burbAct =
+            [ BurbujaMuerte pos (ttl - dt)
+            | BurbujaMuerte pos ttl <- burbujas m ++ nuevasBurbujas
+            , ttl - dt > 0
+            ]
 
-          -- Contar robots vivos
           vivos = [ r | r <- rsDanyados, healthR r > 0 ]
+          w' = w { robots = vivos, projectiles = psRestantes }
 
       in case vivos of
           [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo) }

@@ -131,6 +131,21 @@ dibujarExplosion (Explosion (x,y) _ ttl _) =
          , Color (withAlpha (a*0.8) (makeColorI 255 200 255 255)) $ circleSolid (30*0.3)
          ]
 
+-- 💥 Burbuja que crece y se desvanece antes de desaparecer
+dibujarBurbujaMuerte :: BurbujaMuerte -> Picture
+dibujarBurbujaMuerte (BurbujaMuerte (x,y) ttl) =
+  let baseRadio = 30
+      -- efecto de “crecer” cuando queda menos de 1 segundo
+      grow = if ttl < 1 then 1 + (1 - ttl) * 0.5 else 1
+      alpha = if ttl < 1 then ttl else 1  -- se desvanece suavemente
+      cBorde   = makeColor 1 0.4 1 (0.6 * alpha)
+      cRelleno = makeColor 1 0.7 1 (0.3 * alpha)
+  in Translate x y $
+       Pictures
+         [ Color cRelleno $ circleSolid (baseRadio * grow)
+         , Color cBorde   $ thickCircle (baseRadio * 0.8 * grow) (5 * grow)
+         ]
+
 dibujarBoton :: Picture
 dibujarBoton = Pictures
   [ Translate (-85) (-140) $ Scale 0.2 0.2 $ Color black $ Text "Iniciar Juego"
