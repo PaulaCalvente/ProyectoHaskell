@@ -123,10 +123,10 @@ dibujar m = case modo m of
       , dibujarHUD (robots w)
       , dibujarPutInfo m
       ]
+
   Victoria rid ->
     Pictures
       [ imagenVictoria m
-      , dibujarPutInfo m
       , Translate (-240) 135 $
           Scale 0.27 0.27 $
           Color black $
@@ -154,9 +154,9 @@ manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | otherwise = m
-manejarEvento (EventKey (SpecialKey KeySpace) Down _ _) m
-  | modo m == Jugando = m { worldState = dispararTodos (worldState m) }
+-- 🚫 Ya no hay tecla de espacio ni movimiento
 manejarEvento _ m = m
+
 
 -- ================================
 -- Patrulla con puntos aleatorios
@@ -348,7 +348,10 @@ actualizar dt m
           rsDanyados =
             [ if any (\(idr, _, _, _) -> idr == idR r) impactos
               then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
-                   in r { healthR = max 0 (healthR r - totalDaño) }
+                  in r { healthR = max 0 (healthR r - totalDaño)
+          , haveExploded = if healthR r - totalDaño <= 0 then True else haveExploded r
+          }
+
               else r
             | r <- rs4
             ]
@@ -359,18 +362,29 @@ actualizar dt m
             | (rid, pid, dmg, pos) <- impactos
             ]
 
+          -- 💥 Crear burbujas solo UNA vez por jugador muerto
           nuevasBurbujas =
-            [ BurbujaMuerte (position (commonR r)) 5.0
+            [ BurbujaMuerte (position (commonR r)) 3.5 (idR r)
             | r <- rsDanyados
             , healthR r <= 0
-            , not (any (\b -> posBurbuja b == position (commonR r)) (burbujas m))
+            , notElem (idR r) [ rid | BurbujaMuerte _ _ rid <- burbujas m ]
+            , not (haveExploded r)  -- 🧠 evita que se repita si ya explotó
             ]
+
+          -- 💨 Actualizar las burbujas (reducir TTL y eliminarlas al pasar 0s)
+          burbAct =
+            [ BurbujaMuerte pos ttl' rid
+            | BurbujaMuerte pos ttl rid <- burbujas m ++ nuevasBurbujas
+            , let ttl' = ttl - dt
+            , ttl' > 0
+            ]
+
 
           psRestantes =
             [ p | p <- psMovidos, not (any (\(_, pid, _, _) -> pid == idP p) impactos) ]
 
           expsAct = [ Explosion pos size (ttl - dt) src | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones, ttl - dt > 0 ]
-          burbAct = [ BurbujaMuerte pos (ttl - dt) | BurbujaMuerte pos ttl <- burbujas m ++ nuevasBurbujas, ttl - dt > 0 ]
+          -- 💨 Actualizar las burbujas de chicle (reducir su tiempo de vida y eliminarlas al pasar 0s)
 
           w' = w { robots = rsDanyados, projectiles = psRestantes }
           vivos = [ r | r <- rsDanyados, healthR r > 0 ]

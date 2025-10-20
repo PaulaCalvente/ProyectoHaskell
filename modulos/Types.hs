@@ -113,7 +113,8 @@ data Explosion = Explosion
 -- Burbuja temporal al morir un alumno
 data BurbujaMuerte = BurbujaMuerte
   { posBurbuja :: Position
-  , ttlBurbuja :: Float   -- tiempo de vida restante (segundos)
+  , ttlBurbuja :: Float  -- tiempo de vida restante (segundos)
+  , idBurbuja  :: Id  
   } deriving (Show, Eq)
 
 

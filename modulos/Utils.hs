@@ -133,11 +133,10 @@ dibujarExplosion (Explosion (x,y) _ ttl _) =
 
 -- 💥 Burbuja que crece y se desvanece antes de desaparecer
 dibujarBurbujaMuerte :: BurbujaMuerte -> Picture
-dibujarBurbujaMuerte (BurbujaMuerte (x,y) ttl) =
+dibujarBurbujaMuerte (BurbujaMuerte (x,y) ttl _) =
   let baseRadio = 30
-      -- efecto de “crecer” cuando queda menos de 1 segundo
-      grow = if ttl < 1 then 1 + (1 - ttl) * 0.5 else 1
-      alpha = if ttl < 1 then ttl else 1  -- se desvanece suavemente
+      grow  = if ttl < 1 then 1 + (1 - ttl) * 0.5 else 1
+      alpha = if ttl < 1 then ttl else 1
       cBorde   = makeColor 1 0.4 1 (0.6 * alpha)
       cRelleno = makeColor 1 0.7 1 (0.3 * alpha)
   in Translate x y $
@@ -165,7 +164,6 @@ data Modo = Inicio | Jugando | Victoria Int deriving (Eq, Show)
 -- BARRAS DE VIDA 
 ------------------------------------------------------------
 
--- Colores coherentes para cada jugador
 colorJugador :: Robot -> Color
 colorJugador r = case idR r of
   1 -> orange
@@ -175,14 +173,13 @@ colorJugador r = case idR r of
   _ -> white
 
 ------------------------------------------------------------
--- PANEL IZQUIERDO: HUD (pegado totalmente al borde)
+-- PANEL IZQUIERDO: HUD
 ------------------------------------------------------------
 dibujarHUD :: [Robot] -> Picture
 dibujarHUD rs =
   let num = length rs
       panelW = 200
       panelH = fromIntegral num * 45 + 40
-      -- 💡 Ahora completamente pegado al borde izquierdo
       panelX = -ancho / 2 + panelW / 2 - 10
       panelY = alto / 2 - panelH / 2 - 20
 
@@ -196,8 +193,6 @@ dibujarHUD rs =
   in Pictures [fondo, barras]
 
 
--- Barra con su etiqueta encima y "(vida) HP" a la derecha
--- Barra con su etiqueta encima y "(vida) HP" claramente a la derecha
 dibujarBarraVidaVerticalAt :: Float -> Float -> Robot -> Int -> Picture
 dibujarBarraVidaVerticalAt panelX panelY r idx =
   let vida        = healthR r
@@ -206,8 +201,6 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       anchoVida   = max 0 (min 1 (vida / 100)) * anchoTotal
       colorN      = colorJugador r
       baseY       = (panelY + 60) - fromIntegral idx * 45
-
-      -- ✨ Animación de parpadeo cuando muere
       parpadeo    = if vida <= 0 then sin (fromIntegral (idR r) * 10) else 1
       colorTexto  = if vida <= 0
                     then makeColor 1 (0.2 + 0.2 * parpadeo) (0.2 + 0.2 * parpadeo) 1
@@ -215,17 +208,11 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       nombreTxt   = if vida <= 0
                     then "Alumno " ++ show (idR r) ++ "  ❌"
                     else "Alumno " ++ show (idR r)
-
-      -- ✅ Texto simple: "(vida) HP"
       vidaTxt = show (round vida)
-      -- Posición claramente a la derecha de la barra
-      vidaX = panelX + 60  -- ← clave: fuera de la barra
+      vidaX = panelX + 60
   in Pictures
-       [ -- Nombre del alumno
-         Translate (panelX - 85) (baseY + 10) $
+       [ Translate (panelX - 85) (baseY + 10) $
            Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt
-
-         -- Barra de vida
        , Translate (panelX - 15) baseY $
            Pictures
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
@@ -233,8 +220,6 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
              , Translate (-(anchoTotal - anchoVida)/2) 0 $
                  Color colorN $ rectangleSolid anchoVida altoBarra
              ]
-
-         -- 💡 Texto de vida, bien a la derecha
        , Translate vidaX (baseY - 2) $
            Scale 0.15 0.15 $ Color white $ Text vidaTxt
        ]
