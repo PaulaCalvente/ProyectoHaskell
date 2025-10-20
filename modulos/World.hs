@@ -41,8 +41,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
                   (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
-                  0    -- turretAction
-                  0.6  -- shoot
+                  0.6  -- cooldown
               , haveExploded = False
               }
           , -- Alumno 2: Tank
@@ -54,8 +53,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               , radarRange = 200
               , turret = Turret 2 (-1, 0) 180 
                   (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
-                  0    -- turretAction
-                  1.6  -- shoot
+                  1.6  -- cooldown
               , haveExploded = False
               }
           , -- Alumno 3: Soporte
@@ -67,8 +65,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
                   (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
-                  0    -- turretAction
-                  1.2  -- shoot
+                  1.2  -- cooldown
               , haveExploded = False
               }
           , -- Alumno 4: All-rounder
@@ -80,8 +77,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
                   (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
-                  0    -- turretAction
-                  0.9  -- shoot
+                  0.9  -- cooldown
               , haveExploded = False
               }
           ]
@@ -203,9 +199,9 @@ pasoShooting dt world = loop (robots world) [] []
   where
     loop [] accR accP = (reverse accR, reverse accP)
     loop (r:xs) accR accP =
-      let t0  = shoot (turret r)
+      let t0  = cooldown (turret r)
           t1  = max 0 (t0 - dt)
-          rCD = r { turret = (turret r) { shoot = t1 } }
+          rCD = r { turret = (turret r) { cooldown = t1 } }
       in
         if healthR rCD <= 0
           then loop xs (rCD:accR) accP
@@ -247,7 +243,7 @@ pasoShooting dt world = loop (robots world) [] []
                                                   }
                                     , rangeP  = 1000
                                     }
-                              r' = rCD { turret = (turret rCD) { shoot = cooldown } }
+                              r' = rCD { turret = (turret rCD) { cooldown = cooldown } }
                           in loop xs (r':accR) (p:accP)
 
     -- Encuentra el enemigo más cercano con distanceBetween
@@ -289,13 +285,13 @@ curarSoporte dt r
   | not (isRobotAlive r) = r
   | nuevoTiempo >= 10 =
       r { healthR = vidaNueva
-        , turret = (turret r) { turretAction = 0 }
+        , turret = (turret r) { cooldown = 0 }
         }
   | otherwise =
-      r { turret = (turret r) { turretAction = nuevoTiempo }
+      r { turret = (turret r) { cooldown = nuevoTiempo }
         }
   where
-    tiempoActual = turretAction (turret r)
+    tiempoActual = cooldown (turret r)
     nuevoTiempo  = tiempoActual + dt
     vidaNueva    = min 110 (healthR r + 2)
 

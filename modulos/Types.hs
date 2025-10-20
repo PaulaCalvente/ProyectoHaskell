@@ -12,7 +12,7 @@ type Health = Float
 type Velocity = (Float, Float)
 type Damage = Float
 type HaveExploded = Bool
-type Shoot = Float
+type Cooldown = Float
 type TurretAction = Float
 type Duration = Float
 
@@ -51,8 +51,7 @@ data Turret = Turret
   , vectorT      :: Vector
   , angleT       :: Angle
   , projectileT  :: Projectile
-  , turretAction :: TurretAction
-  , shoot        :: Shoot -- Cooldown
+  , cooldown        :: Cooldown -- Cooldown
   } deriving (Show, Eq)
 
 -- Acciones posibles de un robot
