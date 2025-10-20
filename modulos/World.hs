@@ -19,10 +19,10 @@ data MundoGloss = MundoGloss
 
 -- Genera 4 puntos de patrulla únicos por robot (determinista)
 generarPuntosPatrulla :: Id -> [Position]
-generarPuntosPatrulla id = take 4 $ zip xs ys
+generarPuntosPatrulla id = take 11 $ zip xs ys
   where
-    xs = [ fromIntegral ((id * i * 123 + i^2) `mod` 500) - 250 | i <- [1..] ]
-    ys = [ fromIntegral ((id * i * 456 + i^3) `mod` 500) - 250 | i <- [1..] ]
+    xs = [ fromIntegral ((id * i * 611) `mod` 500) - 250 | i <- [1..] ]
+    ys = [ fromIntegral ((id * i * 456) `mod` 500) - 250 | i <- [1..] ]
 
 -- ================================
 -- Estado inicial
@@ -39,11 +39,10 @@ estadoInicial inicio fondo victoria = MundoGloss
               , healthR = 70
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
-                  (Projectile 1 (CommonData 1 0 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 8 1000)
+                  (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
                   0    -- turretAction
                   0.6  -- shoot
               , haveExploded = False
-              , damageR = 8
               }
           , -- Alumno 2: Tank
             Robot
@@ -52,11 +51,10 @@ estadoInicial inicio fondo victoria = MundoGloss
               , healthR = 180
               , radarRange = 80
               , turret = Turret 2 (-1, 0) 180 
-                  (Projectile 2 (CommonData 2 0 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 18 1000)
+                  (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
                   0    -- turretAction
                   1.6  -- shoot
               , haveExploded = False
-              , damageR = 18
               }
           , -- Alumno 3: Soporte
             Robot
@@ -65,11 +63,10 @@ estadoInicial inicio fondo victoria = MundoGloss
               , healthR = 110
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
-                  (Projectile 3 (CommonData 3 0 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 6 1000)
+                  (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
                   0    -- turretAction
                   1.2  -- shoot
               , haveExploded = False
-              , damageR = 6
               }
           , -- Alumno 4: All-rounder
             Robot
@@ -78,11 +75,10 @@ estadoInicial inicio fondo victoria = MundoGloss
               , healthR = 110
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
-                  (Projectile 4 (CommonData 4 0 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 10 1000)
+                  (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
                   0    -- turretAction
                   0.9  -- shoot
               , haveExploded = False
-              , damageR = 10
               }
           ]
       , projectiles = []
@@ -100,8 +96,7 @@ estadoInicial inicio fondo victoria = MundoGloss
 proyectilBase :: Id -> Projectile
 proyectilBase i = Projectile
   { idP = i
-  , commonP = CommonData i 0 (0, 0) (0, 0) (chicleRadius*2, chicleRadius*2) []
-  , damageP = 10
+  , commonP = CommonData i 10 (0, 0) (0, 0) (chicleRadius*2, chicleRadius*2) []
   , rangeP = 1000
   }
 
@@ -154,7 +149,7 @@ manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | otherwise = m
--- 🚫 Ya no hay tecla de espacio ni movimiento
+-- Ya no hay tecla de espacio ni movimiento
 manejarEvento _ m = m
 
 
@@ -206,8 +201,8 @@ pasoShooting dt world = loop (robots world) [] []
     loop [] accR accP = (reverse accR, reverse accP)
     loop (r:xs) accR accP =
       let t0  = shoot (turret r)
-          t1  = max 0 (t0 - dt)
-          rCD = r { turret = (turret r) { shoot = t1 } }
+          t1  = max 0 (t0 - dt) -- Cuanto cooldown queda 
+          rCD = r { turret = (turret r) { shoot = t1 } } -- Actualiza el cooldown y el turret
       in
         if healthR rCD <= 0 || not (robotQuiereDisparar world rCD)
           then loop xs (rCD:accR) accP
@@ -221,10 +216,9 @@ pasoShooting dt world = loop (robots world) [] []
                   p = Projectile
                         { idP     = idR rCD
                         , commonP = (commonP (projectileT (turret rCD)))
-                                      { position = (x + offX, y + 28)
+                                      {position = (x + offX, y + 28)
                                       , velocity = (vx, 0)
                                       }
-                        , damageP = damageR rCD
                         , rangeP  = 1000
                         }
                   cooldown = case idR rCD of
@@ -271,7 +265,7 @@ curarSoporte dt r
   where
     tiempoActual = turretAction (turret r)
     nuevoTiempo  = tiempoActual + dt
-    vidaNueva    = min 110 (healthR r + 5)
+    vidaNueva    = min 110 (healthR r + 2)
 
 -- ================================
 -- Actualización
@@ -294,8 +288,7 @@ dispararTodos w = w { projectiles = nuevos ++ projectiles w }
               { position = (x + 10 + offset, y + 28)
               , velocity = (vx, 0)
               }
-          , damageP = damageR r
-          , rangeP = 1000
+              , rangeP = 1000
           }
       | (i, r) <- zip [0..] (robots w)
       , healthR r > 0
@@ -320,7 +313,7 @@ actualizar dt m
           -- Disparo condicional
           (rs3, nuevosProj) = pasoShooting dt w{robots = rs2}
 
-          -- 💡 Curación para el Soporte
+          -- Curación para el Soporte
           rs4 = map (curarSoporte dt) rs3
 
           ps0 = projectiles w ++ nuevosProj
@@ -336,7 +329,7 @@ actualizar dt m
 
           -- Colisiones
           impactos =
-            [ (idR r, idP p, damageP p, position (commonP p))
+            [ (idR r, idP p, damage (commonP p), position (commonP p))
             | r <- rs4
             , healthR r > 0                   
             , p <- psMovidos
@@ -362,16 +355,16 @@ actualizar dt m
             | (rid, pid, dmg, pos) <- impactos
             ]
 
-          -- 💥 Crear burbujas solo UNA vez por jugador muerto
+          -- Crear burbujas solo UNA vez por jugador muerto
           nuevasBurbujas =
             [ BurbujaMuerte (position (commonR r)) 3.5 (idR r)
             | r <- rsDanyados
             , healthR r <= 0
             , notElem (idR r) [ rid | BurbujaMuerte _ _ rid <- burbujas m ]
-            , not (haveExploded r)  -- 🧠 evita que se repita si ya explotó
+            , not (haveExploded r)  -- evita que se repita si ya explotó
             ]
 
-          -- 💨 Actualizar las burbujas (reducir TTL y eliminarlas al pasar 0s)
+          -- Actualizar las burbujas (reducir TTL y eliminarlas al pasar 0s)
           burbAct =
             [ BurbujaMuerte pos ttl' rid
             | BurbujaMuerte pos ttl rid <- burbujas m ++ nuevasBurbujas
@@ -384,7 +377,7 @@ actualizar dt m
             [ p | p <- psMovidos, not (any (\(_, pid, _, _) -> pid == idP p) impactos) ]
 
           expsAct = [ Explosion pos size (ttl - dt) src | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones, ttl - dt > 0 ]
-          -- 💨 Actualizar las burbujas de chicle (reducir su tiempo de vida y eliminarlas al pasar 0s)
+          -- Actualizar las burbujas de chicle (reducir su tiempo de vida y eliminarlas al pasar 0s)
 
           w' = w { robots = rsDanyados, projectiles = psRestantes }
           vivos = [ r | r <- rsDanyados, healthR r > 0 ]

@@ -42,7 +42,6 @@ instance Applicative CommonData where
 data Projectile = Projectile
   { idP        :: Id
   , commonP    :: CommonData Float
-  , damageP    :: Damage
   , rangeP     :: Distance
   } deriving (Show, Eq)
 
@@ -53,7 +52,7 @@ data Turret = Turret
   , angleT       :: Angle
   , projectileT  :: Projectile
   , turretAction :: TurretAction
-  , shoot        :: Shoot
+  , shoot        :: Shoot -- Cooldown
   } deriving (Show, Eq)
 
 -- Acciones posibles de un robot
@@ -74,7 +73,6 @@ data Robot = Robot
   , radarRange   :: Distance
   , turret       :: Turret
   , haveExploded :: HaveExploded
-  , damageR      :: Damage
   } deriving (Show, Eq)
 
 -- Registro de impactos o colisiones
