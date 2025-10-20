@@ -36,8 +36,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 1
               , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 1)
-              , healthR = 300
-              , maxHealthR = 300
+              , healthR = 250
+              , maxHealthR = 250
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
                   (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -210,15 +210,15 @@ pasoShooting dt world = loop (robots world) [] []
             in if null enemigos
                  then loop xs (rCD:accR) accP
                  else
-                   let -- 🔹 Encuentra el enemigo más cercano
+                   let -- Encuentra el enemigo más cercano
                        (objetivo, _) = enemigoMasCercano rCD enemigos
 
                        (xM, yM) = position (commonR rCD)
                        (xT, yT) = position (commonR objetivo)
 
-                       -- 🔹 Calcula ángulo y dirección del disparo
+                       -- Calcula ángulo y dirección del disparo
                        angRad = atan2 (yT - yM) (xT - xM)
-                       speed = 300
+                       speed = 250
                        vx = cos angRad * speed
                        vy = sin angRad * speed
 
