@@ -273,8 +273,9 @@ apuntarTorreta world r
            else
              let objetivo = head detectados
                  ang = angleToTarget (positionR r) (positionR objetivo)
-                 vec = (cos ang, sin ang)
-             in r { turret = (turret r) { angleT = ang, vectorT = vec } }
+                 angDegree = rad2deg ang
+                 vec = (cos angDegree, sin angDegree)
+             in r { turret = (turret r) { angleT = angDegree, vectorT = vec } }
 
 -- ================================
 -- Curación automática para el Soporte (Alumno 3)

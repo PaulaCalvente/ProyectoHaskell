@@ -183,8 +183,8 @@ dibujarHUD rs =
       panelX = -ancho / 2 + panelW / 2 - 10
       panelY = alto / 2 - panelH / 2 - 20
 
-      fondo = Color (makeColor 0 0 0 0.4) $
-                 Translate panelX panelY $
+      fondo = Color (makeColor 0 0 0 0.6) $
+                 Translate (panelX - 130) (panelY + 10) $
                    rectangleSolid panelW panelH
 
       barras = Pictures
@@ -201,25 +201,24 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       anchoVida   = max 0 (min 1 (vida / maxHealthR r)) * anchoTotal
       colorN      = colorJugador r
       baseY       = (panelY + 60) - fromIntegral idx * 45
-      parpadeo    = if vida <= 0 then sin (fromIntegral (idR r) * 10) else 1
       colorTexto  = if vida <= 0
-                    then makeColor 1 (0.2 + 0.2 * parpadeo) (0.2 + 0.2 * parpadeo) 1
+                    then (makeColorI 255 130 130 255)
                     else white
       nombreTxt   = if vida <= 0
-                    then "Alumno " ++ show (idR r) ++ "  ❌"
+                    then "Muerto"
                     else "Alumno " ++ show (idR r)
       vidaTxt = show (round vida)
-      vidaX = panelX + 60
-  in Pictures
-       [ Translate (panelX - 85) (baseY + 10) $
-           Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt
-       , Translate (panelX - 15) baseY $
+      vidaX = panelX - 75
+      in Pictures
+       [ Translate (panelX - 220) (baseY + 30) $
+          Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt -- Info de cada niño
+       , Translate (panelX - 150) (baseY + 15) $ -- La vida de cada niño
            Pictures
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
              , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra
              , Translate (-(anchoTotal - anchoVida)/2) 0 $
                  Color colorN $ rectangleSolid anchoVida altoBarra
              ]
-       , Translate vidaX (baseY - 2) $
-           Scale 0.15 0.15 $ Color white $ Text vidaTxt
+       , Translate vidaX (baseY + 5) $
+           Scale 0.15 0.15 $ Color white $ Text vidaTxt -- Vida de cada niño
        ]
