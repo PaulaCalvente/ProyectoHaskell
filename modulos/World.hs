@@ -37,6 +37,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               { idR = 1
               , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 1)
               , healthR = 70
+              , maxHealthR = 70
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
                   (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -49,7 +50,8 @@ estadoInicial inicio fondo victoria = MundoGloss
               { idR = 2
               , commonR = CommonData 2 0 (150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 2)
               , healthR = 180
-              , radarRange = 80
+              , maxHealthR = 180
+              , radarRange = 200
               , turret = Turret 2 (-1, 0) 180 
                   (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
                   0    -- turretAction
@@ -61,6 +63,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               { idR = 3
               , commonR = CommonData 3 0 (-150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 3)
               , healthR = 110
+              , maxHealthR = 110
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
                   (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -73,6 +76,7 @@ estadoInicial inicio fondo victoria = MundoGloss
               { idR = 4
               , commonR = CommonData 4 0 (150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 4)
               , healthR = 110
+              , maxHealthR = 110
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
                   (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -182,9 +186,8 @@ comportamientoNino dt r
                     in r { commonR = (commonR r) { points = nuevosPts } }
                   else
                     let ang = angleToTarget posActual objetivo
-                        rad = deg2rad ang
-                        dx = cos rad * vel * dt
-                        dy = sin rad * vel * dt
+                        dx = cos ang * vel * dt
+                        dy = sin ang * vel * dt
                         nuevaPos = clampDentro (fst posActual + dx, snd posActual + dy)
                     in r { commonR = (commonR r) { position = nuevaPos } }
 
@@ -201,34 +204,64 @@ pasoShooting dt world = loop (robots world) [] []
     loop [] accR accP = (reverse accR, reverse accP)
     loop (r:xs) accR accP =
       let t0  = shoot (turret r)
-          t1  = max 0 (t0 - dt) -- Cuanto cooldown queda 
-          rCD = r { turret = (turret r) { shoot = t1 } } -- Actualiza el cooldown y el turret
+          t1  = max 0 (t0 - dt)
+          rCD = r { turret = (turret r) { shoot = t1 } }
       in
-        if healthR rCD <= 0 || not (robotQuiereDisparar world rCD)
+        if healthR rCD <= 0
           then loop xs (rCD:accR) accP
-          else if t1 > 0
-            then loop xs (rCD:accR) accP
-            else
-              let (x, y)   = position (commonR rCD)
-                  (baseVx, _) = velocity (commonP (projectileT (turret rCD)))
-                  vx = if baseVx >= 0 then abs baseVx else -abs baseVx
-                  offX = if vx >= 0 then 20 else -20
-                  p = Projectile
-                        { idP     = idR rCD
-                        , commonP = (commonP (projectileT (turret rCD)))
-                                      {position = (x + offX, y + 28)
-                                      , velocity = (vx, 0)
-                                      }
-                        , rangeP  = 1000
-                        }
-                  cooldown = case idR rCD of
-                    1 -> 0.6
-                    2 -> 1.6
-                    3 -> 1.2
-                    4 -> 0.9
-                    _ -> 1.0
-                  r' = rCD { turret = (turret rCD) { shoot = cooldown } }
-              in loop xs (r':accR) (p:accP)
+          else
+            let enemigos = [r' | r' <- robots world, idR r' /= idR rCD, isRobotAlive r']
+            in if null enemigos
+                 then loop xs (rCD:accR) accP
+                 else
+                   let -- 🔹 Encuentra el enemigo más cercano
+                       (objetivo, _) = enemigoMasCercano rCD enemigos
+
+                       (xM, yM) = position (commonR rCD)
+                       (xT, yT) = position (commonR objetivo)
+
+                       -- 🔹 Calcula ángulo y dirección del disparo
+                       angRad = atan2 (yT - yM) (xT - xM)
+                       speed = 400
+                       vx = cos angRad * speed
+                       vy = sin angRad * speed
+
+                       cooldown = case idR rCD of
+                         1 -> 0.6
+                         2 -> 1.6
+                         3 -> 1.2
+                         4 -> 0.9
+                         _ -> 1.0
+
+                       puedeDisparar = t1 <= 0 && robotQuiereDisparar world rCD
+
+                   in if not puedeDisparar
+                        then loop xs (rCD:accR) accP
+                        else
+                          let baseProj = projectileT (turret rCD)
+                              p = Projectile
+                                    { idP     = idR rCD
+                                    , commonP = (commonP baseProj)
+                                                  { position = (xM, yM + 28)
+                                                  , velocity = (vx, vy)
+                                                  }
+                                    , rangeP  = 1000
+                                    }
+                              r' = rCD { turret = (turret rCD) { shoot = cooldown } }
+                          in loop xs (r':accR) (p:accP)
+
+    -- Encuentra el enemigo más cercano con distanceBetween
+    enemigoMasCercano :: Robot -> [Robot] -> (Robot, Float)
+    enemigoMasCercano me (r:rs) = aux r (distanceBetween (position (commonR me)) (position (commonR r))) rs
+      where
+        aux minR minD [] = (minR, minD)
+        aux minR minD (r':rs') =
+          let d = distanceBetween (position (commonR me)) (position (commonR r'))
+          in if d < minD
+               then aux r' d rs'
+               else aux minR minD rs'
+
+
 
 -- ================================
 -- Apuntar torreta al enemigo más cercano
@@ -244,8 +277,7 @@ apuntarTorreta world r
            else
              let objetivo = head detectados
                  ang = angleToTarget (positionR r) (positionR objetivo)
-                 rad = deg2rad ang
-                 vec = (cos rad, sin rad)
+                 vec = (cos ang, sin ang)
              in r { turret = (turret r) { angleT = ang, vectorT = vec } }
 
 -- ================================

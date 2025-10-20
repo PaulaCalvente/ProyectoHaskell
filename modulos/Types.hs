@@ -70,6 +70,7 @@ data Robot = Robot
   { idR          :: Id
   , commonR      :: CommonData Float
   , healthR      :: Health
+  , maxHealthR   :: Health
   , radarRange   :: Distance
   , turret       :: Turret
   , haveExploded :: HaveExploded

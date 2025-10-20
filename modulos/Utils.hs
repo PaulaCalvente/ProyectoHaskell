@@ -11,7 +11,7 @@ distanceBetween (x1, y1) (x2, y2) =
 
 angleToTarget :: Position -> Position -> Angle
 angleToTarget (x1, y1) (x2, y2) =
-  atan2 (y2 - y1) (x2 - x1) * 180 / pi
+  atan2 (y2 - y1) (x2 - x1) 
 
 deg2rad :: Angle -> Angle
 deg2rad a = a * pi / 180
@@ -198,7 +198,7 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
   let vida        = healthR r
       anchoTotal  = 120
       altoBarra   = 14
-      anchoVida   = max 0 (min 1 (vida / 100)) * anchoTotal
+      anchoVida   = max 0 (min 1 (vida / maxHealthR r)) * anchoTotal
       colorN      = colorJugador r
       baseY       = (panelY + 60) - fromIntegral idx * 45
       parpadeo    = if vida <= 0 then sin (fromIntegral (idR r) * 10) else 1
