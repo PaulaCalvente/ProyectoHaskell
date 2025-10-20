@@ -42,11 +42,6 @@ isInBounds :: Point -> Size -> Bool
 isInBounds (x, y) (width, height) =
   x >= 0 && x <= width && y >= 0 && y <= height
 
------------------------------------------------------------------------------
-
--- FUNCIONES NECESARIAS PARA HAUS5
-
------------------------------------------------------------------------------
 
 ancho, alto :: Float
 ancho = 600
