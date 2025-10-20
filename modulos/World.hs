@@ -36,8 +36,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 1
               , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 1)
-              , healthR = 70
-              , maxHealthR = 70
+              , healthR = 300
+              , maxHealthR = 300
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
                   (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -49,8 +49,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 2
               , commonR = CommonData 2 0 (150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 2)
-              , healthR = 180
-              , maxHealthR = 180
+              , healthR = 500
+              , maxHealthR = 500
               , radarRange = 200
               , turret = Turret 2 (-1, 0) 180 
                   (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -62,8 +62,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 3
               , commonR = CommonData 3 0 (-150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 3)
-              , healthR = 110
-              , maxHealthR = 110
+              , healthR = 400
+              , maxHealthR = 400
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
                   (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -75,8 +75,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 4
               , commonR = CommonData 4 0 (150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 4)
-              , healthR = 110
-              , maxHealthR = 110
+              , healthR = 400
+              , maxHealthR = 400
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
                   (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -222,7 +222,7 @@ pasoShooting dt world = loop (robots world) [] []
 
                        -- 🔹 Calcula ángulo y dirección del disparo
                        angRad = atan2 (yT - yM) (xT - xM)
-                       speed = 400
+                       speed = 300
                        vx = cos angRad * speed
                        vy = sin angRad * speed
 
