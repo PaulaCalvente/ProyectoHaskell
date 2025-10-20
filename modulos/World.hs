@@ -138,8 +138,8 @@ dibujarPutInfo m =
       proyectilesActivos = length (projectiles w)
       exps = length (explosiones m)
       infoLines = [ "INFORMACION", "Alumnos vivos: " ++ show vivos, "Chicles activos: " ++ show proyectilesActivos, "Explosiones: " ++ show exps ]
-      fondo = Color (makeColor 0 0 0 0.4) $ Translate 220 235 $ rectangleSolid 250 100
-      linePictures = [ Translate 130 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
+      fondo = Color (makeColor 0 0 0 0.6) $ Translate 330 235 $ rectangleSolid 250 120
+      linePictures = [ Translate 230 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
   in Pictures (fondo : linePictures)
 
 -- ================================
