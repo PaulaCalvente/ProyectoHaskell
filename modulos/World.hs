@@ -154,11 +154,11 @@ manejarEvento _ m = m
 -- Patrulla con puntos aleatorios
 -- ================================
 velocidadPorRol :: Id -> Float
-velocidadPorRol 1 = 220
-velocidadPorRol 2 = 60
-velocidadPorRol 3 = 100
-velocidadPorRol 4 = 120
-velocidadPorRol _ = 100
+velocidadPorRol 1 = 150
+velocidadPorRol 2 = 20
+velocidadPorRol 3 = 50
+velocidadPorRol 4 = 60
+velocidadPorRol _ = 50
 
 -- Mueve el robot hacia el primer punto de su lista de patrulla
 comportamientoNino :: Float -> Robot -> Robot

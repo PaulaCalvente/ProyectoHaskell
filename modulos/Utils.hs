@@ -94,12 +94,12 @@ dibujarNino r =
             _ -> white
       ang = angleT (turret r)
       rad = deg2rad ang
-      len = 25
-      grosor = 4
+      len = 50
+      grosor = 10
       mouthPos = (10, 28)
       (mx, my) = mouthPos
       strawEnd = (mx + cos rad * len, my + sin rad * len)
-      strawColor = makeColorI 200 200 200 255
+      strawColor = makeColorI 255 150 180 255
   in Translate x y $ Pictures
        [ Color c $ rectangleSolid 40 50
        , Translate 0 35 $ Color (makeColorI 255 220 180 255) $ rectangleSolid 30 30
@@ -131,19 +131,6 @@ dibujarExplosion (Explosion (x,y) _ ttl _) =
          , Color (withAlpha (a*0.8) (makeColorI 255 200 255 255)) $ circleSolid (30*0.3)
          ]
 
--- 💥 Burbuja que crece y se desvanece antes de desaparecer
-dibujarBurbujaMuerte :: BurbujaMuerte -> Picture
-dibujarBurbujaMuerte (BurbujaMuerte (x,y) ttl _) =
-  let baseRadio = 30
-      grow  = if ttl < 1 then 1 + (1 - ttl) * 0.5 else 1
-      alpha = if ttl < 1 then ttl else 1
-      cBorde   = makeColor 1 0.4 1 (0.6 * alpha)
-      cRelleno = makeColor 1 0.7 1 (0.3 * alpha)
-  in Translate x y $
-       Pictures
-         [ Color cRelleno $ circleSolid (baseRadio * grow)
-         , Color cBorde   $ thickCircle (baseRadio * 0.8 * grow) (5 * grow)
-         ]
 
 dibujarBoton :: Picture
 dibujarBoton = Pictures
