@@ -1,6 +1,6 @@
 module Utils where
 
-import Graphics.Gloss hiding (Point, Vector)
+import Graphics.Gloss hiding (Point, Vector) --Se omite Point y Vector para evitar conflictos con nuestros módulos
 import Types
 
 
