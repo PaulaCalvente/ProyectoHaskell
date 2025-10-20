@@ -14,7 +14,6 @@ data MundoGloss = MundoGloss
   , fondoJuego     :: Picture
   , imagenVictoria :: Picture
   , explosiones    :: [Explosion]
-  , burbujas       :: [BurbujaMuerte]
   }
 
 -- Genera 4 puntos de patrulla únicos por robot (determinista)
@@ -36,8 +35,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 1
               , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 1)
-              , healthR = 250
-              , maxHealthR = 250
+              , healthR = 70
+              , maxHealthR = 70
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
                   (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -48,8 +47,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 2
               , commonR = CommonData 2 0 (150, -100) (0, 0) (40, 50) (generarPuntosPatrulla 2)
-              , healthR = 500
-              , maxHealthR = 500
+              , healthR = 180
+              , maxHealthR = 180
               , radarRange = 200
               , turret = Turret 2 (-1, 0) 180 
                   (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -60,8 +59,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 3
               , commonR = CommonData 3 0 (-150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 3)
-              , healthR = 400
-              , maxHealthR = 400
+              , healthR = 110
+              , maxHealthR = 110
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
                   (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -72,8 +71,8 @@ estadoInicial inicio fondo victoria = MundoGloss
             Robot
               { idR = 4
               , commonR = CommonData 4 0 (150, 50) (0, 0) (40, 50) (generarPuntosPatrulla 4)
-              , healthR = 400
-              , maxHealthR = 400
+              , healthR = 110
+              , maxHealthR = 110
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
                   (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
@@ -90,7 +89,6 @@ estadoInicial inicio fondo victoria = MundoGloss
   , fondoJuego = fondo
   , imagenVictoria = victoria
   , explosiones = []
-  , burbujas = []
   }
 
 proyectilBase :: Id -> Projectile
@@ -112,7 +110,6 @@ dibujar m = case modo m of
       [ fondoJuego m
       , dibujarProfe (0, 160)
       , Pictures (map dibujarNino [r | r <- robots w, healthR r > 0])
-      , Pictures (map dibujarBurbujaMuerte (burbujas m))
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
       , dibujarHUD (robots w)
@@ -378,40 +375,21 @@ actualizar dt m
             | r <- rs4
             ]
 
-          -- Explosiones y burbujas
+          -- Explosiones 
           nuevasExplosiones =
             [ Explosion pos (30, 0) 0.6 (RobotHitByProjectile rid pid dmg pos)
             | (rid, pid, dmg, pos) <- impactos
             ]
 
-          -- Crear burbujas solo UNA vez por jugador muerto
-          nuevasBurbujas =
-            [ BurbujaMuerte (position (commonR r)) 3.5 (idR r)
-            | r <- rsDanyados
-            , healthR r <= 0
-            , notElem (idR r) [ rid | BurbujaMuerte _ _ rid <- burbujas m ]
-            , not (haveExploded r)  -- evita que se repita si ya explotó
-            ]
-
-          -- Actualizar las burbujas (reducir TTL y eliminarlas al pasar 0s)
-          burbAct =
-            [ BurbujaMuerte pos ttl' rid
-            | BurbujaMuerte pos ttl rid <- burbujas m ++ nuevasBurbujas
-            , let ttl' = ttl - dt
-            , ttl' > 0
-            ]
-
-
           psRestantes =
             [ p | p <- psMovidos, not (any (\(_, pid, _, _) -> pid == idP p) impactos) ]
 
           expsAct = [ Explosion pos size (ttl - dt) src | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones, ttl - dt > 0 ]
-          -- Actualizar las burbujas de chicle (reducir su tiempo de vida y eliminarlas al pasar 0s)
 
           w' = w { robots = rsDanyados, projectiles = psRestantes }
           vivos = [ r | r <- rsDanyados, healthR r > 0 ]
 
       in case vivos of
-          [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo), burbujas = burbAct }
-          []       -> m { worldState = w', explosiones = expsAct, modo = Victoria 0, burbujas = burbAct }
-          _        -> m { worldState = w', explosiones = expsAct, burbujas = burbAct }
+          [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo)}
+          []       -> m { worldState = w', explosiones = expsAct, modo = Victoria 0 }
+          _        -> m { worldState = w', explosiones = expsAct }
