@@ -1,6 +1,10 @@
 module Collision where
+import Data.Explosion
+import Data.Mundo
+import Data.Proyectil
+import Data.Robot
+import Data.Torreta
 
-import Types
 import Utils
 import Movement
 

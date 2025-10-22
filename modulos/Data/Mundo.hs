@@ -1,0 +1,33 @@
+module Data.Mundo where
+import Graphics.Gloss hiding (Vector, Point)
+import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
+import Data.DatosComunes
+import Data.Explosion
+import Data.Robot
+import Data.Proyectil
+import Data.Torreta
+
+data MundoGloss = MundoGloss
+  { worldState     :: World
+  , modo           :: Modo
+  , imagenInicio   :: Picture
+  , fondoJuego     :: Picture
+  , imagenVictoria :: Picture
+  , imagenDerrota  :: Picture
+  , imagenRobot1   :: Picture
+  --, imagenRobot2   :: Picture
+  --, imagenRobot3   :: Picture
+  --, imagenRobot4   :: Picture
+  , imagenTorreta  :: Picture
+  , explosiones    :: [Explosion]
+  }
+
+data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
+
+-- Estado global del mundo
+data World = World
+  { robots      :: [Robot]
+  , projectiles :: [Projectile]
+  , turrets     :: [Turret]
+  , robotHits   :: [RobotHit]
+  } deriving (Show, Eq)

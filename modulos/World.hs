@@ -2,7 +2,12 @@ module World where
 
 import Graphics.Gloss hiding (Vector, Point)
 import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
-import Types
+import Data.Explosion
+import Data.Mundo
+import Data.Proyectil
+import Data.Robot
+import Data.Torreta
+import Data.DatosComunes
 import Utils
 import Movement (positionR, isRobotAlive, detectedAgent)
 
@@ -141,48 +146,61 @@ velocidadPorRol _ = 50
 
 comportamientoNino :: Float -> Robot -> Robot
 comportamientoNino dt r
-  | healthR r <= 0 = r
-  | otherwise =
-      let pts = points (commonR r)
-          vel = velocidadPorRol (idR r)
-          posActual = position (commonR r)
-      in if null pts
-           then r
-           else
-             let objetivo = head pts
-                 dist = distanceBetween posActual objetivo
-             in if dist < 20
-                  then
-                    let nuevosPts = tail pts ++ [head pts]
-                    in r { commonR = (commonR r) { points = nuevosPts } }
-                  else
-                    let ang = angleToTarget posActual objetivo
-                        dx = cos ang * vel * dt
-                        dy = sin ang * vel * dt
-                        nuevaPos = clampDentro (fst posActual + dx, snd posActual + dy)
-                    in r { commonR = (commonR r) { position = nuevaPos } }
+  | estaMuerto r = r
+  | null pts     = r
+  | haLlegado pos objetivo = avanzarPatrulla r
+  | otherwise    = moverHaciaObjetivo dt r
+  where
+    pts = points (commonR r)
+    pos = position (commonR r)
+    objetivo = head pts
+
+estaMuerto :: Robot -> Bool
+estaMuerto r = healthR r <= 0
+
+haLlegado :: (Float, Float) -> (Float, Float) -> Bool
+haLlegado pos objetivo = distanceBetween pos objetivo < 20
+
+avanzarPatrulla :: Robot -> Robot
+avanzarPatrulla r =
+  let pts = points (commonR r)
+      nuevosPts = tail pts ++ [head pts]
+  in r { commonR = (commonR r) { points = nuevosPts } }
+
+moverHaciaObjetivo :: Float -> Robot -> Robot
+moverHaciaObjetivo dt r =
+  let pos = position (commonR r)
+      vel = velocidadPorRol (idR r)
+      objetivo = head (points (commonR r))
+      ang = angleToTarget pos objetivo
+      dx = cos ang * vel * dt
+      dy = sin ang * vel * dt
+      nuevaPos = clampDentro (fst pos + dx, snd pos + dy)
+  in r { commonR = (commonR r) { position = nuevaPos } }
 
 robotQuiereDisparar :: World -> Robot -> Bool
 robotQuiereDisparar world me =
   any (detectedAgent me) [r | r <- robots world, idR r /= idR me, isRobotAlive r]
 
 pasoShooting :: Float -> World -> ([Robot], [Projectile])
-pasoShooting dt world = foldr procesarRobot ([], []) (robots world)
+pasoShooting dt world = foldr (procesarRobot dt world) ([], []) (robots world)
+
+procesarRobot :: Float -> World -> Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
+procesarRobot dt world r (accR, accP)
+  | estaMuerto r      = (r : accR, accP)
+  | not puedeDisparar = (rCD : accR, accP)
+  | otherwise         = (r' : accR, p : accP)
   where
-    procesarRobot :: Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
-    procesarRobot r (accR, accP)
-      | healthR r <= 0 = (r : accR, accP)
-      | null enemigosVivos = (rCD : accR, accP)
-      | not puedeDisparar = (rCD : accR, accP)
-      | otherwise = (r' : accR, p : accP)
-      where
-        t0 = cooldown (turret r)
-        t1 = max 0 (t0 - dt)
-        rCD = actualizarCooldown r t1
-        enemigosVivos = enemigos rCD world
-        objetivo = enemigoMasCercano rCD enemigosVivos
-        (p, r') = generarDisparo dt rCD objetivo
-        puedeDisparar = t1 <= 0 && robotQuiereDisparar world rCD
+    rCD = actualizarCooldown r (nuevoCooldown (turret r) dt)
+    enemigosVivos = enemigos rCD world
+    puedeDisparar = cooldown (turret rCD) <= 0
+                 && not (null enemigosVivos)
+                 && robotQuiereDisparar world rCD
+    objetivo = enemigoMasCercano rCD enemigosVivos
+    (p, r') = generarDisparo dt rCD objetivo
+
+nuevoCooldown :: Turret -> Float -> Float
+nuevoCooldown t dt = max 0 (cooldown t - dt)
 
 actualizarCooldown :: Robot -> Float -> Robot
 actualizarCooldown r t1 = r { turret = (turret r) { cooldown = t1 } }

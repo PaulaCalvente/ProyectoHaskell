@@ -1,7 +1,12 @@
 module Utils where
 
 import Graphics.Gloss hiding (Point, Vector) --Se omite Point y Vector para evitar conflictos con nuestros módulos
-import Types
+import Data.Explosion
+import Data.Mundo
+import Data.Proyectil
+import Data.Robot
+import Data.Torreta
+import Data.DatosComunes
 
 
 -- Funciones geométricas
@@ -81,14 +86,13 @@ dibujarProfe (x,y) = Translate x y $ Pictures
 dibujarNino :: MundoGloss -> Robot -> Picture
 dibujarNino m r =
   let (x, y) = position (commonR r)
-      robotEscalado   = Scale 0.3 0.3 (imagenRobot1 m)     -- ajusta tamaño
-      torretaEscalada = Scale 0.15 0.15 (imagenTorreta m)    -- imagen de la cañita
+      robotEscalado   = Scale 0.3 0.3 (imagenRobot1 m) 
+      torretaEscalada = Scale 0.15 0.15 (imagenTorreta m)
       ang = angleT (turret r)
   in Translate x y $ Pictures
        [ robotEscalado
        , Rotate (-ang) torretaEscalada
        ]
-
 
 dibujarChicle :: Projectile -> Picture
 dibujarChicle p = 
@@ -106,7 +110,6 @@ dibujarExplosion (Explosion (x,y) _ ttl _) =
          , Color (withAlpha (a*0.8) (makeColorI 255 200 255 255)) $ circleSolid (30*0.3)
          ]
 
-
 dibujarBoton :: Picture
 dibujarBoton = Pictures
   [ Translate (-85) (-140) $ Scale 0.2 0.2 $ Color black $ Text "Iniciar Juego"
@@ -115,19 +118,6 @@ dibujarBoton = Pictures
 dentroBoton :: (Float, Float) -> Bool
 dentroBoton (mx, my) =
   mx >= -115 && mx <= 85 && my >= -185 && my <= -95
-
-
-------------------------------------------------------------
--- BARRAS DE VIDA 
-------------------------------------------------------------
-
-colorJugador :: Robot -> Color
-colorJugador r = case idR r of
-  1 -> orange
-  2 -> blue
-  3 -> red
-  4 -> green
-  _ -> white
 
 ------------------------------------------------------------
 -- PANEL IZQUIERDO: HUD
@@ -139,11 +129,9 @@ dibujarHUD rs =
       panelH = fromIntegral num * 45 + 40
       panelX = -ancho / 2 + panelW / 2 - 10
       panelY = alto / 2 - panelH / 2 - 20
-
       fondo = Color (makeColor 0 0 0 0.6) $
                  Translate (panelX - 130) (panelY + 10) $
                    rectangleSolid panelW panelH
-
       barras = Pictures
         [ dibujarBarraVidaVerticalAt panelX panelY r i
         | (i, r) <- zip [0..] rs ]
@@ -156,7 +144,6 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
       anchoTotal  = 120
       altoBarra   = 14
       anchoVida   = max 0 (min 1 (vida / maxHealthR r)) * anchoTotal
-      colorN      = colorJugador r
       baseY       = (panelY + 60) - fromIntegral idx * 45
       colorTexto  = if vida <= 0
                     then (makeColorI 255 130 130 255)
@@ -174,7 +161,7 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
              , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra
              , Translate (-(anchoTotal - anchoVida)/2) 0 $
-                 Color colorN $ rectangleSolid anchoVida altoBarra
+                 Color red $ rectangleSolid anchoVida altoBarra
              ]
        , Translate vidaX (baseY + 5) $
            Scale 0.15 0.15 $ Color white $ Text vidaTxt -- Vida de cada niño

@@ -1,7 +1,13 @@
 module Movement where
 
 import Utils
-import Types
+import Data.Explosion
+import Data.Mundo
+import Data.Proyectil
+import Data.Robot
+import Data.Torreta
+import Data.DatosComunes
+
 
 positionR :: Robot -> Position
 positionR r = position (commonR r)
@@ -32,6 +38,7 @@ updateRobotVelocity :: Robot -> Velocity -> Robot
 updateRobotVelocity robot newVel =
   robot { commonR = (commonR robot) { velocity = newVel } }
 
+{--
 updateVelocity :: Action -> Velocity
 updateVelocity action =
   case action of
@@ -40,7 +47,7 @@ updateVelocity action =
     MoveLeft  -> (-baseSpeed, 0)
     MoveRight -> (baseSpeed, 0)
     Stop      -> (0, 0)
-
+--}
 updatePosition :: Float -> Position -> Velocity -> Position
 updatePosition dt (px, py) (vx, vy) =
   (px + vx * dt, py + vy * dt)
