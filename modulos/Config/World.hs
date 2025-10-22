@@ -13,7 +13,7 @@ import Data.DatosComunes
 import Config.Dibujar
 
 import Utils
-import Movement (positionR, isRobotAlive, detectedAgent)
+import Movement
 
 generarPuntosPatrulla :: Id -> [Position]
 generarPuntosPatrulla id = take 11 $ zip xs ys
@@ -103,13 +103,6 @@ manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | otherwise = m
 manejarEvento _ m = m
-
-velocidadPorRol :: Id -> Float
-velocidadPorRol 1 = 150
-velocidadPorRol 2 = 20
-velocidadPorRol 3 = 50
-velocidadPorRol 4 = 60
-velocidadPorRol _ = 50
 
 comportamientoNino :: Float -> Robot -> Robot
 comportamientoNino dt r

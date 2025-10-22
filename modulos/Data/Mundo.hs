@@ -31,3 +31,7 @@ data World = World
   , turrets     :: [Turret]
   , robotHits   :: [RobotHit]
   } deriving (Show, Eq)
+
+ancho, alto :: Float
+ancho = 600
+alto  = 600

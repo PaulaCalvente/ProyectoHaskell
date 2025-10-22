@@ -8,15 +8,6 @@ import Data.Torreta
 import Utils
 import Movement
 
-pointsR :: Robot -> [Point]
-pointsR = points . commonR
-
-positionP :: Projectile -> Position
-positionP = position . commonP
-
-pointsP :: Projectile -> [Point]
-pointsP = points . commonP
-
 checkCollision :: [Point] -> [Point] -> Bool
 checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis) ejes
   where

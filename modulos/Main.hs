@@ -3,9 +3,11 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 --import Graphics.Gloss.Juicy (loadJuicyPNG)
 import Config.World
-import Utils
 import Config.Dibujar
 
+import Data.Mundo
+
+import Utils
 {-
 myWorld :: World
 myWorld = World

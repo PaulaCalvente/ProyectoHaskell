@@ -38,3 +38,29 @@ data RobotHit
       , hitAt       :: Position
       }
   deriving (Show, Eq)
+
+velNino :: Float
+velNino = 150
+
+-- Extracción de tipos comunes del robot
+damageR :: Robot -> Damage
+damageR = damage . commonR
+
+positionR :: Robot -> Position
+positionR = position . commonR
+
+velocityR :: Robot -> Velocity
+velocityR = velocity . commonR
+
+sizeR :: Robot -> Size
+sizeR = size . commonR
+
+pointsR :: Robot -> [Point]
+pointsR = points . commonR
+
+velocidadPorRol :: Id -> Float
+velocidadPorRol 1 = 150
+velocidadPorRol 2 = 20
+velocidadPorRol 3 = 50
+velocidadPorRol 4 = 60
+velocidadPorRol _ = 50

@@ -48,16 +48,7 @@ isInBounds (x, y) (width, height) =
   x >= 0 && x <= width && y >= 0 && y <= height
 
 
-ancho, alto :: Float
-ancho = 600
-alto  = 600
 
-velNino, velChicleVel :: Float
-velNino = 150
-velChicleVel = 300
-
-chicleRadius :: Float
-chicleRadius = 10
 
 circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
 circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
