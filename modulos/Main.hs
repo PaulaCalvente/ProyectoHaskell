@@ -4,6 +4,7 @@ import Graphics.Gloss.Interface.Pure.Game
 --import Graphics.Gloss.Juicy (loadJuicyPNG)
 import Config.World
 import Utils
+import Config.Dibujar
 
 {-
 myWorld :: World

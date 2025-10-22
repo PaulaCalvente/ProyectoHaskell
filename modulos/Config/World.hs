@@ -2,12 +2,16 @@ module Config.World where
 
 import Graphics.Gloss hiding (Vector, Point)
 import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
+
 import Data.Explosion
 import Data.Mundo
 import Data.Proyectil
 import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
+
+import Config.Dibujar
+
 import Utils
 import Movement (positionR, isRobotAlive, detectedAgent)
 
@@ -93,43 +97,6 @@ proyectilBase i = Projectile
   , commonP = CommonData i 10 (0, 0) (0, 0) (chicleRadius*2, chicleRadius*2) []
   , rangeP = 1000
   }
-
-dibujar :: MundoGloss -> Picture
-dibujar m = case modo m of
-  Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
-  Jugando ->
-    let w = worldState m
-    in Pictures
-      [ fondoJuego m
-      , dibujarProfe (0, 160)
-      , Pictures (map (dibujarNino m) [r | r <- robots w, healthR r > 0])
-      , Pictures (map dibujarChicle (projectiles w))
-      , Pictures (map dibujarExplosion (explosiones m))
-      , dibujarHUD (robots w)
-      , dibujarPutInfo m
-      ]
-
-  Victoria rid ->
-    Pictures
-      [ imagenVictoria m
-      , Translate (-240) 135 $
-          Scale 0.27 0.27 $
-          Color black $
-          Text ("Alumno " ++ show rid ++ " es el ganador")
-      ]
-  Derrota ->
-    Pictures [imagenDerrota m]
-
-dibujarPutInfo :: MundoGloss -> Picture
-dibujarPutInfo m =
-  let w = worldState m
-      vivos = length [ r | r <- robots w, healthR r > 0 ]
-      proyectilesActivos = length (projectiles w)
-      exps = length (explosiones m)
-      infoLines = [ "INFORMACION", "Alumnos vivos: " ++ show vivos, "Chicles activos: " ++ show proyectilesActivos, "Explosiones: " ++ show exps ]
-      fondo = Color (makeColor 0 0 0 0.6) $ Translate 330 235 $ rectangleSolid 250 120
-      linePictures = [ Translate 230 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
-  in Pictures (fondo : linePictures)
 
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m

@@ -22,21 +22,21 @@ checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis)
   where
     ejes = getAxes rect1 ++ getAxes rect2
 
-    getAxes :: [Point] -> [Vector]
-    getAxes pts = [perp (sub p2 p1) | (p1, p2) <- zip pts (tail pts ++ [head pts])]
+getAxes :: [Point] -> [Vector]
+getAxes pts = [perp (sub p2 p1) | (p1, p2) <- zip pts (tail pts ++ [head pts])]
 
-    superposicionPorEje :: [Point] -> [Point] -> Vector -> Bool
-    superposicionPorEje p1 p2 eje =
-        not (max1 < min2 || max2 < min1)
-      where
-        (min1, max1) = projectPolygon p1 eje
-        (min2, max2) = projectPolygon p2 eje
+superposicionPorEje :: [Point] -> [Point] -> Vector -> Bool
+superposicionPorEje p1 p2 eje =
+    not (max1 < min2 || max2 < min1)
+  where
+    (min1, max1) = projectPolygon p1 eje
+    (min2, max2) = projectPolygon p2 eje
 
-    projectPolygon :: [Point] -> Vector -> (Float, Float)
-    projectPolygon pts eje =
-        (minimum projections, maximum projections)
-      where
-        projections = (`dot` eje) <$> pts
+projectPolygon :: [Point] -> Vector -> (Float, Float)
+projectPolygon pts eje =
+    (minimum projections, maximum projections)
+  where
+    projections = (`dot` eje) <$> pts
 
 detectedRobotProjectileCollisions :: [Robot] -> [Projectile] -> ([RobotHit], [Explosion], Int)
 detectedRobotProjectileCollisions robots proyectiles = (hits, explosions, length hits)
