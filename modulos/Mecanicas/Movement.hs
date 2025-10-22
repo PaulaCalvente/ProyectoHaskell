@@ -12,5 +12,5 @@ import Mecanicas.Proyectil
 generarRecorrido :: Id -> [Position]
 generarRecorrido id = take 11 $ zip xs ys
   where
-    xs = [ fromIntegral ((id * i * 611) `mod` 500) - 250 | i <- [1..] ]
-    ys = [ fromIntegral ((id * i * 456) `mod` 500) - 250 | i <- [1..] ]
+    xs = [ fromIntegral ((id * i * 1111) `mod` 500) - 250 | i <- [1..] ]
+    ys = [ fromIntegral ((id * i * 713) `mod` 500) - 250 | i <- [1..] ]

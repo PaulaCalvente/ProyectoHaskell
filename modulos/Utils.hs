@@ -8,7 +8,6 @@ import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
 
-
 -- Funciones geométricas
 distanceBetween :: Position -> Position -> Distance
 distanceBetween (x1, y1) (x2, y2) =
@@ -49,15 +48,6 @@ isInBounds (x, y) (width, height) =
 
 mul :: Point -> Point -> Point
 mul (w, h) (sw, sh) = (w * sw, h * sh)
-
---ELIMINAR
-circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
-circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
-  dx*dx + dy*dy <= r*r
-  where clx = max minx (min cx maxx)
-        cly = max miny (min cy maxy)
-        dx  = cx - clx
-        dy  = cy - cly
 
 updatePosition :: Float -> Position -> Velocity -> Position
 updatePosition dt (px, py) (vx, vy) =

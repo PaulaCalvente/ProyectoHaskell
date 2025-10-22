@@ -1,13 +1,15 @@
-module Collision where
+module Mecanicas.Collision where
 import Data.Explosion
 import Data.Mundo
 import Data.Proyectil
 import Data.Robot
 import Data.Torreta
+import Data.DatosComunes
 
 import Utils
-import Movement
+import Mecanicas.Movement
 
+{--
 checkCollision :: [Point] -> [Point] -> Bool
 checkCollision rect1 rect2 = all (\axis -> superposicionPorEje rect1 rect2 axis) ejes
   where
@@ -103,4 +105,11 @@ checkCollisions world = totalRP + totalRR
     totalRR = length [ () | (r1, r2) <- (,) <$> rs <*> rs
                           , idR r1 < idR r2
                           , checkCollision (pointsR r1) (pointsR r2) ]
-
+--}
+circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
+circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
+  dx*dx + dy*dy <= r*r
+  where clx = max minx (min cx maxx)
+        cly = max miny (min cy maxy)
+        dx  = cx - clx
+        dy  = cy - cly

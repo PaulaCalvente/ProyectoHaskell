@@ -8,6 +8,7 @@ import Data.Torreta
 import Data.DatosComunes
 
 import Mecanicas.Robot
+import Mecanicas.Collision
 
 import Utils
 
