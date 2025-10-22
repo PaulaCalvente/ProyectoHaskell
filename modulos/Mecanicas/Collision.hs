@@ -103,3 +103,4 @@ checkCollisions world = totalRP + totalRR
     totalRR = length [ () | (r1, r2) <- (,) <$> rs <*> rs
                           , idR r1 < idR r2
                           , checkCollision (pointsR r1) (pointsR r2) ]
+

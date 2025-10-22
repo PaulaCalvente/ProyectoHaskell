@@ -29,3 +29,9 @@ sizeP = size . commonP
 pointsP :: Projectile -> [Point]
 pointsP = points . commonP
 
+proyectilBase :: Id -> Projectile
+proyectilBase i = Projectile
+  { idP = i
+  , commonP = CommonData i 10 (0, 0) (0, 0) (chicleRadius*2, chicleRadius*2) []
+  , rangeP = 1000
+  }

@@ -47,9 +47,10 @@ isInBounds :: Point -> Size -> Bool
 isInBounds (x, y) (width, height) =
   x >= 0 && x <= width && y >= 0 && y <= height
 
+mul :: Point -> Point -> Point
+mul (w, h) (sw, sh) = (w * sw, h * sh)
 
-
-
+--ELIMINAR
 circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
 circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
   dx*dx + dy*dy <= r*r
@@ -58,8 +59,27 @@ circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
         dx  = cx - clx
         dy  = cy - cly
 
-ninoBox :: Robot -> ((Float,Float),(Float,Float))
-ninoBox r = 
-  let (x, y) = position (commonR r)
-  in ((x-20,y-25),(x+20,y+25))
+updatePosition :: Float -> Position -> Velocity -> Position
+updatePosition dt (px, py) (vx, vy) =
+  (px + vx * dt, py + vy * dt)
 
+calcularAngulo :: Robot -> Robot -> Float
+calcularAngulo r objetivo =
+  rad2deg (angleToTarget (positionR r) (positionR objetivo))
+
+calcularVector :: Float -> (Float, Float)
+calcularVector angDegree =
+  (cos angDegree, sin angDegree)
+{--
+
+HAY QUE CAMBIAR ESTA FUNCION
+
+updateVelocity :: Action -> Velocity
+updateVelocity action =
+  case action of
+    MoveUp    -> (0, baseSpeed)
+    MoveDown  -> (0, -baseSpeed)
+    MoveLeft  -> (-baseSpeed, 0)
+    MoveRight -> (baseSpeed, 0)
+    Stop      -> (0, 0)
+--}
