@@ -6,7 +6,6 @@ import Types
 import Utils
 import Movement (positionR, isRobotAlive, detectedAgent)
 
--- Estado que usa Gloss
 data MundoGloss = MundoGloss
   { worldState     :: World
   , modo           :: Modo
@@ -17,16 +16,11 @@ data MundoGloss = MundoGloss
   , explosiones    :: [Explosion]
   }
 
--- Genera 4 puntos de patrulla únicos por robot (determinista)
 generarPuntosPatrulla :: Id -> [Position]
 generarPuntosPatrulla id = take 11 $ zip xs ys
   where
     xs = [ fromIntegral ((id * i * 611) `mod` 500) - 250 | i <- [1..] ]
     ys = [ fromIntegral ((id * i * 456) `mod` 500) - 250 | i <- [1..] ]
-
--- ================================
--- Estado inicial
--- ================================
 
 estadoInicial :: Picture -> Picture -> Picture -> Picture -> MundoGloss
 estadoInicial inicio fondo victoria derrota = MundoGloss
@@ -100,9 +94,6 @@ proyectilBase i = Projectile
   , rangeP = 1000
   }
 
--- ================================
--- Dibujo
--- ================================
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
   Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
@@ -129,9 +120,6 @@ dibujar m = case modo m of
   Derrota ->
     Pictures [imagenDerrota m]
 
--- ================================
--- PUTINFO
--- ================================
 dibujarPutInfo :: MundoGloss -> Picture
 dibujarPutInfo m =
   let w = worldState m
@@ -143,20 +131,12 @@ dibujarPutInfo m =
       linePictures = [ Translate 230 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
   in Pictures (fondo : linePictures)
 
--- ================================
--- Eventos
--- ================================
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | otherwise = m
--- Ya no hay tecla de espacio ni movimiento
 manejarEvento _ m = m
 
-
--- ================================
--- Patrulla con puntos aleatorios
--- ================================
 velocidadPorRol :: Id -> Float
 velocidadPorRol 1 = 150
 velocidadPorRol 2 = 20
@@ -164,7 +144,6 @@ velocidadPorRol 3 = 50
 velocidadPorRol 4 = 60
 velocidadPorRol _ = 50
 
--- Mueve el robot hacia el primer punto de su lista de patrulla
 comportamientoNino :: Float -> Robot -> Robot
 comportamientoNino dt r
   | healthR r <= 0 = r
@@ -188,79 +167,64 @@ comportamientoNino dt r
                         nuevaPos = clampDentro (fst posActual + dx, snd posActual + dy)
                     in r { commonR = (commonR r) { position = nuevaPos } }
 
--- ================================
--- Disparo condicional
--- ================================
 robotQuiereDisparar :: World -> Robot -> Bool
 robotQuiereDisparar world me =
   any (detectedAgent me) [r | r <- robots world, idR r /= idR me, isRobotAlive r]
 
 pasoShooting :: Float -> World -> ([Robot], [Projectile])
-pasoShooting dt world = loop (robots world) [] []
+pasoShooting dt world = foldr procesarRobot ([], []) (robots world)
   where
-    loop [] accR accP = (reverse accR, reverse accP)
-    loop (r:xs) accR accP =
-      let t0  = cooldown (turret r)
-          t1  = max 0 (t0 - dt)
-          rCD = r { turret = (turret r) { cooldown = t1 } }
-      in
-        if healthR rCD <= 0
-          then loop xs (rCD:accR) accP
-          else
-            let enemigos = [r' | r' <- robots world, idR r' /= idR rCD, isRobotAlive r']
-            in if null enemigos
-                 then loop xs (rCD:accR) accP
-                 else
-                   let -- Encuentra el enemigo más cercano
-                       (objetivo, _) = enemigoMasCercano rCD enemigos
-
-                       (xM, yM) = position (commonR rCD)
-                       (xT, yT) = position (commonR objetivo)
-
-                       -- Calcula ángulo y dirección del disparo
-                       angRad = atan2 (yT - yM) (xT - xM)
-                       speed = 250
-                       vx = cos angRad * speed
-                       vy = sin angRad * speed
-
-                       cooldown = case idR rCD of
-                         1 -> 0.6
-                         2 -> 1.6
-                         3 -> 1.2
-                         4 -> 0.9
-                         _ -> 1.0
-
-                       puedeDisparar = t1 <= 0 && robotQuiereDisparar world rCD
-
-                   in if not puedeDisparar
-                        then loop xs (rCD:accR) accP
-                        else
-                          let baseProj = projectileT (turret rCD)
-                              p = Projectile
-                                    { idP     = idR rCD
-                                    , commonP = (commonP baseProj)
-                                                  { position = (xM, yM + 28)
-                                                  , velocity = (vx, vy)
-                                                  }
-                                    , rangeP  = 1000
-                                    }
-                              r' = rCD { turret = (turret rCD) { cooldown = cooldown } }
-                          in loop xs (r':accR) (p:accP)
-
-    -- Encuentra el enemigo más cercano con distanceBetween
-    enemigoMasCercano :: Robot -> [Robot] -> (Robot, Float)
-    enemigoMasCercano me (r:rs) = aux r (distanceBetween (position (commonR me)) (position (commonR r))) rs
+    procesarRobot :: Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
+    procesarRobot r (accR, accP)
+      | healthR r <= 0 = (r : accR, accP)
+      | null enemigosVivos = (rCD : accR, accP)
+      | not puedeDisparar = (rCD : accR, accP)
+      | otherwise = (r' : accR, p : accP)
       where
-        aux minR minD [] = (minR, minD)
-        aux minR minD (r':rs') =
-          let d = distanceBetween (position (commonR me)) (position (commonR r'))
-          in if d < minD
-               then aux r' d rs'
-               else aux minR minD rs'
+        t0 = cooldown (turret r)
+        t1 = max 0 (t0 - dt)
+        rCD = actualizarCooldown r t1
+        enemigosVivos = enemigos rCD world
+        objetivo = enemigoMasCercano rCD enemigosVivos
+        (p, r') = generarDisparo dt rCD objetivo
+        puedeDisparar = t1 <= 0 && robotQuiereDisparar world rCD
 
--- ================================
--- Apuntar torreta al enemigo más cercano
--- ================================
+actualizarCooldown :: Robot -> Float -> Robot
+actualizarCooldown r t1 = r { turret = (turret r) { cooldown = t1 } }
+
+enemigos :: Robot -> World -> [Robot]
+enemigos r w = [ r' | r' <- robots w, idR r' /= idR r, isRobotAlive r' ]
+
+enemigoMasCercano :: Robot -> [Robot] -> Robot
+enemigoMasCercano me (r:rs) = fst $ foldl buscar (r, distanceBetween (position (commonR me)) (position (commonR r))) rs
+  where
+    buscar (minR, minD) r' =
+      let d = distanceBetween (position (commonR me)) (position (commonR r'))
+      in if d < minD then (r', d) else (minR, minD)
+
+generarDisparo :: Float -> Robot -> Robot -> (Projectile, Robot)
+generarDisparo dt r objetivo =
+  let (xM, yM) = position (commonR r)
+      (xT, yT) = position (commonR objetivo)
+      angRad = atan2 (yT - yM) (xT - xM)
+      speed = 250
+      vx = cos angRad * speed
+      vy = sin angRad * speed
+      cooldown' = case idR r of
+                    1 -> 0.6
+                    2 -> 1.6
+                    3 -> 1.2
+                    4 -> 0.9
+                    _ -> 1.0
+      baseProj = projectileT (turret r)
+      p = Projectile
+            { idP = idR r
+            , commonP = (commonP baseProj) { position = (xM, yM + 28), velocity = (vx, vy) }
+            , rangeP = 1000
+            }
+      r' = r { turret = (turret r) { cooldown = cooldown' } }
+  in (p, r')
+
 apuntarTorreta :: World -> Robot -> Robot
 apuntarTorreta world r
   | healthR r <= 0 = r
