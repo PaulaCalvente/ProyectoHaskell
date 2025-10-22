@@ -58,11 +58,12 @@ main = do
   inicio <- loadBMP "imagenes/inicio.bmp"
   clase  <- loadBMP "imagenes/clase.bmp"
   victoria <- loadBMP "imagenes/victoria.bmp"
+  derrota <- loadBMP "imagenes/derrota.bmp"
   play
     (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
     white
     60
-    (estadoInicial inicio clase victoria)
+    (estadoInicial inicio clase victoria derrota)
     dibujar
     manejarEvento
     actualizar

@@ -13,6 +13,7 @@ data MundoGloss = MundoGloss
   , imagenInicio   :: Picture
   , fondoJuego     :: Picture
   , imagenVictoria :: Picture
+  , imagenDerrota  :: Picture
   , explosiones    :: [Explosion]
   }
 
@@ -27,8 +28,8 @@ generarPuntosPatrulla id = take 11 $ zip xs ys
 -- Estado inicial
 -- ================================
 
-estadoInicial :: Picture -> Picture -> Picture -> MundoGloss
-estadoInicial inicio fondo victoria = MundoGloss
+estadoInicial :: Picture -> Picture -> Picture -> Picture -> MundoGloss
+estadoInicial inicio fondo victoria derrota = MundoGloss
   { worldState = World
       { robots =
           [ -- Alumno 1: Speedster
@@ -88,6 +89,7 @@ estadoInicial inicio fondo victoria = MundoGloss
   , imagenInicio = inicio
   , fondoJuego = fondo
   , imagenVictoria = victoria
+  , imagenDerrota = derrota
   , explosiones = []
   }
 
@@ -124,6 +126,8 @@ dibujar m = case modo m of
           Color black $
           Text ("Alumno " ++ show rid ++ " es el ganador")
       ]
+  Derrota ->
+    Pictures [imagenDerrota m]
 
 -- ================================
 -- PUTINFO
@@ -391,5 +395,5 @@ actualizar dt m
 
       in case vivos of
           [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo)}
-          []       -> m { worldState = w', explosiones = expsAct, modo = Victoria 0 }
+          []       -> m { worldState = w', explosiones = expsAct, modo = Derrota }
           _        -> m { worldState = w', explosiones = expsAct }

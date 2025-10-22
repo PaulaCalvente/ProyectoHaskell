@@ -140,7 +140,7 @@ dentroBoton (mx, my) =
 -- Estado del juego
 -- ================================
 
-data Modo = Inicio | Jugando | Victoria Int deriving (Eq, Show)
+data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
 
 ------------------------------------------------------------
 -- BARRAS DE VIDA 
