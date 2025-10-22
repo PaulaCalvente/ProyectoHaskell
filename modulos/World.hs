@@ -258,8 +258,6 @@ pasoShooting dt world = loop (robots world) [] []
                then aux r' d rs'
                else aux minR minD rs'
 
-
-
 -- ================================
 -- Apuntar torreta al enemigo más cercano
 -- ================================
@@ -278,9 +276,6 @@ apuntarTorreta world r
                  vec = (cos angDegree, sin angDegree)
              in r { turret = (turret r) { angleT = angDegree, vectorT = vec } }
 
--- ================================
--- Curación automática para el Soporte (Alumno 3)
--- ================================
 curarSoporte :: Float -> Robot -> Robot
 curarSoporte dt r
   | idR r /= 3 = r
@@ -297,9 +292,6 @@ curarSoporte dt r
     nuevoTiempo  = tiempoActual + dt
     vidaNueva    = min 110 (healthR r + 2)
 
--- ================================
--- Actualización
--- ================================
 clampDentro :: (Float,Float) -> (Float,Float)
 clampDentro (x,y) =
   let halfW = ancho/2
@@ -331,69 +323,81 @@ actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
   | otherwise =
-      let w = worldState m
+      case robotsVivos rsDanyados of
+        [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo) }
+        []       -> m { worldState = w', explosiones = expsAct, modo = Derrota }
+        _        -> m { worldState = w', explosiones = expsAct }
+  where
+    w = worldState m
+    (rs4, nuevosProj) = actualizarRobots dt w
+    ps0 = projectiles w ++ nuevosProj
+    psMov = moverProyectiles ps0 dt
+    impactosDetectados = detectarImpactos rs4 psMov
+    rsDanyados = aplicarDaño rs4 impactosDetectados
+    nuevasExplosiones = generarExplosiones impactosDetectados
+    psRestantes = filtrarProyectilesRestantes psMov impactosDetectados
+    expsAct = actualizarExplosiones dt (explosiones m) nuevasExplosiones
+    w' = actualizarWorld w rsDanyados psRestantes
 
-          -- Movimiento con patrulla
-          rs0 = robots w
-          rs1 = map (comportamientoNino dt) rs0
+actualizarExplosiones :: Float -> [Explosion] -> [Explosion] -> [Explosion]
+actualizarExplosiones dt existentes nuevas =
+  [ Explosion pos size (ttl - dt) src
+  | Explosion pos size ttl src <- existentes ++ nuevas
+  , ttl - dt > 0
+  ]
 
-          -- Apuntar torretas
-          rs2 = map (apuntarTorreta w) rs1
+actualizarWorld :: World -> [Robot] -> [Projectile] -> World
+actualizarWorld w robotsActivos proyectilesActivos =
+  w { robots = robotsActivos, projectiles = proyectilesActivos }
 
-          -- Disparo condicional
-          (rs3, nuevosProj) = pasoShooting dt w{robots = rs2}
+robotsVivos :: [Robot] -> [Robot]
+robotsVivos = filter ((> 0) . healthR)
 
-          -- Curación para el Soporte
-          rs4 = map (curarSoporte dt) rs3
+actualizarRobots :: Float -> World -> ([Robot], [Projectile])
+actualizarRobots dt w =
+  let rs0 = robots w
+      rs1 = map (comportamientoNino dt) rs0
+      rs2 = map (apuntarTorreta w) rs1
+      (rs3, nuevosProj) = pasoShooting dt w { robots = rs2 }
+      rs4 = map (curarSoporte dt) rs3
+  in (rs4, nuevosProj)
 
-          ps0 = projectiles w ++ nuevosProj
+moverProyectiles :: [Projectile] -> Float -> [Projectile]
+moverProyectiles ps dt =
+  [ p { commonP = (commonP p)
+          { position = (x + vx * dt, y + vy * dt) } }
+  | p <- ps
+  , let (x, y) = position (commonP p)
+        (vx, vy) = velocity (commonP p)
+  , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
+  ]
 
-          -- Mover proyectiles
-          psMovidos =
-            [ p { commonP = (commonP p) { position = (x + vx * dt, y + vy * dt) } }
-            | p <- ps0
-            , let (x, y) = position (commonP p)
-                  (vx, vy) = velocity (commonP p)
-            , x > -ancho/2 && x < ancho/2 && y > -alto/2 && y < alto/2
-            ]
+detectarImpactos :: [Robot] -> [Projectile] -> [(Id, Id, Damage, Position)]
+detectarImpactos rs ps =
+  [ (idR r, idP p, damage (commonP p), position (commonP p))
+  | r <- rs, healthR r > 0
+  , p <- ps
+  , idR r /= idP p
+  , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
+  ]
 
-          -- Colisiones
-          impactos =
-            [ (idR r, idP p, damage (commonP p), position (commonP p))
-            | r <- rs4
-            , healthR r > 0                   
-            , p <- psMovidos
-            , idR r /= idP p
-            , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
-            ]
+aplicarDaño :: [Robot] -> [(Id, Id, Damage, Position)] -> [Robot]
+aplicarDaño rs impactos =
+  [ if any (\(idr, _, _, _) -> idr == idR r) impactos
+      then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
+           in r { healthR = max 0 (healthR r - totalDaño)
+                , haveExploded = haveExploded r || healthR r - totalDaño <= 0
+                }
+      else r
+  | r <- rs
+  ]
 
-          -- Daño
-          rsDanyados =
-            [ if any (\(idr, _, _, _) -> idr == idR r) impactos
-              then let totalDaño = sum [ d | (idr, _, d, _) <- impactos, idr == idR r ]
-                  in r { healthR = max 0 (healthR r - totalDaño)
-          , haveExploded = if healthR r - totalDaño <= 0 then True else haveExploded r
-          }
+generarExplosiones :: [(Id, Id, Damage, Position)] -> [Explosion]
+generarExplosiones impactos =
+  [ Explosion pos (30, 0) 0.6 (RobotHitByProjectile rid pid dmg pos)
+  | (rid, pid, dmg, pos) <- impactos
+  ]
 
-              else r
-            | r <- rs4
-            ]
-
-          -- Explosiones 
-          nuevasExplosiones =
-            [ Explosion pos (30, 0) 0.6 (RobotHitByProjectile rid pid dmg pos)
-            | (rid, pid, dmg, pos) <- impactos
-            ]
-
-          psRestantes =
-            [ p | p <- psMovidos, not (any (\(_, pid, _, _) -> pid == idP p) impactos) ]
-
-          expsAct = [ Explosion pos size (ttl - dt) src | Explosion pos size ttl src <- explosiones m ++ nuevasExplosiones, ttl - dt > 0 ]
-
-          w' = w { robots = rsDanyados, projectiles = psRestantes }
-          vivos = [ r | r <- rsDanyados, healthR r > 0 ]
-
-      in case vivos of
-          [ultimo] -> m { worldState = w', explosiones = expsAct, modo = Victoria (idR ultimo)}
-          []       -> m { worldState = w', explosiones = expsAct, modo = Derrota }
-          _        -> m { worldState = w', explosiones = expsAct }
+filtrarProyectilesRestantes :: [Projectile] -> [(Id, Id, Damage, Position)] -> [Projectile]
+filtrarProyectilesRestantes ps impactos =
+  [ p | p <- ps, not (any (\(_, pid, _, _) -> pid == idP p) impactos) ]
