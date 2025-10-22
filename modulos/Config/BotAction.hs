@@ -1,6 +1,6 @@
 -- Apartado 5 de HAUS3 (Simplemente hay que indicar qué instrucciones van a poder recibir nuestros bots)
 
-module BotAction
+module Config.BotAction
   ( Target(..)
   , BotCond(..)
   , BotCmd(..)
@@ -12,7 +12,7 @@ module BotAction
   ) where
 
 import Utils
-import Memory     -- para la memoria del bot
+import Config.Memory     -- para la memoria del bot
 import Movement   -- funciones de movimiento: detectedAgent, isRobotAlive, updateVelocity, etc.
 import Collision
 import Data.DatosComunes

@@ -1,4 +1,4 @@
-module Memory
+module Config.Memory
   ( MemoryValue(..)
   , Memory
   ) where

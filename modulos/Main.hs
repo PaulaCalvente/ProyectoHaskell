@@ -1,14 +1,8 @@
 module Main where
-
--- import Types
--- import Movement
--- import BotAction
--- import Collision
-
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 --import Graphics.Gloss.Juicy (loadJuicyPNG)
-import World
+import Config.World
 import Utils
 
 {-

@@ -1,4 +1,4 @@
-module World where
+module Config.World where
 
 import Graphics.Gloss hiding (Vector, Point)
 import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
