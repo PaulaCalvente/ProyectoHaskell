@@ -7,6 +7,7 @@ module Main where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Juicy (loadJuicyPNG)
 import World
 import Utils
 
@@ -59,11 +60,16 @@ main = do
   clase  <- loadBMP "imagenes/clase.bmp"
   victoria <- loadBMP "imagenes/victoria.bmp"
   derrota <- loadBMP "imagenes/derrota.bmp"
+  robot1 <- loadJuicyPNG "imagenes/robot1.png"
+  --robot2 <- loadBMP "imagenes/robot2.bmp"
+  --robot3 <- loadBMP "imagenes/robot3.bmp"
+  --robot4 <- loadBMP "imagenes/robot4.bmp"
+  torreta <- loadJuicyPNG "imagenes/torreta.png"
   play
     (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
     white
     60
-    (estadoInicial inicio clase victoria derrota)
+    (estadoInicial inicio clase victoria derrota robot1 torreta)
     dibujar
     manejarEvento
     actualizar

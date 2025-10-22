@@ -78,37 +78,17 @@ dibujarProfe (x,y) = Translate x y $ Pictures
   , Translate 0 32 $ Color red $ rectangleSolid 10 3
   ]
 
-dibujarNino :: Robot -> Picture
-dibujarNino r =
+dibujarNino :: MundoGloss -> Robot -> Picture
+dibujarNino m r =
   let (x, y) = position (commonR r)
-      c = case idR r of
-            1 -> orange
-            2 -> blue
-            3 -> red
-            4 -> green
-            _ -> white
+      robotEscalado   = Scale 0.3 0.3 (imagenRobot1 m)     -- ajusta tamaño
+      torretaEscalada = Scale 0.15 0.15 (imagenTorreta m)    -- imagen de la cañita
       ang = angleT (turret r)
-      rad = deg2rad ang
-      len = 50
-      grosor = 10
-      mouthPos = (10, 28)
-      (mx, my) = mouthPos
-      strawEnd = (mx + cos rad * len, my + sin rad * len)
-      strawColor = makeColorI 255 150 180 255
   in Translate x y $ Pictures
-       [ Color c $ rectangleSolid 40 50
-       , Translate 0 35 $ Color (makeColorI 255 220 180 255) $ rectangleSolid 30 30
-       , Translate 0 50 $ Color (makeColorI 90 60 20 255) $ rectangleSolid 32 8
-       , Translate (-8) 40 $ Color black $ circleSolid 2.5
-       , Translate (8) 40 $ Color black $ circleSolid 2.5
-       , Translate 0 28 $ Color red $ rectangleSolid 8 2
-       , Translate 0 (-45) $ Color black $ rectangleSolid 30 10
-       , Translate 18 28 $ Color (makeColorI 180 60 180 230) $ circleSolid 6
-       , Translate mx my $
-           Color strawColor $
-             Rotate (-ang) $
-               Translate (len/2) 0 $ rectangleSolid len grosor
+       [ robotEscalado
+       , Rotate (-ang) torretaEscalada
        ]
+
 
 dibujarChicle :: Projectile -> Picture
 dibujarChicle p = 
@@ -136,11 +116,6 @@ dentroBoton :: (Float, Float) -> Bool
 dentroBoton (mx, my) =
   mx >= -115 && mx <= 85 && my >= -185 && my <= -95
 
--- ================================
--- Estado del juego
--- ================================
-
-data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
 
 ------------------------------------------------------------
 -- BARRAS DE VIDA 

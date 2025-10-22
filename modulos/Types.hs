@@ -1,4 +1,6 @@
 module Types where
+import Graphics.Gloss hiding (Vector, Point)
+import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
 
 type Point = (Float, Float)
 type Vector = (Float, Float)
@@ -15,6 +17,23 @@ type HaveExploded = Bool
 type Cooldown = Float
 type TurretAction = Float
 type Duration = Float
+
+data MundoGloss = MundoGloss
+  { worldState     :: World
+  , modo           :: Modo
+  , imagenInicio   :: Picture
+  , fondoJuego     :: Picture
+  , imagenVictoria :: Picture
+  , imagenDerrota  :: Picture
+  , imagenRobot1   :: Picture
+  --, imagenRobot2   :: Picture
+  --, imagenRobot3   :: Picture
+  --, imagenRobot4   :: Picture
+  , imagenTorreta  :: Picture
+  , explosiones    :: [Explosion]
+  }
+
+data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
 
 -- Información común de cualquier entidad con posición, velocidad y forma.
 -- Parametrizado en 'a' para poder aplicar Functor y Applicative.

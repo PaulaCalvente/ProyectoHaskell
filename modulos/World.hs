@@ -6,24 +6,14 @@ import Types
 import Utils
 import Movement (positionR, isRobotAlive, detectedAgent)
 
-data MundoGloss = MundoGloss
-  { worldState     :: World
-  , modo           :: Modo
-  , imagenInicio   :: Picture
-  , fondoJuego     :: Picture
-  , imagenVictoria :: Picture
-  , imagenDerrota  :: Picture
-  , explosiones    :: [Explosion]
-  }
-
 generarPuntosPatrulla :: Id -> [Position]
 generarPuntosPatrulla id = take 11 $ zip xs ys
   where
     xs = [ fromIntegral ((id * i * 611) `mod` 500) - 250 | i <- [1..] ]
     ys = [ fromIntegral ((id * i * 456) `mod` 500) - 250 | i <- [1..] ]
 
-estadoInicial :: Picture -> Picture -> Picture -> Picture -> MundoGloss
-estadoInicial inicio fondo victoria derrota = MundoGloss
+estadoInicial :: Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> MundoGloss
+estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
   { worldState = World
       { robots =
           [ -- Alumno 1: Speedster
@@ -84,6 +74,11 @@ estadoInicial inicio fondo victoria derrota = MundoGloss
   , fondoJuego = fondo
   , imagenVictoria = victoria
   , imagenDerrota = derrota
+  , imagenRobot1 = robot1
+  -- , imagenRobot2 = robot2
+  -- , imagenRobot3 = robot3
+  -- , imagenRobot4 = robot4
+  , imagenTorreta = torreta
   , explosiones = []
   }
 
@@ -102,7 +97,7 @@ dibujar m = case modo m of
     in Pictures
       [ fondoJuego m
       , dibujarProfe (0, 160)
-      , Pictures (map dibujarNino [r | r <- robots w, healthR r > 0])
+      , Pictures (map (dibujarNino m) [r | r <- robots w, healthR r > 0])
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
       , dibujarHUD (robots w)
