@@ -14,11 +14,11 @@ data MundoGloss = MundoGloss
   , fondoJuego     :: Picture
   , imagenVictoria :: Picture
   , imagenDerrota  :: Picture
-  , imagenRobot1   :: Picture
+  , imagenRobot1   :: Maybe Picture
   --, imagenRobot2   :: Picture
   --, imagenRobot3   :: Picture
   --, imagenRobot4   :: Picture
-  , imagenTorreta  :: Picture
+  , imagenTorreta  :: Maybe Picture
   , imagenProfe    :: Maybe Picture
   , explosiones    :: [Explosion]
   }

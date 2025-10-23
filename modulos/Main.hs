@@ -1,7 +1,7 @@
 module Main where
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
---import GlossJuicy.Graphics.Gloss.Juicy
+import Graphics.Gloss.Juicy
 import Config.World
 import Config.Dibujar
 
@@ -51,23 +51,39 @@ exampleBot world myId
                         , detectedAgent myRobot r ] -- Lo detecto con mi radar
 -}
 
+-- Main.hs (ESTRUCTURA CORREGIDA)
+
 main :: IO ()
 main = do
-  inicio <- loadBMP "imagenes/inicio.bmp"
-  clase  <- loadBMP "imagenes/clase.bmp"
-  victoria <- loadBMP "imagenes/victoria.bmp"
-  derrota <- loadBMP "imagenes/derrota.bmp"
-  robot1 <- loadBMP "imagenes/Robot1.bmp"
-  --robot2 <- loadBMP "imagenes/robot2.bmp"
-  --robot3 <- loadBMP "imagenes/robot3.bmp"
-  --robot4 <- loadBMP "imagenes/robot4.bmp"
-  torreta <- loadBMP "imagenes/torreta.bmp"
-  profesor <- loadBMP "imagenes/profe.bmp"
+  inicio <- loadBMP "imagenes/imagenesBMP/inicio.bmp"
+  clase <- loadBMP "imagenes/imagenesBMP/clase.bmp"
+  victoria <- loadBMP "imagenes/imagenesBMP/victoria.bmp"
+  derrota <- loadBMP "imagenes/imagenesBMP/derrota.bmp"
+  maybeTorreta <- loadJuicyPNG "imagenes/imagenesPNG/torreta.png"
+  case maybeTorreta of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Torreta.png. Se usará un marcador de posición."
+    Just _ -> return () -- No hace nada, solo continúa con el flujo IO.
+  profesor <- loadBMP "imagenes/imagenesBMP/profe.bmp"
+
+  -- 1. Carga el PNG: el resultado es IO (Maybe Picture)
+  maybeRobot1 <- loadJuicyPNG "imagenes/imagenesPNG/Robot1.png"
+
+  -- 2. No se usa un 'case' para controlar el flujo principal (la llamada a 'play').
+  --    La función 'play' DEBE ejecutarse siempre, por lo que el 'case' debe ser más pequeño.
+  --    Para seguir el flujo recomendado, usa la variable Maybe Picture en estadoInicial,
+  --    y solo usa el 'case' para manejar el error de carga de forma simple.
+  
+  case maybeRobot1 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Robot1.png. Se usará un marcador de posición."
+    Just _ -> return () -- No hace nada, solo continúa con el flujo IO.
+  
+  -- 3. La llamada a 'play' se realiza fuera del 'case' principal, asegurando su ejecución.
   play
     (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
     white
     60
-    (estadoInicial inicio clase victoria derrota robot1 torreta profesor)
+    -- La función estadoInicial debe estar corregida para aceptar Maybe Picture aquí.
+    (estadoInicial inicio clase victoria derrota maybeRobot1 maybeTorreta profesor) 
     dibujar
     manejarEvento
     actualizar

@@ -60,14 +60,49 @@ dibujarRobotP m (x, y) =
 
 dibujarRobot :: MundoGloss -> Robot -> Picture
 dibujarRobot m r =
-  let (x, y) = position (commonR r)
-      robotEscalado   = Scale 0.3 0.3 (imagenRobot1 m) 
-      torretaEscalada = Scale 0.15 0.15 (imagenTorreta m)
-      ang = angleT (turret r)
-  in Translate x y $ Pictures
-       [ robotEscalado
-       , Rotate (-ang) torretaEscalada
-       ]
+  let
+    (x, y) = position (commonR r)
+    ang = angleT (turret r)
+
+    maybeRobotPic = imagenRobot1 m
+    maybeTorretaPic = imagenTorreta m
+    
+    torretaOffsetX = 5
+    torretaOffsetY = 7
+    
+    torretaLength = 150 * 0.3 -- Ejemplo: 22.5 (Asegúrate de que este valor sea la mitad del ancho de tu imagen ESCALADA)
+
+    -- 1. Define el componente 'Torreta' con pivote en el extremo
+    torretaComponent =
+      case maybeTorretaPic of
+        Nothing ->
+          Color blue (rectangleSolid 30 15)
+        Just torretaPic ->
+          let
+            torretaEscalada = Scale 0.15 0.15 torretaPic
+            
+            -- *** EL CAMBIO CLAVE AQUÍ: Traslada en la dirección opuesta al extremo ***
+            -- Esto mueve el punto de disparo (extremo derecho) al origen (0, 0)
+            pivoteTrasladado = Translate (-torretaLength / 2) 0 torretaEscalada 
+            
+            -- 2. Aplica la rotación sobre el nuevo pivote (0, 0)
+            torretaRotada = Rotate (-ang) pivoteTrasladado
+            
+            -- 3. Aplica el offset final (a la boca del niño)
+          in
+            Translate torretaOffsetX torretaOffsetY torretaRotada
+
+    -- 2. Define el componente 'Cuerpo del Robot' (sin cambios)
+    cuerpoComponent =
+      case maybeRobotPic of
+        Nothing -> Color red (Circle 10)
+        Just robotPic -> Scale 0.3 0.3 robotPic
+
+    -- Combina ambos
+    robotPicture = Pictures [cuerpoComponent, torretaComponent]
+  in
+    -- Aplica la traslación final a la posición (x, y) del robot
+    Translate x y robotPicture
 
 dibujarProjectile :: Projectile -> Picture
 dibujarProjectile p = 
