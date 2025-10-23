@@ -9,6 +9,7 @@ import Data.Proyectil
 import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
+import Data.Maybe (fromMaybe)
 
 import Mecanicas.Robot
 
@@ -21,7 +22,7 @@ dibujar m = case modo m of
     let w = worldState m
     in Pictures
       [ fondoJuego m
-      , dibujarProfe (0, 160)
+      , dibujarProfe m (0, 240)
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map dibujarProjectile (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
@@ -51,16 +52,12 @@ dibujarPutInfo m =
       linePictures = [ Translate 230 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
   in Pictures (fondo : linePictures)
 
-dibujarProfe :: (Float, Float) -> Picture
-dibujarProfe (x,y) = Translate x y $ Pictures
-  [ Color (makeColorI 255 220 180 255) $ Translate 0 40 $ rectangleSolid 40 40
-  , Translate 0 55 $ Color (makeColorI 80 50 10 255) $ rectangleSolid 42 10
-  , Color (makeColorI 40 70 160 255) $ rectangleSolid 50 60
-  , Translate 0 (-50) $ Color (makeColorI 30 40 80 255) $ rectangleSolid 40 25
-  , Translate (-10) 45 $ Color black $ circleSolid 3
-  , Translate (10) 45 $ Color black $ circleSolid 3
-  , Translate 0 32 $ Color red $ rectangleSolid 10 3
-  ]
+dibujarProfe :: MundoGloss -> (Float, Float) -> Picture
+dibujarProfe m (x, y) =
+  Translate x y $
+    Scale 0.3 0.3 $
+      fromMaybe Blank (imagenProfe m)
+
 
 dibujarRobot :: MundoGloss -> Robot -> Picture
 dibujarRobot m r =

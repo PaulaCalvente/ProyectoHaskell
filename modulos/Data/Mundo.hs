@@ -19,6 +19,7 @@ data MundoGloss = MundoGloss
   --, imagenRobot3   :: Picture
   --, imagenRobot4   :: Picture
   , imagenTorreta  :: Picture
+  , imagenProfe    :: Maybe Picture
   , explosiones    :: [Explosion]
   }
 

@@ -19,8 +19,8 @@ import Mecanicas.Mundo
 import Mecanicas.Explosiones
 import Mecanicas.Proyectil
 
-estadoInicial :: Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> MundoGloss
-estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
+estadoInicial :: Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> MundoGloss
+estadoInicial inicio fondo victoria derrota robot1 torreta profe= MundoGloss
   { worldState = World
       { robots =
           [ -- Alumno 1: Speedster
@@ -86,6 +86,7 @@ estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
   -- , imagenRobot3 = robot3
   -- , imagenRobot4 = robot4
   , imagenTorreta = torreta
+  , imagenProfe = Just profe
   , explosiones = []
   }
 
