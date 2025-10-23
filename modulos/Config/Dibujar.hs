@@ -10,6 +10,8 @@ import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
 
+import Mecanicas.Robot
+
 import Utils
 
 dibujar :: MundoGloss -> Picture
@@ -21,7 +23,7 @@ dibujar m = case modo m of
       [ fondoJuego m
       , dibujarProfe (0, 160)
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
-      , Pictures (map dibujarChicle (projectiles w))
+      , Pictures (map dibujarProjectile (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
       , dibujarHUD (robots w)
       , dibujarPutInfo m
@@ -41,7 +43,7 @@ dibujar m = case modo m of
 dibujarPutInfo :: MundoGloss -> Picture
 dibujarPutInfo m =
   let w = worldState m
-      vivos = length [ r | r <- robots w, healthR r > 0 ]
+      vivos = countActiveRobots (robots w)
       proyectilesActivos = length (projectiles w)
       exps = length (explosiones m)
       infoLines = [ "INFORMACION", "Alumnos vivos: " ++ show vivos, "Chicles activos: " ++ show proyectilesActivos, "Explosiones: " ++ show exps ]
@@ -71,8 +73,8 @@ dibujarRobot m r =
        , Rotate (-ang) torretaEscalada
        ]
 
-dibujarChicle :: Projectile -> Picture
-dibujarChicle p = 
+dibujarProjectile :: Projectile -> Picture
+dibujarProjectile p = 
   let (x, y) = position (commonP p)
       c = makeColorI 180 60 180 230
       r = 8 + 2 * sin (x / 30)
