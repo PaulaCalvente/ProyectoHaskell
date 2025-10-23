@@ -14,9 +14,9 @@ import Utils
 
 actualizarExplosiones :: Float -> [Explosion] -> [Explosion] -> [Explosion]
 actualizarExplosiones dt existentes nuevas =
-  [ Explosion pos size (ttl - dt) src
-  | Explosion pos size ttl src <- existentes ++ nuevas
-  , ttl - dt > 0
+  [ Explosion pos size (tiempoTotal - dt) src
+  | Explosion pos size tiempoTotal src <- existentes ++ nuevas
+  , tiempoTotal - dt > 0
   ]
 
 detectarImpactos :: [Robot] -> [Projectile] -> [(Id, Id, Damage, Position)]
@@ -25,7 +25,7 @@ detectarImpactos rs ps =
   | r <- rs, healthR r > 0
   , p <- ps
   , idR r /= idP p
-  , checkCollision (position (commonP p)) projectileRadius (ninoBox r)
+  , checkCollision (position (commonP p)) projectileRadius (robotBox r)
   ]
 
 aplicarDaño :: [Robot] -> [(Id, Id, Damage, Position)] -> [Robot]

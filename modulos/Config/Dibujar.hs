@@ -22,7 +22,7 @@ dibujar m = case modo m of
     let w = worldState m
     in Pictures
       [ fondoJuego m
-      , dibujarProfe m (0, 240)
+      , dibujarRobotP m (0, 240)
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map dibujarProjectile (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
@@ -52,12 +52,11 @@ dibujarPutInfo m =
       linePictures = [ Translate 230 (260 - fromIntegral i * 25) $ Scale 0.15 0.15 $ Color white $ Text line | (i, line) <- zip [0..] infoLines ]
   in Pictures (fondo : linePictures)
 
-dibujarProfe :: MundoGloss -> (Float, Float) -> Picture
-dibujarProfe m (x, y) =
+dibujarRobotP :: MundoGloss -> (Float, Float) -> Picture
+dibujarRobotP m (x, y) =
   Translate x y $
     Scale 0.3 0.3 $
       fromMaybe Blank (imagenProfe m)
-
 
 dibujarRobot :: MundoGloss -> Robot -> Picture
 dibujarRobot m r =
@@ -78,8 +77,8 @@ dibujarProjectile p =
   in Translate x y $ Color c $ circleSolid r
 
 dibujarExplosion :: Explosion -> Picture
-dibujarExplosion (Explosion (x,y) _ ttl _) =
-  let a = max 0 (min 1 (ttl / 0.6))
+dibujarExplosion (Explosion (x,y) _ tiempoTotal _) =
+  let a = max 0 (min 1 (tiempoTotal / 0.6))
   in Translate x y $
        Pictures
          [ Color (withAlpha a (makeColorI 255 120 200 255)) $ thickCircle (30*0.6) (30*0.25)
@@ -101,26 +100,26 @@ dentroBoton (mx, my) =
 dibujarHUD :: [Robot] -> Picture
 dibujarHUD rs =
   let num = length rs
-      panelW = 200
-      panelH = fromIntegral num * 45 + 40
-      panelX = -ancho / 2 + panelW / 2 - 10
-      panelY = alto / 2 - panelH / 2 - 20
+      panelWide = 200
+      panelHeight = fromIntegral num * 45 + 40
+      panelWideRel = -ancho / 2 + panelWide / 2 - 10
+      panelHeightRel = alto / 2 - panelHeight / 2 - 20
       fondo = Color (makeColor 0 0 0 0.6) $
-                 Translate (panelX - 130) (panelY + 10) $
-                   rectangleSolid panelW panelH
+                 Translate (panelWideRel - 130) (panelHeightRel + 10) $
+                   rectangleSolid panelWide panelHeight
       barras = Pictures
-        [ dibujarBarraVidaVerticalAt panelX panelY r i
+        [ dibujarBarraVida panelWideRel panelHeightRel r i
         | (i, r) <- zip [0..] rs ]
   in Pictures [fondo, barras]
 
 
-dibujarBarraVidaVerticalAt :: Float -> Float -> Robot -> Int -> Picture
-dibujarBarraVidaVerticalAt panelX panelY r idx =
+dibujarBarraVida :: Float -> Float -> Robot -> Int -> Picture
+dibujarBarraVida panelWideRel panelHeightRel r idx =
   let vida        = healthR r
       anchoTotal  = 120
       altoBarra   = 14
       anchoVida   = max 0 (min 1 (vida / maxHealthR r)) * anchoTotal
-      baseY       = (panelY + 60) - fromIntegral idx * 45
+      baseY       = (panelHeightRel + 60) - fromIntegral idx * 45
       colorTexto  = if vida <= 0
                     then (makeColorI 255 130 130 255)
                     else white
@@ -128,11 +127,11 @@ dibujarBarraVidaVerticalAt panelX panelY r idx =
                     then "Muerto"
                     else "Alumno " ++ show (idR r)
       vidaTxt = show (round vida)
-      vidaX = panelX - 75
+      vidaX = panelWideRel - 75
       in Pictures
-       [ Translate (panelX - 220) (baseY + 30) $
+       [ Translate (panelWideRel - 220) (baseY + 30) $
           Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt -- Info de cada niño
-       , Translate (panelX - 150) (baseY + 15) $ -- La vida de cada niño
+       , Translate (panelWideRel - 150) (baseY + 15) $ -- La vida de cada niño
            Pictures
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
              , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra

@@ -29,8 +29,8 @@ updateRobotVelocity :: Robot -> Velocity -> Robot
 updateRobotVelocity robot newVel =
   robot { commonR = (commonR robot) { velocity = newVel } }
 
-ninoBox :: Robot -> ((Float,Float),(Float,Float))
-ninoBox r = 
+robotBox :: Robot -> ((Float,Float),(Float,Float))
+robotBox r = 
   let (x, y) = position (commonR r)
   in ((x-20,y-25),(x+20,y+25))
 
@@ -127,7 +127,7 @@ enemigos :: Robot -> World -> [Robot]
 enemigos r w = [ r' | r' <- robots w, idR r' /= idR r, isRobotAlive r' ]
 
 robotsVivos :: [Robot] -> [Robot]
-robotsVivos = filter ((> 0) . healthR)
+robotsVivos = filter isRobotAlive
 
 filtrarEnemigos :: World -> Robot -> [Robot]
 filtrarEnemigos world r =
@@ -138,11 +138,11 @@ detectarEnemigos r = filter (detectedAgent r)
 
 apuntarTorreta :: World -> Robot -> Robot
 apuntarTorreta world r
-  | est8Muerto = r
+  | estaMuerto = r
   | null detectados = r
   | otherwise = actualizarTorreta r objetivo
   where
-    est8Muerto = healthR r <= 0
+    estaMuerto = healthR r <= 0
     enemigosVivos = filtrarEnemigos world r
     detectados = detectarEnemigos r enemigosVivos
     objetivo = head detectados
