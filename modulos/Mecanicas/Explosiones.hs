@@ -25,7 +25,7 @@ detectarImpactos rs ps =
   | r <- rs, healthR r > 0
   , p <- ps
   , idR r /= idP p
-  , circleAABB (position (commonP p)) chicleRadius (ninoBox r)
+  , checkCollision (position (commonP p)) projectileRadius (ninoBox r)
   ]
 
 aplicarDaño :: [Robot] -> [(Id, Id, Damage, Position)] -> [Robot]

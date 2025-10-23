@@ -31,7 +31,7 @@ estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
               , maxHealthR = 70
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
-                  (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
+                  (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
                   0.6  -- cooldown
               , haveExploded = False
               }
@@ -43,7 +43,7 @@ estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
               , maxHealthR = 180
               , radarRange = 200
               , turret = Turret 2 (-1, 0) 180 
-                  (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
+                  (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
                   1.6  -- cooldown
               , haveExploded = False
               }
@@ -55,7 +55,7 @@ estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
               , maxHealthR = 110
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
-                  (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
+                  (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
                   1.2  -- cooldown
               , haveExploded = False
               }
@@ -67,7 +67,7 @@ estadoInicial inicio fondo victoria derrota robot1 torreta= MundoGloss
               , maxHealthR = 110
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
-                  (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (chicleRadius*2, chicleRadius*2) []) 1000)
+                  (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
                   0.9  -- cooldown
               , haveExploded = False
               }

@@ -28,19 +28,19 @@ data RobotHit
       { idRobot      :: Id
       , idProjectile :: Id
       , damageHit    :: Damage
-      , hitAt        :: Position
+      , hitPosition        :: Position
       }
   | RobotCollidedWithRobot
       { idRobot1    :: Id
       , idRobot2    :: Id
       , damageHit1  :: Damage
       , damageHit2  :: Damage
-      , hitAt       :: Position
+      , hitPosition       :: Position
       }
   deriving (Show, Eq)
 
-velNino :: Float
-velNino = 150
+velRobot :: Float
+velRobot = 50
 
 -- Extracción de tipos comunes del robot
 damageR :: Robot -> Damage

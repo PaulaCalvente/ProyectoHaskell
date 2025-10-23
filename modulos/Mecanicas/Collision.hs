@@ -39,7 +39,7 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, explosions, length
           { idRobot      = idR r
           , idProjectile = idP p
           , damageHit    = damageP p
-          , hitAt        = positionP p
+          , hitPosition        = positionP p
           }
       | (r, p) <- (,) <$> robots <*> proyectiles -- Combina en la tupla todos los robots y proyectiles
       , checkCollision (pointsR r) (pointsP p)
@@ -54,7 +54,7 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, explosions, length
                         { idRobot      = idR r
                         , idProjectile = idP p
                         , damageHit    = damageP p
-                        , hitAt        = positionP p
+                        , hitPosition        = positionP p
                         }
           }
       | (r, p) <- (,) <$> robots <*> proyectiles
@@ -70,7 +70,7 @@ detectRobotRobotCollisions robots = (hits, explosions, length hits)
           , idRobot2    = idR r2
           , damageHit1  = damageR r1
           , damageHit2  = damageR r2
-          , hitAt       = positionR r1  
+          , hitPosition       = positionR r1  
           }
       | (r1, r2) <- (,) <$> robots <*> robots
       , idR r1 < idR r2
@@ -87,7 +87,7 @@ detectRobotRobotCollisions robots = (hits, explosions, length hits)
                         , idRobot2    = idR r2
                         , damageHit1  = damageR r1
                         , damageHit2  = damageR r2
-                        , hitAt       = positionR r1
+                        , hitPosition       = positionR r1
                         }
           }
       | (r1, r2) <- (,) <$> robots <*> robots
@@ -106,8 +106,8 @@ checkCollisions world = totalRP + totalRR
                           , idR r1 < idR r2
                           , checkCollision (pointsR r1) (pointsR r2) ]
 --}
-circleAABB :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
-circleAABB (cx,cy) r ((minx,miny),(maxx,maxy)) =
+checkCollision :: (Float,Float) -> Float -> ((Float,Float),(Float,Float)) -> Bool
+checkCollision (cx,cy) r ((minx,miny),(maxx,maxy)) =
   dx*dx + dy*dy <= r*r
   where clx = max minx (min cx maxx)
         cly = max miny (min cy maxy)

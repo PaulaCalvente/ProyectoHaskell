@@ -7,11 +7,11 @@ data Projectile = Projectile
   , rangeP     :: Distance
   } deriving (Show, Eq)
 
-velChicleVel :: Float
-velChicleVel = 300
+velProjectile :: Float
+velProjectile = 300
 
-chicleRadius :: Float
-chicleRadius = 10
+projectileRadius :: Float
+projectileRadius = 10
 
 -- Extracción de tipos comunes del proyectil
 damageP :: Projectile -> Damage
@@ -32,6 +32,6 @@ pointsP = points . commonP
 proyectilBase :: Id -> Projectile
 proyectilBase i = Projectile
   { idP = i
-  , commonP = CommonData i 10 (0, 0) (0, 0) (chicleRadius*2, chicleRadius*2) []
+  , commonP = CommonData i 10 (0, 0) (0, 0) (projectileRadius*2, projectileRadius*2) []
   , rangeP = 1000
   }

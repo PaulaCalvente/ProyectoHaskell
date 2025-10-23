@@ -20,7 +20,7 @@ dibujar m = case modo m of
     in Pictures
       [ fondoJuego m
       , dibujarProfe (0, 160)
-      , Pictures (map (dibujarNino m) [r | r <- robots w, healthR r > 0])
+      , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map dibujarChicle (projectiles w))
       , Pictures (map dibujarExplosion (explosiones m))
       , dibujarHUD (robots w)
@@ -60,8 +60,8 @@ dibujarProfe (x,y) = Translate x y $ Pictures
   , Translate 0 32 $ Color red $ rectangleSolid 10 3
   ]
 
-dibujarNino :: MundoGloss -> Robot -> Picture
-dibujarNino m r =
+dibujarRobot :: MundoGloss -> Robot -> Picture
+dibujarRobot m r =
   let (x, y) = position (commonR r)
       robotEscalado   = Scale 0.3 0.3 (imagenRobot1 m) 
       torretaEscalada = Scale 0.15 0.15 (imagenTorreta m)

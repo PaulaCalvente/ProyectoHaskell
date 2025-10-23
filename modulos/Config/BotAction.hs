@@ -7,8 +7,8 @@ module Config.BotAction
   , positionR
   , pointsR
   , velocityR
-  , healthOf
-  , radarRangeOf
+  , healthR
+  , radarRange
   ) where
 
 import Utils

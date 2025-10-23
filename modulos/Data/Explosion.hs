@@ -1,6 +1,8 @@
 module Data.Explosion where
 import Data.DatosComunes  
 import Data.Robot   
+
+
 -- Información de una explosión
 data Explosion = Explosion
   { positionE   :: Position

@@ -36,7 +36,7 @@ ninoBox r =
 
 comportamientoNino :: Float -> Robot -> Robot
 comportamientoNino dt r
-  | estaMuerto r = r
+  | not (isRobotAlive r) = r
   | null pts     = r
   | haLlegado pos objetivo = avanzarPatrulla r
   | otherwise    = moverHaciaObjetivo dt r
@@ -44,9 +44,6 @@ comportamientoNino dt r
     pts = points (commonR r)
     pos = position (commonR r)
     objetivo = head pts
-
-estaMuerto :: Robot -> Bool
-estaMuerto r = healthR r <= 0
 
 haLlegado :: (Float, Float) -> (Float, Float) -> Bool
 haLlegado pos objetivo = distanceBetween pos objetivo < 20
@@ -91,7 +88,7 @@ actualizarRobots dt w =
 
 procesarRobot :: Float -> World -> Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
 procesarRobot dt world r (accR, accP)
-  | estaMuerto r      = (r : accR, accP)
+  | not (isRobotAlive r)      = (r : accR, accP)
   | not puedeDisparar = (rCD : accR, accP)
   | otherwise         = (r' : accR, p : accP)
   where
