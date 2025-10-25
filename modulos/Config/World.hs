@@ -97,13 +97,38 @@ estadoInicial inicio fondo victoria derrota robot1 robot2 robot3 robot4 torreta 
   , imagenExplosion2 = explosion2
   , imagenExplosion3 = explosion3
   , explosiones = []
+  , numRobotsSeleccionados = 4
+  , personalidades = []
   }
-
+  
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
-  | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
+  -- Desde la pantalla inicial → ir a Selección
+  | modo m == Inicio, dentroBoton pos =
+      m { modo = Seleccion }
+
+  -- Desde Selección → comenzar la partida
+  | modo m == Seleccion, dentroBoton pos =
+      let nuevosRobots = generarRobotsSeleccionados (numRobotsSeleccionados m) (personalidades m)
+          nuevoWorld   = (worldState m) { robots = nuevosRobots
+                                        , projectiles = []
+                                        , robotHits = []
+                                        , turrets = []
+                                        }
+      in m { modo = Jugando, worldState = nuevoWorld }
+
+  -- 🟢 Desde Victoria o Derrota → volver al menú (reiniciar)
+  | modo m `elem` [Victoria 0, Derrota], dentroBotonReiniciar pos =
+      estadoInicial (imagenInicio m) (fondoJuego m) (imagenVictoria m) (imagenDerrota m)
+                    (imagenRobot1 m) (imagenRobot2 m) (imagenRobot3 m) (imagenRobot4 m)
+                    (imagenTorreta m) (imagenProfe m) (imagenProyectil m)
+                    (imagenExplosion1 m) (imagenExplosion2 m) (imagenExplosion3 m)
+
   | otherwise = m
+
 manejarEvento _ m = m
+
+
 
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
@@ -124,3 +149,93 @@ actualizar dt m
     psRestantes = filtrarProyectilesRestantes psMov impactosDetectados
     expsAct = actualizarExplosiones dt (explosiones m) nuevasExplosiones
     w' = actualizarWorld w rsDanyados psRestantes
+
+-- Genera los robots según el número y personalidades elegidas
+generarRobotsSeleccionados :: Int -> [String] -> [Robot]
+generarRobotsSeleccionados n pers =
+  take n $ zipWith crearRobot [1..] (pers ++ repeat "Default")
+
+-- Crea un robot con características según su "personalidad"
+crearRobot :: Int -> String -> Robot
+crearRobot i tipo =
+  case tipo of
+    "Speedster" ->
+      Robot { idR = i
+            , commonR = CommonData i 0 (-150 + 100 * fromIntegral i, -100)
+                                         (0, 0) (40, 50) (generarRecorrido i)
+            , healthR = 50
+            , maxHealthR = 50
+            , radarRange = 120
+            , turret = Turret i (1, 0) 0
+                (Projectile i (CommonData i 8 (0,0) (250, 0)
+                (projectileRadius*2, projectileRadius*2) []) 1000)
+                1.2
+            , haveExploded = False
+            , shooting = False
+            }
+
+    "Tank" ->
+      Robot { idR = i
+            , commonR = CommonData i 0 (-150 + 100 * fromIntegral i, -100)
+                                         (0, 0) (40, 50) (generarRecorrido i)
+            , healthR = 140
+            , maxHealthR = 140
+            , radarRange = 200
+            , turret = Turret i (1, 0) 0
+                (Projectile i (CommonData i 18 (0,0) (200, 0)
+                (projectileRadius*2, projectileRadius*2) []) 1000)
+                3.2
+            , haveExploded = False
+            , shooting = False
+            }
+
+    "Support" ->
+      Robot { idR = i
+            , commonR = CommonData i 0 (-150 + 100 * fromIntegral i, 50)
+                                         (0, 0) (40, 50) (generarRecorrido i)
+            , healthR = 85
+            , maxHealthR = 85
+            , radarRange = 160
+            , turret = Turret i (1, 0) 0
+                (Projectile i (CommonData i 6 (0,0) (200, 0)
+                (projectileRadius*2, projectileRadius*2) []) 1000)
+                2.4
+            , haveExploded = False
+            , shooting = False
+            }
+
+    "AllRounder" ->
+      Robot { idR = i
+            , commonR = CommonData i 0 (-150 + 100 * fromIntegral i, 50)
+                                         (0, 0) (40, 50) (generarRecorrido i)
+            , healthR = 85
+            , maxHealthR = 85
+            , radarRange = 120
+            , turret = Turret i (1, 0) 0
+                (Projectile i (CommonData i 10 (0,0) (220, 0)
+                (projectileRadius*2, projectileRadius*2) []) 1000)
+                2.0
+            , haveExploded = False
+            , shooting = False
+            }
+
+    -- Default (por si el jugador no elige tipo)
+    _ ->
+      Robot { idR = i
+            , commonR = CommonData i 0 (-150 + 100 * fromIntegral i, -50)
+                                         (0, 0) (40, 50) (generarRecorrido i)
+            , healthR = 90
+            , maxHealthR = 90
+            , radarRange = 130
+            , turret = Turret i (1, 0) 0
+                (Projectile i (CommonData i 10 (0,0) (220, 0)
+                (projectileRadius*2, projectileRadius*2) []) 1000)
+                2.0
+            , haveExploded = False
+            , shooting = False
+            }
+
+-- Detecta clics dentro del botón de reinicio (en pantallas de Victoria y Derrota)
+dentroBotonReiniciar :: Point -> Bool
+dentroBotonReiniciar (x, y) =
+  x > -150 && x < 150 && y > -250 && y < -170

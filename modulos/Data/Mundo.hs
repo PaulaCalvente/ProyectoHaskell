@@ -8,26 +8,30 @@ import Data.Proyectil
 import Data.Torreta
 
 data MundoGloss = MundoGloss
-  { worldState     :: World
-  , modo           :: Modo
-  , imagenInicio   :: Picture
-  , fondoJuego     :: Picture
+  { worldState :: World
+  , modo :: Modo
+  , imagenInicio :: Picture
+  , fondoJuego :: Picture
   , imagenVictoria :: Picture
-  , imagenDerrota  :: Picture
-  , imagenRobot1   :: Maybe Picture
-  , imagenRobot2   :: Maybe Picture
-  , imagenRobot3   :: Maybe Picture
-  , imagenRobot4   :: Maybe Picture
-  , imagenTorreta  :: Maybe Picture
-  , imagenProfe    :: Maybe Picture
-  , imagenProyectil  :: Maybe Picture
+  , imagenDerrota :: Picture
+  , imagenRobot1 :: Maybe Picture
+  , imagenRobot2 :: Maybe Picture
+  , imagenRobot3 :: Maybe Picture
+  , imagenRobot4 :: Maybe Picture
+  , imagenTorreta :: Maybe Picture
+  , imagenProfe :: Maybe Picture
+  , imagenProyectil :: Maybe Picture
   , imagenExplosion1 :: Maybe Picture
   , imagenExplosion2 :: Maybe Picture
   , imagenExplosion3 :: Maybe Picture
-  , explosiones    :: [Explosion]
+  , explosiones :: [Explosion]
+  , numRobotsSeleccionados :: Int
+  , personalidades :: [String]
   }
 
-data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
+
+data Modo = Inicio | Seleccion | Jugando | Victoria Int | Derrota deriving (Eq, Show)
+
 
 -- Estado global del mundo
 data World = World

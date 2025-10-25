@@ -17,7 +17,21 @@ import Utils
 
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
-  Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
+  -- Pantalla inicial
+  Inicio ->
+    Pictures
+      [ imagenInicio m
+      , dibujarBoton
+      ]
+
+  -- 🆕 Pantalla de selección (nueva)
+  Seleccion ->
+    Pictures
+      [ fondoJuego m
+      , dibujarPantallaSeleccion m
+      ]
+
+  -- Pantalla de juego
   Jugando ->
     let w = worldState m
     in Pictures
@@ -30,6 +44,7 @@ dibujar m = case modo m of
       , dibujarPutInfo m
       ]
 
+  -- Pantalla de victoria
   Victoria rid ->
     Pictures
       [ imagenVictoria m
@@ -37,9 +52,30 @@ dibujar m = case modo m of
           Scale 0.27 0.27 $
           Color black $
           Text ("Alumno " ++ show rid ++ " es el ganador")
+      , translate (-100) (-250) $ color (light green) $ rectangleSolid 200 60
+      , translate (-150) (-265) $ scale 0.25 0.25 $ color black $ text "VOLVER AL MENÚ"
       ]
+
   Derrota ->
-    Pictures [imagenDerrota m]
+    Pictures
+      [ imagenDerrota m
+      , translate (-100) (-250) $ color (light red) $ rectangleSolid 200 60
+      , translate (-160) (-265) $ scale 0.25 0.25 $ color black $ text "TERMINAR PARTIDA"
+      ]
+
+
+-- Dibuja la pantalla de selección antes de empezar la partida
+dibujarPantallaSeleccion :: MundoGloss -> Picture
+dibujarPantallaSeleccion m =
+  Pictures
+    [ translate (-250) 200 $ scale 0.4 0.4 $ color white $ text "SELECCIÓN DE PARTIDA"
+    , translate (-250) 100 $ scale 0.2 0.2 $ color white $ text "Elige las personalidades y cantidad de robots"
+
+    -- Botón para iniciar la partida
+    , translate (-100) (-150) $ color (light green) $ rectangleSolid 200 80
+    , translate (-160) (-170) $ scale 0.2 0.2 $ color black $ text "INICIAR PARTIDA"
+    ]
+
 
 dibujarPutInfo :: MundoGloss -> Picture
 dibujarPutInfo m =
