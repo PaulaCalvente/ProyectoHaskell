@@ -60,7 +60,7 @@ exampleBot world myId
 main :: IO ()
 main = do
     -- Reproducir música en segundo plano
-    void $ forkIO $ iniciarMusica "musica.ogg"
+    void $ forkIO $ iniciarMusica "musica.mp3"
 
     inicio <- loadBMP "imagenes/imagenesBMP/inicio.bmp"
     clase <- loadBMP "imagenes/imagenesBMP/clase.bmp"
