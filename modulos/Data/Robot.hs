@@ -20,6 +20,7 @@ data Robot = Robot
   , radarRange   :: Distance
   , turret       :: Turret
   , haveExploded :: HaveExploded
+  , shooting :: Bool
   } deriving (Show, Eq)
 
 -- Registro de impactos o colisiones
@@ -59,8 +60,8 @@ pointsR :: Robot -> [Point]
 pointsR = points . commonR
 
 velocidadPorRol :: Id -> Float
-velocidadPorRol 1 = 75
+velocidadPorRol 1 = 55
 velocidadPorRol 2 = 10
-velocidadPorRol 3 = 25
-velocidadPorRol 4 = 30
-velocidadPorRol _ = 25
+velocidadPorRol 3 = 15
+velocidadPorRol 4 = 20
+velocidadPorRol _ = 15

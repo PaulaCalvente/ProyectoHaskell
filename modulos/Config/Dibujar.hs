@@ -130,7 +130,7 @@ dibujarExplosion m (Explosion (x, y) _ ttl _) =
         | otherwise   = Nothing
 
       pic = case fase of
-              Just img -> Scale 0.25 0.25 img
+              Just img -> Scale 0.15 0.15 img
               Nothing  -> Blank
   in Translate x y pic
 

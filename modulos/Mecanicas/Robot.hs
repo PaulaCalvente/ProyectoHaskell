@@ -34,12 +34,13 @@ robotBox r =
   let (x, y) = position (commonR r)
   in ((x-20,y-25),(x+20,y+25))
 
-comportamientoNino :: Float -> Robot -> Robot
-comportamientoNino dt r
+comportamientoNino :: Float -> World -> Robot -> Robot
+comportamientoNino dt world r
   | not (isRobotAlive r) = r
-  | null pts     = r
+  | shooting r           = r  -- Si está disparando, se detiene
+  | null pts             = r
   | haLlegado pos objetivo = avanzarPatrulla r
-  | otherwise    = moverHaciaObjetivo dt r
+  | otherwise            = moverHaciaObjetivo dt r
   where
     pts = points (commonR r)
     pos = position (commonR r)
@@ -80,7 +81,7 @@ clampDentro (x,y) =
 actualizarRobots :: Float -> World -> ([Robot], [Projectile])
 actualizarRobots dt w =
   let rs0 = robots w
-      rs1 = map (comportamientoNino dt) rs0
+      rs1 = map (comportamientoNino dt w) rs0
       rs2 = map (apuntarTorreta w) rs1
       (rs3, nuevosProj) = pasoShooting dt w { robots = rs2 }
       rs4 = map (curarSoporte dt) rs3
@@ -88,17 +89,17 @@ actualizarRobots dt w =
 
 procesarRobot :: Float -> World -> Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
 procesarRobot dt world r (accR, accP)
-  | not (isRobotAlive r)      = (r : accR, accP)
-  | not puedeDisparar = (rCD : accR, accP)
-  | otherwise         = (r' : accR, p : accP)
-  where
-    rCD = actualizarCooldown r (nuevoCooldown (turret r) dt)
-    enemigosVivos = enemigos rCD world
-    puedeDisparar = cooldown (turret rCD) <= 0
-                 && not (null enemigosVivos)
-                 && robotQuiereDisparar world rCD
-    objetivo = enemigoMasCercano rCD enemigosVivos
-    (p, r') = generarDisparo dt rCD objetivo
+  | not (isRobotAlive r) = (r : accR, accP)
+  | otherwise =
+      let rCD = actualizarCooldown r (nuevoCooldown (turret r) dt)
+          enemigosVivos = enemigos rCD world
+          quiereDisparar = not (null enemigosVivos) && robotQuiereDisparar world rCD
+          puedeDisparar = cooldown (turret rCD) <= 0 && quiereDisparar
+      in if puedeDisparar
+           then let objetivo = enemigoMasCercano rCD enemigosVivos
+                    (p, r') = generarDisparo dt rCD objetivo
+                in (r' : accR, p : accP)
+           else (rCD { shooting = quiereDisparar } : accR, accP)
 
 enemigoMasCercano :: Robot -> [Robot] -> Robot
 enemigoMasCercano me (r:rs) = fst $ foldl buscar (r, distanceBetween (position (commonR me)) (position (commonR r))) rs
@@ -107,21 +108,27 @@ enemigoMasCercano me (r:rs) = fst $ foldl buscar (r, distanceBetween (position (
       let d = distanceBetween (position (commonR me)) (position (commonR r'))
       in if d < minD then (r', d) else (minR, minD)
 
+cooldownSoporte :: Robot -> Float
+cooldownSoporte r
+  | idR r /= 3 = 0
+  | otherwise  = 5
+
 curarSoporte :: Float -> Robot -> Robot
 curarSoporte dt r
-  | idR r /= 3 = r
+  | idR r /= 3 = r  -- Solo el robot soporte (id 3) se cura
   | not (isRobotAlive r) = r
-  | nuevoTiempo >= 10 =
+  | nuevoTiempo >= cdSoporte =
       r { healthR = vidaNueva
-        , turret = (turret r) { cooldown = 0 }
+        , turret = (turret r) { cooldown = 0 }  -- reinicia cooldown
         }
   | otherwise =
-      r { turret = (turret r) { cooldown = nuevoTiempo }
-        }
+      r { turret = (turret r) { cooldown = nuevoTiempo } }
   where
+    cdSoporte    = cooldownSoporte r       -- cooldown específico de soporte
     tiempoActual = cooldown (turret r)
     nuevoTiempo  = tiempoActual + dt
-    vidaNueva    = min 110 (healthR r + 2)
+    vidaNueva    = min 110 (healthR r + 2) -- curación por tick
+
 
 enemigos :: Robot -> World -> [Robot]
 enemigos r w = [ r' | r' <- robots w, idR r' /= idR r, isRobotAlive r' ]

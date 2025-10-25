@@ -28,49 +28,53 @@ estadoInicial inicio fondo victoria derrota robot1 robot2 robot3 robot4 torreta 
             Robot
               { idR = 1
               , commonR = CommonData 1 0 (-150, -100) (0, 0) (40, 50) (generarRecorrido 1)
-              , healthR = 70
-              , maxHealthR = 70
+              , healthR = 50
+              , maxHealthR = 50
               , radarRange = 120
               , turret = Turret 1 (1, 0) 0 
                   (Projectile 1 (CommonData 1 8 (0,0) (250, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
-                  0.6  -- cooldown
+                  1.2  -- cooldown
               , haveExploded = False
+              , shooting = False
               }
           , -- Alumno 2: Tank
             Robot
               { idR = 2
               , commonR = CommonData 2 0 (150, -100) (0, 0) (40, 50) (generarRecorrido 2)
-              , healthR = 180
-              , maxHealthR = 180
+              , healthR = 140
+              , maxHealthR = 140
               , radarRange = 200
               , turret = Turret 2 (-1, 0) 180 
                   (Projectile 2 (CommonData 2 18 (0,0) (-180, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
-                  1.6  -- cooldown
+                  3.2  -- cooldown
               , haveExploded = False
+              , shooting = False
               }
           , -- Alumno 3: Soporte
             Robot
               { idR = 3
               , commonR = CommonData 3 0 (-150, 50) (0, 0) (40, 50) (generarRecorrido 3)
-              , healthR = 110
-              , maxHealthR = 110
+              , healthR = 85
+              , maxHealthR = 85
               , radarRange = 160
               , turret = Turret 3 (1, 0) 0 
                   (Projectile 3 (CommonData 3 6 (0,0) (200, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
-                  1.2  -- cooldown
+                  2.4  -- cooldown
               , haveExploded = False
+              , shooting = False
               }
           , -- Alumno 4: All-rounder
             Robot
               { idR = 4
               , commonR = CommonData 4 0 (150, 50) (0, 0) (40, 50) (generarRecorrido 4)
-              , healthR = 110
-              , maxHealthR = 110
+              , healthR = 85
+              , maxHealthR = 85
               , radarRange = 120
               , turret = Turret 4 (-1, 0) 180 
                   (Projectile 4 (CommonData 4 10 (0,0) (-220, 0) (projectileRadius*2, projectileRadius*2) []) 1000)
-                  0.9  -- cooldown
+                  2.0  -- cooldown
               , haveExploded = False
+              , shooting = False
               }
           ]
       , projectiles = []
