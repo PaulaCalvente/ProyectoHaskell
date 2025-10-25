@@ -15,11 +15,15 @@ data MundoGloss = MundoGloss
   , imagenVictoria :: Picture
   , imagenDerrota  :: Picture
   , imagenRobot1   :: Maybe Picture
-  --, imagenRobot2   :: Picture
-  --, imagenRobot3   :: Picture
-  --, imagenRobot4   :: Picture
+  , imagenRobot2   :: Maybe Picture
+  , imagenRobot3   :: Maybe Picture
+  , imagenRobot4   :: Maybe Picture
   , imagenTorreta  :: Maybe Picture
   , imagenProfe    :: Maybe Picture
+  , imagenProyectil  :: Maybe Picture
+  , imagenExplosion1 :: Maybe Picture
+  , imagenExplosion2 :: Maybe Picture
+  , imagenExplosion3 :: Maybe Picture
   , explosiones    :: [Explosion]
   }
 

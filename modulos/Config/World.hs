@@ -20,8 +20,8 @@ import Mecanicas.Explosiones
 import Mecanicas.Proyectil
 
 -- 1. CAMBIO EN LA FIRMA: El quinto argumento (robot1) ahora es Maybe Picture.
-estadoInicial :: Picture -> Picture -> Picture -> Picture -> Maybe Picture -> Maybe Picture -> Picture -> MundoGloss
-estadoInicial inicio fondo victoria derrota robot1 torreta profe = MundoGloss
+estadoInicial :: Picture -> Picture -> Picture -> Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> MundoGloss
+estadoInicial inicio fondo victoria derrota robot1 robot2 robot3 robot4 torreta profe proyectil explosion1 explosion2 explosion3= MundoGloss
   { worldState = World
       { robots =
           [ -- Alumno 1: Speedster
@@ -82,12 +82,16 @@ estadoInicial inicio fondo victoria derrota robot1 torreta profe = MundoGloss
   , fondoJuego = fondo
   , imagenVictoria = victoria
   , imagenDerrota = derrota
-  , imagenRobot1 = robot1 -- 2. ARREGLO DE ASIGNACIÓN: robot1 (Maybe Picture) se asigna a imagenRobot1 (Maybe Picture)
-  -- , imagenRobot2 = robot2
-  -- , imagenRobot3 = robot3
-  -- , imagenRobot4 = robot4
+  , imagenRobot1 = robot1 
+  , imagenRobot2 = robot2
+  , imagenRobot3 = robot3
+  , imagenRobot4 = robot4
   , imagenTorreta = torreta
-  , imagenProfe = Just profe
+  , imagenProfe = profe
+  , imagenProyectil = proyectil
+  , imagenExplosion1 = explosion1
+  , imagenExplosion2 = explosion2
+  , imagenExplosion3 = explosion3
   , explosiones = []
   }
 

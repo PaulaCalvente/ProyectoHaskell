@@ -24,8 +24,8 @@ dibujar m = case modo m of
       [ fondoJuego m
       , dibujarRobotP m (0, 240)
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
-      , Pictures (map dibujarProjectile (projectiles w))
-      , Pictures (map dibujarExplosion (explosiones m))
+      , Pictures (map (dibujarProjectile m) (projectiles w))
+      , Pictures (map (dibujarExplosion m) (explosiones m))
       , dibujarHUD (robots w)
       , dibujarPutInfo m
       ]
@@ -64,15 +64,15 @@ dibujarRobot m r =
     (x, y) = position (commonR r)
     ang = angleT (turret r)
 
-    maybeRobotPic = imagenRobot1 m
+    -- Selecciona la imagen del robot según su id
+    maybeRobotPic = seleccionarImagenRobot m (idR r)
     maybeTorretaPic = imagenTorreta m
     
     torretaOffsetX = 5
     torretaOffsetY = 7
-    
-    torretaLength = 150 * 0.3 -- Ejemplo: 22.5 (Asegúrate de que este valor sea la mitad del ancho de tu imagen ESCALADA)
+    torretaLength = 150 * 0.3 
 
-    -- 1. Define el componente 'Torreta' con pivote en el extremo
+    -- Dibuja la torreta (o una por defecto)
     torretaComponent =
       case maybeTorretaPic of
         Nothing ->
@@ -80,45 +80,59 @@ dibujarRobot m r =
         Just torretaPic ->
           let
             torretaEscalada = Scale 0.15 0.15 torretaPic
-            
-            -- *** EL CAMBIO CLAVE AQUÍ: Traslada en la dirección opuesta al extremo ***
-            -- Esto mueve el punto de disparo (extremo derecho) al origen (0, 0)
             pivoteTrasladado = Translate (-torretaLength / 2) 0 torretaEscalada 
-            
-            -- 2. Aplica la rotación sobre el nuevo pivote (0, 0)
             torretaRotada = Rotate (-ang) pivoteTrasladado
-            
-            -- 3. Aplica el offset final (a la boca del niño)
           in
             Translate torretaOffsetX torretaOffsetY torretaRotada
 
-    -- 2. Define el componente 'Cuerpo del Robot' (sin cambios)
+    -- Dibuja el cuerpo del robot (o un círculo por defecto)
     cuerpoComponent =
       case maybeRobotPic of
         Nothing -> Color red (Circle 10)
         Just robotPic -> Scale 0.3 0.3 robotPic
 
-    -- Combina ambos
     robotPicture = Pictures [cuerpoComponent, torretaComponent]
   in
-    -- Aplica la traslación final a la posición (x, y) del robot
     Translate x y robotPicture
 
-dibujarProjectile :: Projectile -> Picture
-dibujarProjectile p = 
-  let (x, y) = position (commonP p)
-      c = makeColorI 180 60 180 230
-      r = 8 + 2 * sin (x / 30)
-  in Translate x y $ Color c $ circleSolid r
+-- Selecciona la imagen del robot según su id (1..4)
+seleccionarImagenRobot :: MundoGloss -> Int -> Maybe Picture
+seleccionarImagenRobot m n =
+  case n of
+    1 -> imagenRobot1 m
+    2 -> imagenRobot2 m
+    3 -> imagenRobot3 m
+    4 -> imagenRobot4 m
+    _ -> imagenRobot1 m  -- Por defecto, usa la 1 si el id no coincide
 
-dibujarExplosion :: Explosion -> Picture
-dibujarExplosion (Explosion (x,y) _ tiempoTotal _) =
-  let a = max 0 (min 1 (tiempoTotal / 0.6))
-  in Translate x y $
-       Pictures
-         [ Color (withAlpha a (makeColorI 255 120 200 255)) $ thickCircle (30*0.6) (30*0.25)
-         , Color (withAlpha (a*0.8) (makeColorI 255 200 255 255)) $ circleSolid (30*0.3)
-         ]
+dibujarProjectile :: MundoGloss -> Projectile -> Picture
+dibujarProjectile m p =
+  let
+    (x, y) = position (commonP p)
+    r = 8 + 2 * sin (x / 30)
+    maybeProyectilPic = imagenProyectil m
+  in
+    case maybeProyectilPic of
+      Nothing ->  -- Fallback: dibuja un círculo si la imagen no cargó
+        Translate x y $ Color (makeColorI 180 60 180 230) $ circleSolid r
+      Just proyectilPic ->
+        let
+          escala = 0.08
+          proyectilEscalado = Scale escala escala proyectilPic
+        in Translate x y proyectilEscalado
+
+dibujarExplosion :: MundoGloss -> Explosion -> Picture
+dibujarExplosion m (Explosion (x, y) _ ttl _) =
+  let fase
+        | ttl > 0.4  = imagenExplosion1 m
+        | ttl > 0.2  = imagenExplosion2 m
+        | ttl > 0     = imagenExplosion3 m
+        | otherwise   = Nothing
+
+      pic = case fase of
+              Just img -> Scale 0.25 0.25 img
+              Nothing  -> Blank
+  in Translate x y pic
 
 dibujarBoton :: Picture
 dibujarBoton = Pictures
