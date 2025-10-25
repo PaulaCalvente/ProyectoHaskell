@@ -21,6 +21,7 @@ data Robot = Robot
   , turret       :: Turret
   , haveExploded :: HaveExploded
   , shooting :: Bool
+  
   } deriving (Show, Eq)
 
 -- Registro de impactos o colisiones
