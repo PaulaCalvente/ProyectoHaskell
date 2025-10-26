@@ -122,16 +122,22 @@ dibujarProjectile m p =
         in Translate x y proyectilEscalado
 
 dibujarExplosion :: MundoGloss -> Explosion -> Picture
-dibujarExplosion m (Explosion (x, y) _ ttl _) =
-  let fase
-        | ttl > 0.4  = imagenExplosion1 m
-        | ttl > 0.2  = imagenExplosion2 m
-        | ttl > 0     = imagenExplosion3 m
-        | otherwise   = Nothing
+dibujarExplosion m (Explosion (x, y) _ ttl src) =
+  let
+    esMuerte = case src of
+      RobotHitByProjectile { damageHit = dmg } -> dmg == 0
+      _ -> False
 
-      pic = case fase of
-              Just img -> Scale 0.15 0.15 img
-              Nothing  -> Blank
+    imgBase
+      | esMuerte  = imagenExplosionMuerte m
+      | ttl > 0.4 = imagenExplosion1 m
+      | ttl > 0.2 = imagenExplosion2 m
+      | ttl > 0   = imagenExplosion3 m
+      | otherwise = Nothing
+
+    pic = case imgBase of
+      Just img -> Scale 0.25 0.25 img
+      Nothing  -> Blank
   in Translate x y pic
 
 dibujarBoton :: Picture

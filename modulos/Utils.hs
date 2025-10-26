@@ -60,16 +60,3 @@ calcularAngulo r objetivo =
 calcularVector :: Float -> (Float, Float)
 calcularVector angDegree =
   (cos angDegree, sin angDegree)
-{--
-
-HAY QUE CAMBIAR ESTA FUNCION
-
-updateVelocity :: Action -> Velocity
-updateVelocity action =
-  case action of
-    MoveUp    -> (0, baseSpeed)
-    MoveDown  -> (0, -baseSpeed)
-    MoveLeft  -> (-baseSpeed, 0)
-    MoveRight -> (baseSpeed, 0)
-    Stop      -> (0, 0)
---}

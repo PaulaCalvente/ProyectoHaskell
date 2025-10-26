@@ -24,6 +24,7 @@ data MundoGloss = MundoGloss
   , imagenExplosion1 :: Maybe Picture
   , imagenExplosion2 :: Maybe Picture
   , imagenExplosion3 :: Maybe Picture
+  , imagenExplosionMuerte :: Maybe Picture
   , explosiones    :: [Explosion]
   }
 
