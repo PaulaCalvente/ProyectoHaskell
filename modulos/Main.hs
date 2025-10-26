@@ -4,9 +4,7 @@ import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss.Juicy
 import Config.World
 import Config.Dibujar
-import Config.Sonido (iniciarMusica, detenerMusica)
-import Control.Concurrent (forkIO)
-import Control.Monad (void)
+
 import Data.Mundo
 
 import Utils
@@ -55,77 +53,69 @@ exampleBot world myId
 
 -- Main.hs (ESTRUCTURA CORREGIDA)
 
-
-
 main :: IO ()
 main = do
-    -- Reproducir música en segundo plano
-    void $ forkIO $ iniciarMusica "musica.mp3"
+  inicio <- loadBMP "imagenes/imagenesBMP/inicio.bmp"
+  clase <- loadBMP "imagenes/imagenesBMP/clase.bmp"
+  victoria <- loadBMP "imagenes/imagenesBMP/victoria.bmp"
+  derrota <- loadBMP "imagenes/imagenesBMP/derrota.bmp"
 
-    inicio <- loadBMP "imagenes/imagenesBMP/inicio.bmp"
-    clase <- loadBMP "imagenes/imagenesBMP/clase.bmp"
-    victoria <- loadBMP "imagenes/imagenesBMP/victoria.bmp"
-    derrota <- loadBMP "imagenes/imagenesBMP/derrota.bmp"
+  maybeTorreta <- loadJuicyPNG "imagenes/imagenesPNG/torreta.png"
+  case maybeTorreta of 
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Torreta.png. Se usará un marcador de posición."
+    Just _ -> return () 
+  profesor <- loadBMP "imagenes/imagenesBMP/profe.bmp"
 
-    maybeTorreta <- loadJuicyPNG "imagenes/imagenesPNG/torreta.png"
-    case maybeTorreta of 
-      Nothing -> putStrLn "Advertencia: No se pudo cargar Torreta.png. Se usará un marcador de posición."
-      Just _ -> return () 
+  maybeRobot1 <- loadJuicyPNG "imagenes/imagenesPNG/Robot1.png"
+  case maybeRobot1 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Robot1.png. Se usará un marcador de posición."
+    Just _ -> return () 
+  
+  maybeRobot2 <- loadJuicyPNG "imagenes/imagenesPNG/Robot2.png"
+  case maybeRobot2 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Robot2.png. Se usará un marcador de posición."
+    Just _ -> return () 
+  
+  maybeRobot3 <- loadJuicyPNG "imagenes/imagenesPNG/Robot3.png"
+  case maybeRobot3 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Robot3.png. Se usará un marcador de posición."
+    Just _ -> return ()
+  
+  maybeRobot4 <- loadJuicyPNG "imagenes/imagenesPNG/Robot4.png"
+  case maybeRobot4 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar Robot4.png. Se usará un marcador de posición."
+    Just _ -> return () 
 
-    profesor <- loadBMP "imagenes/imagenesBMP/profe.bmp"
+  maybeProfe <- loadJuicyPNG "imagenes/imagenesPNG/profe.png"
+  case maybeProfe of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar profe.png. Se usará un marcador de posición."
+    Just _ -> return () 
 
-    maybeRobot1 <- loadJuicyPNG "imagenes/imagenesPNG/Robot1.png"
-    case maybeRobot1 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar Robot1.png. Se usará un marcador de posición."
-      Just _ -> return () 
+  maybeProyectil <- loadJuicyPNG "imagenes/imagenesPNG/chicle.png"
+  case maybeProyectil of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar chicle.png. Se usará un marcador de posición."
+    Just _ -> return ()
 
-    maybeRobot2 <- loadJuicyPNG "imagenes/imagenesPNG/Robot2.png"
-    case maybeRobot2 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar Robot2.png. Se usará un marcador de posición."
-      Just _ -> return () 
+  maybeExplosion1 <- loadJuicyPNG "imagenes/imagenesPNG/explosion1.png"
+  case maybeExplosion1 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar explosion1.png. Se usará un marcador de posición."
+    Just _ -> return ()
 
-    maybeRobot3 <- loadJuicyPNG "imagenes/imagenesPNG/Robot3.png"
-    case maybeRobot3 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar Robot3.png. Se usará un marcador de posición."
-      Just _ -> return () 
+  maybeExplosion2 <- loadJuicyPNG "imagenes/imagenesPNG/explosion2.png"
+  case maybeExplosion2 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar explosion2.png. Se usará un marcador de posición."
+    Just _ -> return ()
 
-    maybeRobot4 <- loadJuicyPNG "imagenes/imagenesPNG/Robot4.png"
-    case maybeRobot4 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar Robot4.png. Se usará un marcador de posición."
-      Just _ -> return ()
+  maybeExplosion3 <- loadJuicyPNG "imagenes/imagenesPNG/explosion3.png"
+  case maybeExplosion3 of
+    Nothing -> putStrLn "Advertencia: No se pudo cargar explosion3.png. Se usará un marcador de posición."
+    Just _ -> return ()
 
-    maybeProfe <- loadJuicyPNG "imagenes/imagenesPNG/profe.png"
-    case maybeProfe of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar profe.png. Se usará un marcador de posición."
-      Just _ -> return () 
-
-    maybeProyectil <- loadJuicyPNG "imagenes/imagenesPNG/chicle.png"
-    case maybeProyectil of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar chicle.png. Se usará un marcador de posición."
-      Just _ -> return ()
-
-    maybeExplosion1 <- loadJuicyPNG "imagenes/imagenesPNG/explosion1.png"
-    case maybeExplosion1 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar explosion1.png. Se usará un marcador de posición."
-      Just _ -> return ()
-
-    maybeExplosion2 <- loadJuicyPNG "imagenes/imagenesPNG/explosion2.png"
-    case maybeExplosion2 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar explosion2.png. Se usará un marcador de posición."
-      Just _ -> return ()
-
-    maybeExplosion3 <- loadJuicyPNG "imagenes/imagenesPNG/explosion3.png"
-    case maybeExplosion3 of
-      Nothing -> putStrLn "Advertencia: No se pudo cargar explosion3.png. Se usará un marcador de posición."
-      Just _ -> return ()
-
-    play
-      (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
-      white
-      60
-      (estadoInicial inicio clase victoria derrota maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4 maybeTorreta maybeProfe maybeProyectil maybeExplosion1 maybeExplosion2 maybeExplosion3) 
-      dibujar
-      manejarEvento
-      actualizar
-
-    detenerMusica
+  play
+    (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
+    white
+    60
+    (estadoInicial inicio clase victoria derrota maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4 maybeTorreta maybeProfe maybeProyectil maybeExplosion1 maybeExplosion2 maybeExplosion3) 
+    dibujar
+    manejarEvento
+    actualizar

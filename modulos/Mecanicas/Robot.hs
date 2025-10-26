@@ -83,10 +83,9 @@ actualizarRobots dt w =
   let rs0 = robots w
       rs1 = map (comportamientoNino dt w) rs0
       rs2 = map (apuntarTorreta w) rs1
-      rs3 = map (curarSoporte dt) rs2      -- 🔁 mover esto antes del disparo
-      (rs4, nuevosProj) = pasoShooting dt w { robots = rs3 }
+      (rs3, nuevosProj) = pasoShooting dt w { robots = rs2 }
+      rs4 = map (curarSoporte dt) rs3
   in (rs4, nuevosProj)
-
 
 procesarRobot :: Float -> World -> Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
 procesarRobot dt world r (accR, accP)
