@@ -8,6 +8,7 @@ import Data.DatosComunes
 
 import Utils
 import Mecanicas.Movement
+import Mecanicas.Robot (robotBox)  
 
 {--
 checkCollision :: [Point] -> [Point] -> Bool
@@ -60,41 +61,47 @@ detectedRobotProjectileCollisions robots proyectiles = (hits, explosions, length
       | (r, p) <- (,) <$> robots <*> proyectiles
       , checkCollision (pointsR r) (pointsP p)
       ]
-
+--}
 detectRobotRobotCollisions :: [Robot] -> ([RobotHit], [Explosion], Int)
 detectRobotRobotCollisions robots = (hits, explosions, length hits)
   where
+    distanciaCorta r1 r2 =
+      distanceBetween (positionR r1) (positionR r2) < 45  -- 🔥 umbral visual
+
+    boxesCollide ((minx1,miny1),(maxx1,maxy1)) ((minx2,miny2),(maxx2,maxy2)) =
+      not (maxx1 < minx2 || minx1 > maxx2 || maxy1 < miny2 || miny1 > maxy2)
+
     hits =
       [ RobotCollidedWithRobot
           { idRobot1    = idR r1
           , idRobot2    = idR r2
           , damageHit1  = damageR r1
           , damageHit2  = damageR r2
-          , hitPosition       = positionR r1  
+          , hitPosition = positionR r1
           }
       | (r1, r2) <- (,) <$> robots <*> robots
       , idR r1 < idR r2
-      , checkCollision (pointsR r1) (pointsR r2)
+      , boxesCollide (robotBox r1) (robotBox r2) || distanciaCorta r1 r2
       ]
 
     explosions =
       [ Explosion
           { positionE = positionR r1
-          , sizeE     = (60, 60)  
-          , durationE = 1.0
+          , sizeE     = (60, 60)
+          , durationE = 0.6
           , source    = RobotCollidedWithRobot
                         { idRobot1    = idR r1
                         , idRobot2    = idR r2
                         , damageHit1  = damageR r1
                         , damageHit2  = damageR r2
-                        , hitPosition       = positionR r1
+                        , hitPosition = positionR r1
                         }
           }
       | (r1, r2) <- (,) <$> robots <*> robots
       , idR r1 < idR r2
-      , checkCollision (pointsR r1) (pointsR r2)
+      , boxesCollide (robotBox r1) (robotBox r2) || distanciaCorta r1 r2
       ]
-
+{--
 checkCollisions :: World -> Int
 checkCollisions world = totalRP + totalRR
   where

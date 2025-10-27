@@ -16,10 +16,10 @@ generarDisparo dt r objetivo =
       vx = cos angRad * speed
       vy = sin angRad * speed
       cooldown' = case idR r of
-                    1 -> 1.0
-                    2 -> 2.5
-                    3 -> 2.0
-                    4 -> 1.7
+                    1 -> 1.6
+                    2 -> 3.2
+                    3 -> 2.8
+                    4 -> 2.9
                     _ -> 2.0
       baseProj = projectileT (turret r)
       p = Projectile

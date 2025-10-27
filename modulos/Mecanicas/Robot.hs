@@ -37,7 +37,6 @@ robotBox r =
 comportamientoNino :: Float -> World -> Robot -> Robot
 comportamientoNino dt world r
   | not (isRobotAlive r) = r
-  | shooting r           = r  -- Si está disparando, se detiene
   | null pts             = r
   | haLlegado pos objetivo = avanzarPatrulla r
   | otherwise            = moverHaciaObjetivo dt r
@@ -83,10 +82,9 @@ actualizarRobots dt w =
   let rs0 = robots w
       rs1 = map (comportamientoNino dt w) rs0
       rs2 = map (apuntarTorreta w) rs1
-      rs3 = map (curarSoporte dt) rs2      -- 🔁 mover esto antes del disparo
-      (rs4, nuevosProj) = pasoShooting dt w { robots = rs3 }
+      (rs3, nuevosProj) = pasoShooting dt w { robots = rs2 }
+      rs4 = map (curarSoporte dt) rs3
   in (rs4, nuevosProj)
-
 
 procesarRobot :: Float -> World -> Robot -> ([Robot], [Projectile]) -> ([Robot], [Projectile])
 procesarRobot dt world r (accR, accP)
@@ -109,26 +107,29 @@ enemigoMasCercano me (r:rs) = fst $ foldl buscar (r, distanceBetween (position (
       let d = distanceBetween (position (commonR me)) (position (commonR r'))
       in if d < minD then (r', d) else (minR, minD)
 
+-- Enfriamiento (cooldown) para la curación del robot soporte
 cooldownSoporte :: Robot -> Float
 cooldownSoporte r
-  | idR r /= 3 = 0
-  | otherwise  = 5
+  | idR r == 3 = 5    -- sigue tardando 5s entre curaciones
+  | otherwise  = 0    -- los demás no tienen cooldown de soporte
+
 
 curarSoporte :: Float -> Robot -> Robot
 curarSoporte dt r
-  | idR r /= 3 = r  -- Solo el robot soporte (id 3) se cura
+  | idR r /= 3 = r
   | not (isRobotAlive r) = r
+  | shooting r = r  -- No se cura mientras dispara
   | nuevoTiempo >= cdSoporte =
       r { healthR = vidaNueva
-        , turret = (turret r) { cooldown = 0 }  -- reinicia cooldown
-        }
+        , turret = (turret r) { cooldown = 0 } }
   | otherwise =
       r { turret = (turret r) { cooldown = nuevoTiempo } }
   where
-    cdSoporte    = cooldownSoporte r       -- cooldown específico de soporte
+    cdSoporte    = cooldownSoporte r
     tiempoActual = cooldown (turret r)
     nuevoTiempo  = tiempoActual + dt
-    vidaNueva    = min 110 (healthR r + 2) -- curación por tick
+    vidaNueva    = min 110 (healthR r + 2)
+
 
 
 enemigos :: Robot -> World -> [Robot]

@@ -17,20 +17,9 @@ import Utils
 
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
-  -- Pantalla inicial
-  Inicio ->
-    Pictures
-      [ imagenInicio m
-      , dibujarBoton
-      ]
 
-  Seleccion ->
-    Pictures
-      [ fondoJuego m
-      , dibujarPantallaSeleccion m
-      ]
+  Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
 
-  -- Pantalla de juego
   Jugando ->
     let w = worldState m
     in Pictures
@@ -43,7 +32,6 @@ dibujar m = case modo m of
       , dibujarPutInfo m
       ]
 
-  -- Pantalla de victoria
   Victoria rid ->
     Pictures
       [ imagenVictoria m
@@ -51,30 +39,9 @@ dibujar m = case modo m of
           Scale 0.27 0.27 $
           Color black $
           Text ("Alumno " ++ show rid ++ " es el ganador")
-      , translate (-100) (-250) $ color (light green) $ rectangleSolid 200 60
-      , translate (-150) (-265) $ scale 0.25 0.25 $ color black $ text "VOLVER AL MENÚ"
       ]
-
   Derrota ->
-    Pictures
-      [ imagenDerrota m
-      , translate (-100) (-250) $ color (light red) $ rectangleSolid 200 60
-      , translate (-160) (-265) $ scale 0.25 0.25 $ color black $ text "TERMINAR PARTIDA"
-      ]
-
-
--- Dibuja la pantalla de selección antes de empezar la partida
-dibujarPantallaSeleccion :: MundoGloss -> Picture
-dibujarPantallaSeleccion m =
-  Pictures
-    [ translate (-250) 200 $ scale 0.4 0.4 $ color white $ text "SELECCIÓN DE PARTIDA"
-    , translate (-250) 100 $ scale 0.2 0.2 $ color white $ text "Elige las personalidades y cantidad de robots"
-
-    -- Botón para iniciar la partida
-    , translate (-100) (-150) $ color (light green) $ rectangleSolid 200 80
-    , translate (-160) (-170) $ scale 0.2 0.2 $ color black $ text "INICIAR PARTIDA"
-    ]
-
+    Pictures [imagenDerrota m]
 
 dibujarPutInfo :: MundoGloss -> Picture
 dibujarPutInfo m =
@@ -157,16 +124,22 @@ dibujarProjectile m p =
         in Translate x y proyectilEscalado
 
 dibujarExplosion :: MundoGloss -> Explosion -> Picture
-dibujarExplosion m (Explosion (x, y) _ ttl _) =
-  let fase
-        | ttl > 0.4  = imagenExplosion1 m
-        | ttl > 0.2  = imagenExplosion2 m
-        | ttl > 0     = imagenExplosion3 m
-        | otherwise   = Nothing
+dibujarExplosion m (Explosion (x, y) _ ttl src) =
+  let
+    esMuerte = case src of
+      RobotHitByProjectile { damageHit = dmg } -> dmg == 0
+      _ -> False
 
-      pic = case fase of
-              Just img -> Scale 0.15 0.15 img
-              Nothing  -> Blank
+    imgBase
+      | esMuerte  = imagenExplosionMuerte m
+      | ttl > 0.4 = imagenExplosion1 m
+      | ttl > 0.2 = imagenExplosion2 m
+      | ttl > 0   = imagenExplosion3 m
+      | otherwise = Nothing
+
+    pic = case imgBase of
+      Just img -> Scale 0.25 0.25 img
+      Nothing  -> Blank
   in Translate x y pic
 
 dibujarBoton :: Picture
