@@ -4,7 +4,6 @@ import Graphics.Gloss hiding (Point, Vector) --Se omite Point y Vector para evit
 import Data.Explosion
 import Data.Mundo
 import Data.Proyectil
-import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
 

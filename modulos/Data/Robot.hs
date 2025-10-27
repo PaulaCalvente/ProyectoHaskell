@@ -1,6 +1,8 @@
 module Data.Robot where
 import Data.DatosComunes
 import Data.Torreta
+import Config.Memory (Memory)
+import qualified Data.Map as M
 
 data Action
   = MoveUp
@@ -11,7 +13,6 @@ data Action
   deriving (Show, Eq)
 
 -- Datos del robot
-
 data Robot = Robot
   { idR          :: Id
   , commonR      :: CommonData Float
@@ -20,8 +21,8 @@ data Robot = Robot
   , radarRange   :: Distance
   , turret       :: Turret
   , haveExploded :: HaveExploded
-  , shooting :: Bool
-  
+  , shooting     :: Bool
+  , memory       :: Memory  -- SISTEMA DE MEMORIA
   } deriving (Show, Eq)
 
 -- Registro de impactos o colisiones
@@ -30,14 +31,14 @@ data RobotHit
       { idRobot      :: Id
       , idProjectile :: Id
       , damageHit    :: Damage
-      , hitPosition        :: Position
+      , hitPosition  :: Position
       }
   | RobotCollidedWithRobot
       { idRobot1    :: Id
       , idRobot2    :: Id
       , damageHit1  :: Damage
       , damageHit2  :: Damage
-      , hitPosition       :: Position
+      , hitPosition :: Position
       }
   deriving (Show, Eq)
 

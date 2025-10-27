@@ -45,6 +45,7 @@ estadoInicial inicio fondo victoria derrota
                           1.2
               , haveExploded = False
               , shooting = False
+              , memory = M.empty
               }
           , Robot
               { idR = 2
@@ -57,6 +58,7 @@ estadoInicial inicio fondo victoria derrota
                           3.2
               , haveExploded = False
               , shooting = False
+              , memory = M.empty
               }
           , Robot
               { idR = 3
@@ -69,6 +71,7 @@ estadoInicial inicio fondo victoria derrota
                           2.4
               , haveExploded = False
               , shooting = False
+              , memory = M.empty
               }
           , Robot
               { idR = 4
@@ -81,6 +84,7 @@ estadoInicial inicio fondo victoria derrota
                           2.0
               , haveExploded = False
               , shooting = False
+              , memory = M.empty
               }
           ]
       , projectiles = []

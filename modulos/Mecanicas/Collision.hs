@@ -66,7 +66,7 @@ detectRobotRobotCollisions :: [Robot] -> ([RobotHit], [Explosion], Int)
 detectRobotRobotCollisions robots = (hits, explosions, length hits)
   where
     distanciaCorta r1 r2 =
-      distanceBetween (positionR r1) (positionR r2) < 45  -- 🔥 umbral visual
+      distanceBetween (positionR r1) (positionR r2) < 45 
 
     boxesCollide ((minx1,miny1),(maxx1,maxy1)) ((minx2,miny2),(maxx2,maxy2)) =
       not (maxx1 < minx2 || minx1 > maxx2 || maxy1 < miny2 || miny1 > maxy2)

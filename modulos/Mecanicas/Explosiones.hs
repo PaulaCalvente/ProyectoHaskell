@@ -30,7 +30,7 @@ detectarImpactos rs ps =
   , checkCollision (position (commonP p)) projectileRadius (robotBox r)
   ]
 
--- ✅ Solo resta vida, no marca haveExploded aquí
+-- Solo resta vida, no marca haveExploded aquí
 aplicarDaño :: [Robot] -> [(Id, Id, Damage, Position)] -> [Robot]
 aplicarDaño rs impactos =
   [ if any (\(idr, _, _, _) -> idr == idR r) impactos
