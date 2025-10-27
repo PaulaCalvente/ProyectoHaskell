@@ -24,7 +24,6 @@ dibujar m = case modo m of
       , dibujarBoton
       ]
 
-  -- 🆕 Pantalla de selección (nueva)
   Seleccion ->
     Pictures
       [ fondoJuego m
