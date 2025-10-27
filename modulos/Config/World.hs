@@ -20,6 +20,7 @@ import Mecanicas.Mundo
 import Mecanicas.Explosiones
 import Mecanicas.Proyectil
 
+import qualified Data.Map as M
 -- Mundo inicial con posiciones aleatorias
 estadoInicial :: Picture -> Picture -> Picture -> Picture
                -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture

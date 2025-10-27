@@ -1,8 +1,7 @@
 module Data.Robot where
 import Data.DatosComunes
 import Data.Torreta
-import Config.Memory (Memory)
-import qualified Data.Map as M
+import Data.Memory (Memory)
 
 data Action
   = MoveUp

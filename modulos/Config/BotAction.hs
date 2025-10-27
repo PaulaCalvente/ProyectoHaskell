@@ -12,10 +12,10 @@ module Config.BotAction
   ) where
 
 import Utils
-import Config.Memory     -- para la memoria del bot
 import Movement   -- funciones de movimiento: detectedAgent, isRobotAlive, updateVelocity, etc.
 import Collision
 import Data.DatosComunes
+import Data.Memory (MemoryValue(..), Memory)
 
 data Target
   = TPoint Position    -- un punto del mundo

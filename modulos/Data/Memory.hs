@@ -1,9 +1,9 @@
-module Config.Memory
+-- Data/Memory.hs
+module Data.Memory
   ( MemoryValue(..)
   , Memory
   ) where
 
-import Utils
 import qualified Data.Map as M
 
 -- Valores que un agente puede recordar

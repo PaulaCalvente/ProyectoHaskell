@@ -7,9 +7,10 @@ import Data.Proyectil
 import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
-import Config.Memory
+import Data.Memory
 import qualified Data.Map as M
 
+import Data.Maybe (fromMaybe)
 import Mecanicas.Torreta
 import Mecanicas.Mundo
 import Mecanicas.Proyectil

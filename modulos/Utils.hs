@@ -6,6 +6,7 @@ import Data.Mundo
 import Data.Proyectil
 import Data.Torreta
 import Data.DatosComunes
+import Data.Robot
 
 -- Funciones geométricas
 distanceBetween :: Position -> Position -> Distance
