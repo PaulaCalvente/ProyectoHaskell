@@ -154,7 +154,7 @@ actualizar dt m
       , not (haveExploded r)
       ]
 
-    -- 🔥 Actualizamos los robots: los que murieron ahora marcan haveExploded = True
+    -- Actualizamos los robots: los que murieron ahora marcan haveExploded = True
     rsFinal = [ if not (isRobotAlive r) then r { haveExploded = True } else r | r <- rsDanyados ]
 
     -- Combinamos todas las explosiones

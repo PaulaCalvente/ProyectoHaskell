@@ -9,7 +9,7 @@ import Config.Dibujar
 import Data.Mundo
 import Utils
 
--- 🔽 AÑADIDOS
+-- AÑADIDOS
 import Data.Mundo (ancho, alto)  -- para usar el tamaño real del área de juego
 import Control.Monad (replicateM)
 import Test.QuickCheck (Gen, generate, choose, suchThat)
@@ -30,7 +30,7 @@ genPosicion = do
 distMin :: Float
 distMin = 80
 
--- ✅ Genera una posición que no esté demasiado cerca de las existentes
+-- Genera una posición que no esté demasiado cerca de las existentes
 genPosicionUnica :: [(Float, Float)] -> Gen (Float, Float)
 genPosicionUnica existentes = do
   p <- genPosicion
@@ -118,7 +118,7 @@ main = do
       Just _  -> pure ()
 
 
-    -- ⬇️ Generar posiciones con QuickCheck, acotadas y separadas
+    --  Generar posiciones con QuickCheck, acotadas y separadas
     [pos1, pos2, pos3, pos4] <- generate (generarPosiciones 4)
 
     -- Crear mundo inicial con posiciones generadas
