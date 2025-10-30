@@ -25,6 +25,10 @@ data MundoGloss = MundoGloss
   , imagenExplosion2 :: Maybe Picture
   , imagenExplosion3 :: Maybe Picture
   , imagenExplosionMuerte :: Maybe Picture
+  , imagenEscritorio :: Maybe Picture
+  , imagenSandwich :: Maybe Picture
+  , imagenZumo     :: Maybe Picture
+  , imagenPlatano  :: Maybe Picture
   , explosiones    :: [Explosion]
   }
 

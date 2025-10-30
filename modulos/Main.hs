@@ -117,6 +117,25 @@ main = do
       Nothing -> putStrLn "Advertencia: No se pudo cargar chicleMuerte.png. Se usará un marcador de posición."
       Just _  -> pure ()
 
+    maybeEscritorio <- loadJuicyPNG "imagenes/imagenesPNG/escritorio.png"
+    case maybeEscritorio of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar escritorio.png. Se usará un marcador de posición."
+      Just _  -> pure ()
+
+    maybeSandwich <- loadJuicyPNG "imagenes/imagenesPNG/sandwich.png"
+    case maybeSandwich of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar sandwich.png. Se usará un marcador de posición."
+      Just _  -> pure ()
+
+    maybeZumo <- loadJuicyPNG "imagenes/imagenesPNG/zumo.png"
+    case maybeZumo of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar zumo.png. Se usará un marcador de posición."
+      Just _  -> pure ()
+
+    maybePlatano <- loadJuicyPNG "imagenes/imagenesPNG/platano.png"
+    case maybePlatano of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar platano.png. Se usará un marcador de posición."
+      Just _  -> pure ()
 
     --  Generar posiciones con QuickCheck, acotadas y separadas
     [pos1, pos2, pos3, pos4] <- generate (generarPosiciones 4)
@@ -125,7 +144,8 @@ main = do
     let mundo = estadoInicial inicio clase victoria derrota
                            maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
                            maybeTorreta maybeProfe maybeProyectil
-                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte
+                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
+                           maybeSandwich maybeZumo maybePlatano
                            pos1 pos2 pos3 pos4
 
     -- Ejecutar el juego. OJO: usamos (round ancho, round alto) del juego real

@@ -25,13 +25,14 @@ import qualified Data.Map as M
 estadoInicial :: Picture -> Picture -> Picture -> Picture
                -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
                -> Maybe Picture -> Maybe Picture -> Maybe Picture
-               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
+               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
+               -> Maybe Picture -> Maybe Picture -> Maybe Picture 
                -> (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float)
                -> MundoGloss
 estadoInicial inicio fondo victoria derrota
                robot1 robot2 robot3 robot4
                torreta profe proyectil
-               explosion1 explosion2 explosion3 explosionMuerte
+               explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano
                pos1 pos2 pos3 pos4 = MundoGloss
   { worldState = World
       { robots =
@@ -108,6 +109,10 @@ estadoInicial inicio fondo victoria derrota
   , imagenExplosion2 = explosion2
   , imagenExplosion3 = explosion3
   , imagenExplosionMuerte = explosionMuerte   
+  , imagenEscritorio = escritorio
+  , imagenSandwich = sandwich
+  , imagenZumo     = zumo
+  , imagenPlatano  = platano
   , explosiones = []
   }
 

@@ -28,6 +28,8 @@ dibujar m = case modo m of
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map (dibujarProjectile m) (projectiles w))
       , Pictures (map (dibujarExplosion m) (explosiones m))
+      , dibujarEscritorios m
+      , dibujarComida m
       , dibujarHUD (robots w)
       , dibujarPutInfo m
       ]
@@ -59,6 +61,54 @@ dibujarRobotP m (x, y) =
   Translate x y $
     Scale 0.3 0.3 $
       fromMaybe Blank (imagenProfe m)
+
+dibujarEscritorios :: MundoGloss -> Picture
+dibujarEscritorios m = 
+  case imagenEscritorio m of
+    Nothing -> Blank
+    Just escritorioPic ->
+      let
+        escala = 0.2
+        escritorioEscalado = Scale escala escala escritorioPic
+
+        -- Coordenadas de los 4 escritorios
+        posiciones =
+          [ (-250, 0)   -- arriba izquierda
+          , (250, 0)    -- arriba derecha
+          , (-250, -200)  -- abajo izquierda
+          , (250, -200)   -- abajo derecha
+          ]
+      in Pictures [Translate x y escritorioEscalado | (x, y) <- posiciones]
+
+dibujarComida :: MundoGloss -> Picture
+dibujarComida m =
+  let
+    -- imágenes desde el MundoGloss
+    maybeZumoPic     = imagenZumo m
+    maybePlatanoPic  = imagenPlatano m
+    maybeSandwichPic = imagenSandwich m
+
+    escala = 0.15
+
+    -- posiciones de los objetos
+    posicionesZumo     = [(-250, 150), (200, -100)]
+    posicionesPlatano  = [(-150, -120), (250, 80)]
+    posicionesSandwich = [(-50, 60), (150, -160)]
+
+    -- función auxiliar para crear imágenes seguras
+    crearImagen :: Maybe Picture -> [(Float, Float)] -> [Picture]
+    crearImagen Nothing _ = []
+    crearImagen (Just img) ps =
+      [ Translate x y (Scale escala escala img) | (x, y) <- ps ]
+
+    -- combinamos todas las comidas
+    zumos     = crearImagen maybeZumoPic posicionesZumo
+    platanos  = crearImagen maybePlatanoPic posicionesPlatano
+    sandwiches = crearImagen maybeSandwichPic posicionesSandwich
+  in
+    Pictures (zumos ++ platanos ++ sandwiches)
+
+
 
 dibujarRobot :: MundoGloss -> Robot -> Picture
 dibujarRobot m r =
