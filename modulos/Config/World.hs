@@ -28,12 +28,19 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
                -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
                -> Maybe Picture -> Maybe Picture -> Maybe Picture 
                -> (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float)
+               -> (Float, Float) -> (Float, Float)  -- posSandwich1 y 2
+               -> (Float, Float) -> (Float, Float)  -- posZumo1 y 2
+               -> (Float, Float) -> (Float, Float)  -- posPlatano1 y 2
                -> MundoGloss
 estadoInicial inicio fondo victoria derrota
                robot1 robot2 robot3 robot4
                torreta profe proyectil
                explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano
-               pos1 pos2 pos3 pos4 = MundoGloss
+               pos1 pos2 pos3 pos4
+               posSandwich1 posSandwich2
+               posZumo1 posZumo2
+               posPlatano1 posPlatano2 = MundoGloss
+               
   { worldState = World
       { robots =
           [ Robot
@@ -113,6 +120,12 @@ estadoInicial inicio fondo victoria derrota
   , imagenSandwich = sandwich
   , imagenZumo     = zumo
   , imagenPlatano  = platano
+  , posSandwich1 = posSandwich1
+  , posSandwich2 = posSandwich2
+  , posZumo1     = posZumo1
+  , posZumo2     = posZumo2
+  , posPlatano1  = posPlatano1
+  , posPlatano2  = posPlatano2
   , explosiones = []
   }
 
@@ -138,16 +151,19 @@ actualizar dt m
 
     -- Movimiento y disparos
     (rs4, nuevosProj) = actualizarRobots dt w
-    ps0 = projectiles w ++ nuevosProj
+    ps0  = projectiles w ++ nuevosProj
     psMov = moverProyectiles ps0 dt
 
-    -- Impactos de proyectiles
-    impactosDetectados = detectarImpactos rs4 psMov
-    rsDanyados = aplicarDaño rs4 impactosDetectados
-    nuevasExplosionesProj = generarExplosiones impactosDetectados
-    psRestantes = filtrarProyectilesRestantes psMov impactosDetectados
+    -- 🔴 Usar SOLO vivos para colisiones e impactos
+    rsVivos = filter isRobotAlive rs4
 
-    -- Colisiones robot-robot
+    -- Impactos de proyectiles contra vivos
+    impactosDetectados    = detectarImpactos rsVivos psMov
+    rsDanyados            = aplicarDaño rsVivos impactosDetectados
+    nuevasExplosionesProj = generarExplosiones impactosDetectados
+    psRestantes           = filtrarProyectilesRestantes psMov impactosDetectados
+
+    -- Colisiones robot-robot SOLO entre vivos
     (_hitsRR, explosionesRR, _nRR) = detectRobotRobotCollisions rsDanyados
 
     -- Explosiones por muerte (solo si aún no han explotado)
@@ -159,8 +175,13 @@ actualizar dt m
       , not (haveExploded r)
       ]
 
-    -- Actualizamos los robots: los que murieron ahora marcan haveExploded = True
-    rsFinal = [ if not (isRobotAlive r) then r { haveExploded = True } else r | r <- rsDanyados ]
+    -- Actualizamos los robots: marcamos los muertos como explotados
+    rsFinal =
+      [ if not (isRobotAlive r)
+          then r { haveExploded = True }
+          else r
+      | r <- rsDanyados
+      ]
 
     -- Combinamos todas las explosiones
     nuevasExplosionesTot = nuevasExplosionesProj ++ explosionesRR ++ explosionesMuerte
@@ -170,4 +191,5 @@ actualizar dt m
 
     -- Estado final del mundo
     w' = actualizarWorld w rsFinal psRestantes
+
 

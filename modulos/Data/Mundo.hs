@@ -29,6 +29,12 @@ data MundoGloss = MundoGloss
   , imagenSandwich :: Maybe Picture
   , imagenZumo     :: Maybe Picture
   , imagenPlatano  :: Maybe Picture
+  , posSandwich1 :: (Float, Float)
+  , posSandwich2 :: (Float, Float)
+  , posZumo1     :: (Float, Float)
+  , posZumo2     :: (Float, Float)
+  , posPlatano1  :: (Float, Float)
+  , posPlatano2  :: (Float, Float)
   , explosiones    :: [Explosion]
   }
 

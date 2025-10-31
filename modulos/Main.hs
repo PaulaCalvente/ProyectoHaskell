@@ -138,15 +138,20 @@ main = do
       Just _  -> pure ()
 
     --  Generar posiciones con QuickCheck, acotadas y separadas
-    [pos1, pos2, pos3, pos4] <- generate (generarPosiciones 4)
+    
+    [pos1, pos2, pos3, pos4, posSandwich1, posSandwich2, posZumo1, posZumo2, posPlatano1, posPlatano2] <- generate (generarPosiciones 10)
+
 
     -- Crear mundo inicial con posiciones generadas
     let mundo = estadoInicial inicio clase victoria derrota
-                           maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
-                           maybeTorreta maybeProfe maybeProyectil
-                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
-                           maybeSandwich maybeZumo maybePlatano
-                           pos1 pos2 pos3 pos4
+                          maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
+                          maybeTorreta maybeProfe maybeProyectil
+                          maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
+                          maybeSandwich maybeZumo maybePlatano
+                          pos1 pos2 pos3 pos4
+                          posSandwich1 posSandwich2
+                          posZumo1 posZumo2
+                          posPlatano1 posPlatano2
 
     -- Ejecutar el juego. OJO: usamos (round ancho, round alto) del juego real
     play

@@ -82,31 +82,26 @@ dibujarEscritorios m =
 
 dibujarComida :: MundoGloss -> Picture
 dibujarComida m =
-  let
-    -- imágenes desde el MundoGloss
-    maybeZumoPic     = imagenZumo m
-    maybePlatanoPic  = imagenPlatano m
-    maybeSandwichPic = imagenSandwich m
+  let maybeZumoPic     = imagenZumo m
+      maybePlatanoPic  = imagenPlatano m
+      maybeSandwichPic = imagenSandwich m
+      escala = 0.15
 
-    escala = 0.15
+      posicionesZumo     = [posZumo1 m,     posZumo2 m]
+      posicionesPlatano  = [posPlatano1 m,  posPlatano2 m]
+      posicionesSandwich = [posSandwich1 m, posSandwich2 m]
 
-    -- posiciones de los objetos
-    posicionesZumo     = [(-250, 150), (200, -100)]
-    posicionesPlatano  = [(-150, -120), (250, 80)]
-    posicionesSandwich = [(-50, 60), (150, -160)]
+      crearImagen :: Maybe Picture -> [(Float, Float)] -> [Picture]
+      crearImagen Nothing _ = []
+      crearImagen (Just img) ps =
+        [ Translate x y (Scale escala escala img) | (x, y) <- ps ]
 
-    -- función auxiliar para crear imágenes seguras
-    crearImagen :: Maybe Picture -> [(Float, Float)] -> [Picture]
-    crearImagen Nothing _ = []
-    crearImagen (Just img) ps =
-      [ Translate x y (Scale escala escala img) | (x, y) <- ps ]
-
-    -- combinamos todas las comidas
-    zumos     = crearImagen maybeZumoPic posicionesZumo
-    platanos  = crearImagen maybePlatanoPic posicionesPlatano
-    sandwiches = crearImagen maybeSandwichPic posicionesSandwich
+      zumos      = crearImagen maybeZumoPic posicionesZumo
+      platanos   = crearImagen maybePlatanoPic posicionesPlatano
+      sandwiches = crearImagen maybeSandwichPic posicionesSandwich
   in
-    Pictures (zumos ++ platanos ++ sandwiches)
+      Pictures (zumos ++ platanos ++ sandwiches)
+
 
 
 
