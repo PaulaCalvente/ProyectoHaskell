@@ -5,7 +5,6 @@ import Data.Proyectil
 import Data.Robot
 import Data.Torreta
 import Data.DatosComunes
-import Data.List (find)
 
 import Utils
 import Mecanicas.Movement
@@ -97,8 +96,6 @@ detectRobotRobotCollisions robots = (hits, explosions, length hits)
                         , damageHit2  = damageR r2
                         , hitPosition = positionR r1
                         }
-          , idA       = idR r1
-          , idB       = idR r2
           }
       | (r1, r2) <- (,) <$> robots <*> robots
       , idR r1 < idR r2
@@ -123,58 +120,3 @@ checkCollision (cx,cy) r ((minx,miny),(maxx,maxy)) =
         cly = max miny (min cy maxy)
         dx  = cx - clx
         dy  = cy - cly
-
-
--- normaliza una pareja a orden (min,max) para evitar duplicados (1,2) == (2,1)
-normalizePair :: CollisionPair -> CollisionPair
-normalizePair (a,b) = if a <= b then (a,b) else (b,a)
-
--- resta dt a todos los TTL y filtra expirados
-tickRecentCollisions :: Float -> RecentCollisions -> RecentCollisions
-tickRecentCollisions dt = filter (\(_, ttl) -> ttl > 0) . map (\(p, ttl) -> (p, ttl - dt))
-
--- comprueba si la pareja ya está en recentCollisions
-pairAlreadyRecent :: CollisionPair -> RecentCollisions -> Bool
-pairAlreadyRecent p recent = any ((== normalizePair p) . fst) recent
-
--- detecta pares de robots que colisionan (devuelve pares normalizados)
-detectCollisionPairs :: [Robot] -> [CollisionPair]
-detectCollisionPairs robots =
-  [ normalizePair (idR r1, idR r2)
-  | (r1, r2) <- (,) <$> robots <*> robots
-  , idR r1 < idR r2
-  , let box1 = robotBox r1
-        box2 = robotBox r2
-  , boxesCollide box1 box2 || distanceBetween (positionR r1) (positionR r2) < 45
-  ]
-  where
-    boxesCollide ((minx1,miny1),(maxx1,maxy1)) ((minx2,miny2),(maxx2,maxy2)) =
-      not (maxx1 < minx2 || minx1 > maxx2 || maxy1 < miny2 || miny1 > maxy2)
-
--- con los pares actuales y recentCollisions, devuelve:
---   (nuevosPairs, nuevosRecent) : nuevosPairs son los pares que NO estaban en recent; nuevosRecent es recent actualizado con las nuevas entradas (ttlNew)
-detectNewPairs :: Float -> [Robot] -> RecentCollisions -> ([CollisionPair], RecentCollisions)
-detectNewPairs ttlNew robots recent =
-  let currentPairs = detectCollisionPairs robots
-      isNew p = not (pairAlreadyRecent p recent)
-      newPairs = filter isNew currentPairs
-      newEntries = [(p, ttlNew) | p <- newPairs]
-      updatedRecent = recent ++ newEntries
-  in (newPairs, updatedRecent)
-
-
--- crea Explosion para una pareja (buscamos ambos robots para posición/tamaño/damage si quieres)
-explosionFromPair :: [Robot] -> (Id, Id) -> Explosion
-explosionFromPair robots (a,b) =
-  let Just r1 = find (\r -> idR r == a) robots
-      Just r2 = find (\r -> idR r == b) robots
-      pos = positionR r1
-      src = RobotCollidedWithRobot
-              { idRobot1 = a
-              , idRobot2 = b
-              , damageHit1 = damageR r1
-              , damageHit2 = damageR r2
-              , hitPosition = pos
-              }
-  in Explosion pos (60,60) 0.9 src a b
-

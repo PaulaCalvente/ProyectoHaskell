@@ -244,7 +244,7 @@ dibujarProjectile m p =
 -- EXPLOSIONES (incluye profesor explosivo)
 ------------------------------------------------------------
 dibujarExplosion :: MundoGloss -> Explosion -> Picture
-dibujarExplosion m (Explosion (x, y) _ ttl src _ _) =
+dibujarExplosion m (Explosion (x, y) _ ttl src) =
   let
     esMuerte = case src of
       RobotHitByProjectile { damageHit = dmg } -> dmg == 0
@@ -261,7 +261,7 @@ dibujarExplosion m (Explosion (x, y) _ ttl src _ _) =
     imgBase
       | esMuerte            = imagenExplosionMuerte m
       | esObstaculoComida   = imagenExplosionComida m
-      | esExplosionProfesor = imagenExplosion3 m  -- profesor usa explosion3.png
+      | esExplosionProfesor = imagenExplosion3 m  -- 💥 profesor usa explosion3.png
       | ttl > 0.4           = imagenExplosion1 m
       | ttl > 0.2           = imagenExplosion2 m
       | ttl > 0             = imagenExplosion3 m
