@@ -45,11 +45,11 @@ data MundoGloss = MundoGloss
   , zumo2Activo     :: Bool
   , platano1Activo  :: Bool
   , platano2Activo  :: Bool
-  -- 🔥 Profesor explosivo
   , profesorActivo :: Bool
   , tiempoExplosionProfesor :: Float
   , posicionProfesor :: (Float,Float)
   , explosiones    :: [Explosion]
+  , recentCollisions  :: RecentCollisions 
   }
 
 data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)

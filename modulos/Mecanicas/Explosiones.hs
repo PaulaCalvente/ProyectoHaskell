@@ -12,12 +12,23 @@ import Mecanicas.Collision
 
 import Utils
 
--- Actualiza la lista de explosiones activas (resta tiempo y mantiene las que siguen vivas)
+-- ACTUALIZAR EXISTENTES
 actualizarExplosiones :: Float -> [Explosion] -> [Explosion] -> [Explosion]
 actualizarExplosiones dt existentes nuevas =
-  [ Explosion pos size (tiempoTotal - dt) src
-  | Explosion pos size tiempoTotal src <- existentes ++ nuevas
-  , tiempoTotal - dt > 0
+  existentes' ++ nuevas
+  where
+    existentes' =
+      [ Explosion pos size tiempoTotal' src idA idB
+      | Explosion pos size tiempoTotal src idA idB <- existentes
+      , let tiempoTotal' = tiempoTotal - dt
+      , tiempoTotal' > 0
+      ]
+
+-- GENERAR EXPLOSIONES DE IMPACTO PROYECTIL-ROBOT
+generarExplosiones :: [(Id, Id, Damage, Position)] -> [Explosion]
+generarExplosiones impactos =
+  [ Explosion pos (30, 0) 0.6 (RobotHitByProjectile rid pid dmg pos) rid pid
+  | (rid, pid, dmg, pos) <- impactos
   ]
 
 -- Detecta impactos proyectil-robot
@@ -38,11 +49,4 @@ aplicarDaño rs impactos =
            in r { healthR = max 0 (healthR r - totalDaño) }
       else r
   | r <- rs
-  ]
-
--- Genera explosiones de impacto normales (no de muerte)
-generarExplosiones :: [(Id, Id, Damage, Position)] -> [Explosion]
-generarExplosiones impactos =
-  [ Explosion pos (30, 0) 0.6 (RobotHitByProjectile rid pid dmg pos)
-  | (rid, pid, dmg, pos) <- impactos
   ]

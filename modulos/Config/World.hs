@@ -147,6 +147,7 @@ estadoInicial inicio fondo victoria derrota
     , posicionProfesor = (0, 180)
     , cooldownProfesor = 0
     , explosiones = []
+    , recentCollisions = []
     }
 
 
@@ -214,19 +215,18 @@ actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
   | otherwise =
-      case [r | r <- rsFinal, isRobotAlive r] of
-        [ultimo] -> m4 { modo = Victoria (idR ultimo) }
-        []       -> m4 { modo = Derrota }
-        _        -> m4
+      case [ r | r <- rsFinal, isRobotAlive r ] of
+        [ultimo] -> mFinal { modo = Victoria (idR ultimo) }
+        []       -> mFinal { modo = Derrota }
+        _        -> mFinal
   where
+    -- estado y primeros pasos
     w = worldState m
     (rs0, nuevosProj) = actualizarRobots dt w
     ps0  = projectiles w ++ nuevosProj
     psMov = moverProyectiles ps0 dt
 
-    ------------------------------------------------------------
-    -- COLISIONES CON OBJETOS DE COMIDA
-    ------------------------------------------------------------
+    -- comida / objetos (como ya tenías)
     distanciaA :: Robot -> (Float, Float) -> Bool
     distanciaA r pos = isRobotAlive r && distanceBetween (positionR r) pos <= 20
 
@@ -239,14 +239,14 @@ actualizar dt m
             in if vida <= 10 then r { healthR = 0 } else r { healthR = vida - 10 }
           else r)
 
-    procesarComida :: Bool -> (Float, Float) -> [Robot]
-                   -> (Bool, [Robot], [Explosion], (Float, Float))
+    procesarComida :: Bool -> (Float, Float) -> [Robot] -> (Bool, [Robot], [Explosion], (Float, Float))
     procesarComida activo pos rs =
       if activo && any (`distanciaA` pos) rs
         then ( True
              , aplicarDanoComida pos rs
-             , [Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos)]
-             , (10000,10000) )
+             , [ Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos) (-1) (-1) ]
+             , (10000,10000)
+             )
         else (False, rs, [], pos)
 
     (colZ1, rs1, expZ1, posZ1) = procesarComida (zumo1Activo m) (posZumo1 m) rs0
@@ -270,8 +270,8 @@ actualizar dt m
 
     explosionesObst = expZ1 ++ expZ2 ++ expP1 ++ expP2 ++ expS1 ++ expS2
 
-    ------------------------------------------------------------
-    -- PROFESOR EXPLOSIVO (cuenta atrás + daño en radio + cooldown)
+------------------------------------------------------------
+    -- PROFESOR EXPLOSIVO
     ------------------------------------------------------------
     profesorPos = posicionProfesor m
     hayContactoProfe = any (\r -> isRobotAlive r && distanceBetween (positionR r) profesorPos < 55) rs6
@@ -291,54 +291,56 @@ actualizar dt m
                         | r <- rs6 ]
                       ex = [ Explosion profesorPos (120,120) 1.2
                                (RobotHitByProjectile (-99) (-99) 40 profesorPos) ]
-                  in (False, 0, rsGolpeados, ex, 5.0)   -- 🕐 5s de espera después de explotar
+                  in (False, 0, rsGolpeados, ex, 5.0)
                 else (True, t', rs6, [], cdActual)
         else
           if hayContactoProfe && cdActual <= 0
-            then (True, 3.0, rs6, [], cdActual)   -- ⏳ empieza cuenta atrás solo si no hay cooldown
+            then (True, 3.0, rs6, [], cdActual)
             else (False, 0, rs6, [], cdActual)
 
-
-    ------------------------------------------------------------
-    -- RESTO DE LÓGICA GENERAL DEL JUEGO
-    ------------------------------------------------------------
-    rsVivos = rs7
-    impactosDetectados    = detectarImpactos rsVivos psMov
-    rsDanyados            = aplicarDaño rsVivos impactosDetectados
+    -- lógica de proyectiles y daño (igual que antes)
+    rsVivos             = rs6
+    impactosDetectados  = detectarImpactos rsVivos psMov
+    rsDanyados          = aplicarDaño rsVivos impactosDetectados
     nuevasExplosionesProj = generarExplosiones impactosDetectados
-    psRestantes           = filtrarProyectilesRestantes psMov impactosDetectados
+    psRestantes         = filtrarProyectilesRestantes psMov impactosDetectados
 
-    robotsVivosRR = filter isRobotAlive rsDanyados
-    (_hitsRR, explosionesRR, _nRR) = detectRobotRobotCollisions robotsVivosRR
+    recent0        = recentCollisions m                       -- lee del estado
+    recentTicked   = tickRecentCollisions dt recent0          -- decrementa TTLs
+    ttlForCollision = 1.2                                     -- segundos que recordamos la pareja
 
+    (newPairs, recentUpdated) = detectNewPairs ttlForCollision (robots (worldState m1)) recentTicked
+
+    explFromPairs  = map (explosionFromPair (robots (worldState m1))) newPairs
+
+
+    -- ------------- continuar con el pipeline de creación de explosiones -------------
     explosionesMuerte =
       [ Explosion (positionR r) (70,70) 2.5
           (RobotHitByProjectile (idR r) 0 0 (positionR r))
+          (idR r) 0
       | r <- rsDanyados
       , healthR r <= 0
       , not (haveExploded r)
       ]
 
     rsFinal =
-      [ if healthR r <= 0
-          then r { haveExploded = True, healthR = 0 }
-          else r
+      [ if healthR r <= 0 then r { haveExploded = True, healthR = 0 } else r
       | r <- rsDanyados
       ]
 
-    nuevasExplosionesTot =
-      nuevasExplosionesProj ++ explosionesRR ++ explosionesMuerte ++ explosionesObst ++ expProfe
+    rsSimulables = filter isRobotAlive rsFinal
+
+    -- todas las explosiones nuevas: proyectiles + colisiones nuevas + muerte + objetos
+    nuevasExplosionesTot = nuevasExplosionesProj ++ explFromPairs ++ explosionesMuerte ++ explosionesObst
 
     expsAct = actualizarExplosiones dt (explosiones m1) nuevasExplosionesTot
 
-    w' = (actualizarWorld w { robots = filter isRobotAlive rsFinal }
-                    (filter isRobotAlive rsFinal) psRestantes)
-           { robots = rsFinal }
+    w' = (actualizarWorld w { robots = rsSimulables } rsSimulables psRestantes) { robots = rsFinal }
 
-    m4 = m1
-      { worldState = w'
-      , explosiones = expsAct
-      , profesorActivo = profActivo2
-      , tiempoExplosionProfesor = tProfe2
-      , cooldownProfesor = nuevoCooldown
-      }
+    -- construir mFinal con recentUpdated guardado
+    mFinal = m1 { worldState = w', explosiones = expsAct, recentCollisions = recentUpdated }
+
+    -- salida final
+    m4 = mFinal
+
