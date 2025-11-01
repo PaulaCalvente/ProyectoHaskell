@@ -244,7 +244,7 @@ dibujarProjectile m p =
 -- EXPLOSIONES (incluye profesor explosivo)
 ------------------------------------------------------------
 dibujarExplosion :: MundoGloss -> Explosion -> Picture
-dibujarExplosion m (Explosion (x, y) _ ttl src) =
+dibujarExplosion m (Explosion (x, y) _ ttl src _ _) =
   let
     esMuerte = case src of
       RobotHitByProjectile { damageHit = dmg } -> dmg == 0

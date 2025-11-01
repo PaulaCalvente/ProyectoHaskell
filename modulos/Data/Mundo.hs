@@ -50,6 +50,7 @@ data MundoGloss = MundoGloss
   , tiempoExplosionProfesor :: Float
   , posicionProfesor :: (Float,Float)
   , explosiones    :: [Explosion]
+  , recentCollisions  :: RecentCollisions 
   }
 
 data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)

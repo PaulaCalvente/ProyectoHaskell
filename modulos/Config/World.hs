@@ -147,6 +147,7 @@ estadoInicial inicio fondo victoria derrota
     , posicionProfesor = (0, 180)
     , cooldownProfesor = 0
     , explosiones = []
+    , recentCollisions = []
     }
 
 
@@ -245,7 +246,7 @@ actualizar dt m
       if activo && any (`distanciaA` pos) rs
         then ( True
              , aplicarDanoComida pos rs
-             , [Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos)]
+             , [ Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos) (-1) (-1) ]
              , (10000,10000) )
         else (False, rs, [], pos)
 
@@ -308,12 +309,17 @@ actualizar dt m
     nuevasExplosionesProj = generarExplosiones impactosDetectados
     psRestantes           = filtrarProyectilesRestantes psMov impactosDetectados
 
-    robotsVivosRR = filter isRobotAlive rsDanyados
-    (_hitsRR, explosionesRR, _nRR) = detectRobotRobotCollisions robotsVivosRR
+    recent0        = recentCollisions m                       -- lee del estado
+    recentTicked   = tickRecentCollisions dt recent0          -- decrementa TTLs
+    ttlForCollision = 1.2                                     -- segundos que recordamos la pareja
+
+    (newPairs, recentUpdated) = detectNewPairs ttlForCollision (robots (worldState m1)) recentTicked
+
+    explFromPairs  = map (explosionFromPair (robots (worldState m1))) newPairs
 
     explosionesMuerte =
       [ Explosion (positionR r) (70,70) 2.5
-          (RobotHitByProjectile (idR r) 0 0 (positionR r))
+          (RobotHitByProjectile (idR r) 0 0 (positionR r)) (idR r) 0
       | r <- rsDanyados
       , healthR r <= 0
       , not (haveExploded r)
@@ -327,7 +333,7 @@ actualizar dt m
       ]
 
     nuevasExplosionesTot =
-      nuevasExplosionesProj ++ explosionesRR ++ explosionesMuerte ++ explosionesObst ++ expProfe
+      nuevasExplosionesProj ++ explFromPairs ++ explosionesMuerte ++ explosionesObst ++ [ f (-1) (-1) | f <- expProfe ]
 
     expsAct = actualizarExplosiones dt (explosiones m1) nuevasExplosionesTot
 
@@ -341,4 +347,5 @@ actualizar dt m
       , profesorActivo = profActivo2
       , tiempoExplosionProfesor = tProfe2
       , cooldownProfesor = nuevoCooldown
+      , recentCollisions = recentUpdated
       }
