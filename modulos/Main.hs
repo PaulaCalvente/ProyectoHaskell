@@ -18,19 +18,15 @@ import Test.QuickCheck (Gen, generate, choose, suchThat)
 -- Generadores QuickCheck para posiciones iniciales
 --------------------------------------------------------------------------------
 
--- Genera una posición dentro del área jugable (centrada en 0,0)
 genPosicion :: Gen (Float, Float)
 genPosicion = do
   x <- choose (-ancho/2, ancho/2)
   y <- choose (-alto/2,  alto/2)
   pure (x, y)
 
-
--- Distancia mínima para evitar solapamiento inicial entre robots
 distMin :: Float
 distMin = 80
 
--- Genera una posición que no esté demasiado cerca de las existentes
 genPosicionUnica :: [(Float, Float)] -> Gen (Float, Float)
 genPosicionUnica existentes = do
   p <- genPosicion
@@ -38,7 +34,6 @@ genPosicionUnica existentes = do
      then return p
      else genPosicionUnica existentes
 
--- Genera N posiciones válidas (acotadas al área y separadas entre sí)
 generarPosiciones :: Int -> Gen [(Float, Float)]
 generarPosiciones n = go n []
   where
@@ -66,6 +61,12 @@ main = do
       Just _  -> pure () 
 
     profesor <- loadBMP "imagenes/imagenesBMP/profe.bmp"
+
+    -- ✅ NUEVO: cargar profesor enfadado
+    maybeProfeEnfadado <- loadJuicyPNG "imagenes/imagenesPNG/profesor_enfadado.png"
+    case maybeProfeEnfadado of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar profesor_enfadado.png. Se usará profe normal."
+      Just _  -> pure ()
 
     maybeRobot1 <- loadJuicyPNG "imagenes/imagenesPNG/Robot1.png"
     case maybeRobot1 of
@@ -143,22 +144,20 @@ main = do
       Just _  -> pure ()
 
     --  Generar posiciones con QuickCheck, acotadas y separadas
-    
     [pos1, pos2, pos3, pos4, posSandwich1, posSandwich2, posZumo1, posZumo2, posPlatano1, posPlatano2] <- generate (generarPosiciones 10)
-
 
     -- Crear mundo inicial con posiciones generadas
     let mundo = estadoInicial inicio clase victoria derrota
                       maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
-                      maybeTorreta maybeProfe maybeProyectil
+                      maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil  -- ✅ NUEVO argumento
                       maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
-                      maybeSandwich maybeZumo maybePlatano maybeExplosionComida  -- << AQUÍ
+                      maybeSandwich maybeZumo maybePlatano maybeExplosionComida
                       pos1 pos2 pos3 pos4
                       posSandwich1 posSandwich2
                       posZumo1 posZumo2
                       posPlatano1 posPlatano2
 
-    -- Ejecutar el juego. OJO: usamos (round ancho, round alto) del juego real
+    -- Ejecutar el juego
     play
       (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
       white

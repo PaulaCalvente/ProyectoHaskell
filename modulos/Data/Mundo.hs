@@ -1,4 +1,5 @@
 module Data.Mundo where
+
 import Graphics.Gloss hiding (Vector, Point)
 import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
 import Data.DatosComunes
@@ -7,9 +8,8 @@ import Data.Robot
 import Data.Proyectil
 import Data.Torreta
 
--- Data/Mundo.hs
 data MundoGloss = MundoGloss
-  {worldState     :: World
+  { worldState     :: World
   , modo           :: Modo
   , imagenInicio   :: Picture
   , fondoJuego     :: Picture
@@ -21,6 +21,8 @@ data MundoGloss = MundoGloss
   , imagenRobot4   :: Maybe Picture
   , imagenTorreta  :: Maybe Picture
   , imagenProfe    :: Maybe Picture
+  , imagenProfeEnfadado :: Maybe Picture
+  , cooldownProfesor :: Float       -- tiempo restante antes de poder reactivarse
   , imagenProyectil  :: Maybe Picture
   , imagenExplosion1 :: Maybe Picture
   , imagenExplosion2 :: Maybe Picture
@@ -30,26 +32,28 @@ data MundoGloss = MundoGloss
   , imagenSandwich :: Maybe Picture
   , imagenZumo     :: Maybe Picture
   , imagenPlatano  :: Maybe Picture
-  , imagenExplosionComida :: Maybe Picture  -- << NUEVO
+  , imagenExplosionComida :: Maybe Picture
   , posSandwich1 :: (Float, Float)
   , posSandwich2 :: (Float, Float)
   , posZumo1     :: (Float, Float)
   , posZumo2     :: (Float, Float)
   , posPlatano1  :: (Float, Float)
   , posPlatano2  :: (Float, Float)
-  -- >>> NUEVOS: estado de actividad
   , sandwich1Activo :: Bool
   , sandwich2Activo :: Bool
   , zumo1Activo     :: Bool
   , zumo2Activo     :: Bool
   , platano1Activo  :: Bool
   , platano2Activo  :: Bool
+  -- 🔥 Profesor explosivo
+  , profesorActivo :: Bool
+  , tiempoExplosionProfesor :: Float
+  , posicionProfesor :: (Float,Float)
   , explosiones    :: [Explosion]
-}
+  }
 
 data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
 
--- Estado global del mundo
 data World = World
   { robots      :: [Robot]
   , projectiles :: [Projectile]

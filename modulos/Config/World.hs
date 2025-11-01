@@ -30,7 +30,7 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
-              -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
+              -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
@@ -38,7 +38,7 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
               -> MundoGloss
 estadoInicial inicio fondo victoria derrota
                robot1 robot2 robot3 robot4
-               torreta profe proyectil
+               torreta profe profeEnfadado proyectil
                explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano explosionComida
                pos1 pos2 pos3 pos4
                posSandwich1 posSandwich2
@@ -119,6 +119,7 @@ estadoInicial inicio fondo victoria derrota
     , imagenRobot4 = robot4
     , imagenTorreta = torreta
     , imagenProfe = profe
+    , imagenProfeEnfadado = profeEnfadado   -- ✅ NUEVO CAMPO
     , imagenProyectil = proyectil
     , imagenExplosion1 = explosion1
     , imagenExplosion2 = explosion2
@@ -141,23 +142,74 @@ estadoInicial inicio fondo victoria derrota
     , zumo2Activo = True
     , platano1Activo = True
     , platano2Activo = True
+    , profesorActivo = False
+    , tiempoExplosionProfesor = 0
+    , posicionProfesor = (0, 180)
+    , cooldownProfesor = 0
     , explosiones = []
     }
 
-------------------------------------------------------------
--- EVENTOS
-------------------------------------------------------------
 
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
-  | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
+  -- 🎬 Iniciar juego desde pantalla inicial
+  | modo m == Inicio, dentroBoton pos =
+      m { modo = Jugando }
+
+  -- 🔁 Reiniciar juego tras victoria o derrota
+  | esFinJuego (modo m), dentroBotonReiniciar pos =
+      reiniciarMundo m
+
   | otherwise = m
+
 manejarEvento _ m = m
+
+
+------------------------------------------------------------
+-- FUNCIÓN AUXILIAR: DETECTA SI ES FIN DE JUEGO
+------------------------------------------------------------
+esFinJuego :: Modo -> Bool
+esFinJuego (Victoria _) = True
+esFinJuego Derrota      = True
+esFinJuego _            = False
+
+
+------------------------------------------------------------
+-- FUNCIÓN AUXILIAR: REINICIA EL MUNDO
+------------------------------------------------------------
+reiniciarMundo :: MundoGloss -> MundoGloss
+reiniciarMundo m =
+  estadoInicial (imagenInicio m)
+                (fondoJuego m)
+                (imagenVictoria m)
+                (imagenDerrota m)
+                (imagenRobot1 m)
+                (imagenRobot2 m)
+                (imagenRobot3 m)
+                (imagenRobot4 m)
+                (imagenTorreta m)
+                (imagenProfe m)
+                (imagenProfeEnfadado m)
+                (imagenProyectil m)
+                (imagenExplosion1 m)
+                (imagenExplosion2 m)
+                (imagenExplosion3 m)
+                (imagenExplosionMuerte m)
+                (imagenEscritorio m)
+                (imagenSandwich m)
+                (imagenZumo m)
+                (imagenPlatano m)
+                (imagenExplosionComida m)
+                (-200,100) (-50,100) (100,100) (250,100)
+                (-100,-100) (100,-100)
+                (-200,0) (200,0)
+                (-150,-150) (150,-150)
+
+
 
 ------------------------------------------------------------
 -- ACTUALIZACIÓN PRINCIPAL
 ------------------------------------------------------------
-
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
@@ -175,7 +227,6 @@ actualizar dt m
     ------------------------------------------------------------
     -- COLISIONES CON OBJETOS DE COMIDA
     ------------------------------------------------------------
-
     distanciaA :: Robot -> (Float, Float) -> Bool
     distanciaA r pos = isRobotAlive r && distanceBetween (positionR r) pos <= 20
 
@@ -185,18 +236,17 @@ actualizar dt m
         if distanciaA r pos
           then
             let vida = healthR r
-            in if vida <= 10
-                 then r { healthR = 0 }
-                 else r { healthR = vida - 10 }
+            in if vida <= 10 then r { healthR = 0 } else r { healthR = vida - 10 }
           else r)
 
-    procesarComida :: Bool -> (Float, Float) -> [Robot] -> (Bool, [Robot], [Explosion], (Float, Float))
+    procesarComida :: Bool -> (Float, Float) -> [Robot]
+                   -> (Bool, [Robot], [Explosion], (Float, Float))
     procesarComida activo pos rs =
       if activo && any (`distanciaA` pos) rs
-        then (True,
-              aplicarDanoComida pos rs,
-              [Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos)],
-              (10000,10000))  -- mueve fuera del mapa
+        then ( True
+             , aplicarDanoComida pos rs
+             , [Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos)]
+             , (10000,10000) )
         else (False, rs, [], pos)
 
     (colZ1, rs1, expZ1, posZ1) = procesarComida (zumo1Activo m) (posZumo1 m) rs0
@@ -221,18 +271,45 @@ actualizar dt m
     explosionesObst = expZ1 ++ expZ2 ++ expP1 ++ expP2 ++ expS1 ++ expS2
 
     ------------------------------------------------------------
+    -- PROFESOR EXPLOSIVO (cuenta atrás + daño en radio + cooldown)
+    ------------------------------------------------------------
+    profesorPos = posicionProfesor m
+    hayContactoProfe = any (\r -> isRobotAlive r && distanceBetween (positionR r) profesorPos < 55) rs6
+    cdActual = max 0 (cooldownProfesor m - dt)
+
+    (profActivo2, tProfe2, rs7, expProfe, nuevoCooldown) =
+      if profesorActivo m
+        then
+          let t' = tiempoExplosionProfesor m - dt
+          in if t' <= 0
+                then
+                  let radio = 100
+                      rsGolpeados =
+                        [ if distanceBetween (positionR r) profesorPos < radio
+                            then r { healthR = max 0 (healthR r - 40) }
+                            else r
+                        | r <- rs6 ]
+                      ex = [ Explosion profesorPos (120,120) 1.2
+                               (RobotHitByProjectile (-99) (-99) 40 profesorPos) ]
+                  in (False, 0, rsGolpeados, ex, 5.0)   -- 🕐 5s de espera después de explotar
+                else (True, t', rs6, [], cdActual)
+        else
+          if hayContactoProfe && cdActual <= 0
+            then (True, 3.0, rs6, [], cdActual)   -- ⏳ empieza cuenta atrás solo si no hay cooldown
+            else (False, 0, rs6, [], cdActual)
+
+
+    ------------------------------------------------------------
     -- RESTO DE LÓGICA GENERAL DEL JUEGO
     ------------------------------------------------------------
-
-    rsVivos = rs6
+    rsVivos = rs7
     impactosDetectados    = detectarImpactos rsVivos psMov
     rsDanyados            = aplicarDaño rsVivos impactosDetectados
     nuevasExplosionesProj = generarExplosiones impactosDetectados
     psRestantes           = filtrarProyectilesRestantes psMov impactosDetectados
 
-    -- ✅ solo colisiones entre robots vivos
-    letRobotsVivos = filter isRobotAlive rsDanyados
-    (_hitsRR, explosionesRR, _nRR) = detectRobotRobotCollisions letRobotsVivos
+    robotsVivosRR = filter isRobotAlive rsDanyados
+    (_hitsRR, explosionesRR, _nRR) = detectRobotRobotCollisions robotsVivosRR
 
     explosionesMuerte =
       [ Explosion (positionR r) (70,70) 2.5
@@ -249,14 +326,19 @@ actualizar dt m
       | r <- rsDanyados
       ]
 
-    rsSimulables = filter isRobotAlive rsFinal
-
     nuevasExplosionesTot =
-      nuevasExplosionesProj ++ explosionesRR ++ explosionesMuerte ++ explosionesObst
+      nuevasExplosionesProj ++ explosionesRR ++ explosionesMuerte ++ explosionesObst ++ expProfe
 
     expsAct = actualizarExplosiones dt (explosiones m1) nuevasExplosionesTot
 
-    w' = (actualizarWorld w { robots = rsSimulables } rsSimulables psRestantes)
+    w' = (actualizarWorld w { robots = filter isRobotAlive rsFinal }
+                    (filter isRobotAlive rsFinal) psRestantes)
            { robots = rsFinal }
 
-    m4 = m1 { worldState = w', explosiones = expsAct }
+    m4 = m1
+      { worldState = w'
+      , explosiones = expsAct
+      , profesorActivo = profActivo2
+      , tiempoExplosionProfesor = tProfe2
+      , cooldownProfesor = nuevoCooldown
+      }
