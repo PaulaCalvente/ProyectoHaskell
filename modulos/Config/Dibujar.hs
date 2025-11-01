@@ -87,20 +87,19 @@ dibujarComida m =
       maybeSandwichPic = imagenSandwich m
       escala = 0.15
 
-      posicionesZumo     = [posZumo1 m,     posZumo2 m]
-      posicionesPlatano  = [posPlatano1 m,  posPlatano2 m]
-      posicionesSandwich = [posSandwich1 m, posSandwich2 m]
+      crearImagen :: Bool -> Maybe Picture -> (Float, Float) -> [Picture]
+      crearImagen activo (Just img) pos
+        | activo    = [Translate (fst pos) (snd pos) (Scale escala escala img)]
+        | otherwise = []
+      crearImagen _ Nothing _ = []
 
-      crearImagen :: Maybe Picture -> [(Float, Float)] -> [Picture]
-      crearImagen Nothing _ = []
-      crearImagen (Just img) ps =
-        [ Translate x y (Scale escala escala img) | (x, y) <- ps ]
-
-      zumos      = crearImagen maybeZumoPic posicionesZumo
-      platanos   = crearImagen maybePlatanoPic posicionesPlatano
-      sandwiches = crearImagen maybeSandwichPic posicionesSandwich
-  in
-      Pictures (zumos ++ platanos ++ sandwiches)
+      zumos      = crearImagen (zumo1Activo m) maybeZumoPic (posZumo1 m) ++
+                   crearImagen (zumo2Activo m) maybeZumoPic (posZumo2 m)
+      platanos   = crearImagen (platano1Activo m) maybePlatanoPic (posPlatano1 m) ++
+                   crearImagen (platano2Activo m) maybePlatanoPic (posPlatano2 m)
+      sandwiches = crearImagen (sandwich1Activo m) maybeSandwichPic (posSandwich1 m) ++
+                   crearImagen (sandwich2Activo m) maybeSandwichPic (posSandwich2 m)
+  in Pictures (zumos ++ platanos ++ sandwiches)
 
 
 
@@ -175,12 +174,17 @@ dibujarExplosion m (Explosion (x, y) _ ttl src) =
       RobotHitByProjectile { damageHit = dmg } -> dmg == 0
       _ -> False
 
+    esObstaculoComida = case src of
+      RobotHitByProjectile { idProjectile = pid } -> pid == -1
+      _ -> False
+
     imgBase
-      | esMuerte  = imagenExplosionMuerte m
-      | ttl > 0.4 = imagenExplosion1 m
-      | ttl > 0.2 = imagenExplosion2 m
-      | ttl > 0   = imagenExplosion3 m
-      | otherwise = Nothing
+      | esMuerte        = imagenExplosionMuerte m
+      | esObstaculoComida = imagenExplosionComida m
+      | ttl > 0.4       = imagenExplosion1 m
+      | ttl > 0.2       = imagenExplosion2 m
+      | ttl > 0         = imagenExplosion3 m
+      | otherwise       = Nothing
 
     pic = case imgBase of
       Just img -> Scale 0.25 0.25 img

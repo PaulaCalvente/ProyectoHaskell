@@ -117,6 +117,11 @@ main = do
       Nothing -> putStrLn "Advertencia: No se pudo cargar chicleMuerte.png. Se usará un marcador de posición."
       Just _  -> pure ()
 
+    maybeExplosionComida <- loadJuicyPNG "imagenes/imagenesPNG/explosionComida.png"
+    case maybeExplosionComida of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar explosionComida.png. Se usará fallback."
+      Just _  -> pure ()
+
     maybeEscritorio <- loadJuicyPNG "imagenes/imagenesPNG/escritorio.png"
     case maybeEscritorio of
       Nothing -> putStrLn "Advertencia: No se pudo cargar escritorio.png. Se usará un marcador de posición."
@@ -144,14 +149,14 @@ main = do
 
     -- Crear mundo inicial con posiciones generadas
     let mundo = estadoInicial inicio clase victoria derrota
-                          maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
-                          maybeTorreta maybeProfe maybeProyectil
-                          maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
-                          maybeSandwich maybeZumo maybePlatano
-                          pos1 pos2 pos3 pos4
-                          posSandwich1 posSandwich2
-                          posZumo1 posZumo2
-                          posPlatano1 posPlatano2
+                      maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
+                      maybeTorreta maybeProfe maybeProyectil
+                      maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
+                      maybeSandwich maybeZumo maybePlatano maybeExplosionComida  -- << AQUÍ
+                      pos1 pos2 pos3 pos4
+                      posSandwich1 posSandwich2
+                      posZumo1 posZumo2
+                      posPlatano1 posPlatano2
 
     -- Ejecutar el juego. OJO: usamos (round ancho, round alto) del juego real
     play

@@ -7,8 +7,9 @@ import Data.Robot
 import Data.Proyectil
 import Data.Torreta
 
+-- Data/Mundo.hs
 data MundoGloss = MundoGloss
-  { worldState     :: World
+  {worldState     :: World
   , modo           :: Modo
   , imagenInicio   :: Picture
   , fondoJuego     :: Picture
@@ -29,14 +30,22 @@ data MundoGloss = MundoGloss
   , imagenSandwich :: Maybe Picture
   , imagenZumo     :: Maybe Picture
   , imagenPlatano  :: Maybe Picture
+  , imagenExplosionComida :: Maybe Picture  -- << NUEVO
   , posSandwich1 :: (Float, Float)
   , posSandwich2 :: (Float, Float)
   , posZumo1     :: (Float, Float)
   , posZumo2     :: (Float, Float)
   , posPlatano1  :: (Float, Float)
   , posPlatano2  :: (Float, Float)
+  -- >>> NUEVOS: estado de actividad
+  , sandwich1Activo :: Bool
+  , sandwich2Activo :: Bool
+  , zumo1Activo     :: Bool
+  , zumo2Activo     :: Bool
+  , platano1Activo  :: Bool
+  , platano2Activo  :: Bool
   , explosiones    :: [Explosion]
-  }
+}
 
 data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
 
