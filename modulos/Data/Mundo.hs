@@ -33,6 +33,7 @@ data MundoGloss = MundoGloss
   , imagenZumo     :: Maybe Picture
   , imagenPlatano  :: Maybe Picture
   , imagenExplosionComida :: Maybe Picture
+  , imagenExplosionProfesor :: Maybe Picture
   , posSandwich1 :: (Float, Float)
   , posSandwich2 :: (Float, Float)
   , posZumo1     :: (Float, Float)
@@ -45,7 +46,6 @@ data MundoGloss = MundoGloss
   , zumo2Activo     :: Bool
   , platano1Activo  :: Bool
   , platano2Activo  :: Bool
-  -- 🔥 Profesor explosivo
   , profesorActivo :: Bool
   , tiempoExplosionProfesor :: Float
   , posicionProfesor :: (Float,Float)

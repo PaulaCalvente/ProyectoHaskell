@@ -25,8 +25,8 @@ dibujar m = case modo m of
     let w = worldState m
     in Pictures
       [ fondoJuego m
-      , dibujarRobotP m (posicionProfesor m)     -- 📍 profesor (usa normal o enfadado)
-      , dibujarCuentaAtrasProfesor m             -- ⏳ contador visible
+      , dibujarRobotP m (posicionProfesor m)     -- profesor (usa normal o enfadado)
+      , dibujarCuentaAtrasProfesor m             -- contador visible
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map (dibujarProjectile m) (projectiles w))
       , Pictures (map (dibujarExplosion m) (explosiones m))
@@ -261,7 +261,7 @@ dibujarExplosion m (Explosion (x, y) _ ttl src _ _) =
     imgBase
       | esMuerte            = imagenExplosionMuerte m
       | esObstaculoComida   = imagenExplosionComida m
-      | esExplosionProfesor = imagenExplosion3 m  -- 💥 profesor usa explosion3.png
+      | esExplosionProfesor = imagenExplosionProfesor m 
       | ttl > 0.4           = imagenExplosion1 m
       | ttl > 0.2           = imagenExplosion2 m
       | ttl > 0             = imagenExplosion3 m

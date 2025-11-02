@@ -62,7 +62,7 @@ main = do
 
     profesor <- loadBMP "imagenes/imagenesBMP/profe.bmp"
 
-    -- ✅ NUEVO: cargar profesor enfadado
+    -- NUEVO: cargar profesor enfadado
     maybeProfeEnfadado <- loadJuicyPNG "imagenes/imagenesPNG/profesor_enfadado.png"
     case maybeProfeEnfadado of
       Nothing -> putStrLn "Advertencia: No se pudo cargar profesor_enfadado.png. Se usará profe normal."
@@ -123,6 +123,11 @@ main = do
       Nothing -> putStrLn "Advertencia: No se pudo cargar explosionComida.png. Se usará fallback."
       Just _  -> pure ()
 
+    maybeExplosionProfesor <- loadJuicyPNG "imagenes/imagenesPNG/explosionProfesor.png"
+    case maybeExplosionProfesor of
+      Nothing -> putStrLn "Advertencia: No se pudo cargar explosionProfesor.png. Se usará un marcador de posición."
+      Just _  -> pure ()
+
     maybeEscritorio <- loadJuicyPNG "imagenes/imagenesPNG/escritorio.png"
     case maybeEscritorio of
       Nothing -> putStrLn "Advertencia: No se pudo cargar escritorio.png. Se usará un marcador de posición."
@@ -149,9 +154,9 @@ main = do
     -- Crear mundo inicial con posiciones generadas
     let mundo = estadoInicial inicio clase victoria derrota
                       maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
-                      maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil  -- ✅ NUEVO argumento
+                      maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil 
                       maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
-                      maybeSandwich maybeZumo maybePlatano maybeExplosionComida
+                      maybeSandwich maybeZumo maybePlatano maybeExplosionComida maybeExplosionProfesor
                       pos1 pos2 pos3 pos4
                       posSandwich1 posSandwich2
                       posZumo1 posZumo2

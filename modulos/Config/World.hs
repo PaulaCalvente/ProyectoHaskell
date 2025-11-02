@@ -30,7 +30,7 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
-              -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
+              -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
@@ -39,7 +39,7 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
 estadoInicial inicio fondo victoria derrota
                robot1 robot2 robot3 robot4
                torreta profe profeEnfadado proyectil
-               explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano explosionComida
+               explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano explosionComida explosionProfesor
                pos1 pos2 pos3 pos4
                posSandwich1 posSandwich2
                posZumo1 posZumo2
@@ -119,7 +119,7 @@ estadoInicial inicio fondo victoria derrota
     , imagenRobot4 = robot4
     , imagenTorreta = torreta
     , imagenProfe = profe
-    , imagenProfeEnfadado = profeEnfadado   -- ✅ NUEVO CAMPO
+    , imagenProfeEnfadado = profeEnfadado 
     , imagenProyectil = proyectil
     , imagenExplosion1 = explosion1
     , imagenExplosion2 = explosion2
@@ -130,6 +130,7 @@ estadoInicial inicio fondo victoria derrota
     , imagenZumo = zumo
     , imagenPlatano = platano
     , imagenExplosionComida = explosionComida
+    , imagenExplosionProfesor = explosionProfesor
     , posSandwich1 = posSandwich1
     , posSandwich2 = posSandwich2
     , posZumo1 = posZumo1
@@ -153,11 +154,11 @@ estadoInicial inicio fondo victoria derrota
 
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
-  -- 🎬 Iniciar juego desde pantalla inicial
+  -- Iniciar juego desde pantalla inicial
   | modo m == Inicio, dentroBoton pos =
       m { modo = Jugando }
 
-  -- 🔁 Reiniciar juego tras victoria o derrota
+  -- Reiniciar juego tras victoria o derrota
   | esFinJuego (modo m), dentroBotonReiniciar pos =
       reiniciarMundo m
 
@@ -201,6 +202,7 @@ reiniciarMundo m =
                 (imagenZumo m)
                 (imagenPlatano m)
                 (imagenExplosionComida m)
+                (imagenExplosionProfesor m)
                 (-200,100) (-50,100) (100,100) (250,100)
                 (-100,-100) (100,-100)
                 (-200,0) (200,0)
@@ -292,11 +294,11 @@ actualizar dt m
                         | r <- rs6 ]
                       ex = [ Explosion profesorPos (120,120) 1.2
                                (RobotHitByProjectile (-99) (-99) 40 profesorPos) ]
-                  in (False, 0, rsGolpeados, ex, 5.0)   -- 🕐 5s de espera después de explotar
+                  in (False, 0, rsGolpeados, ex, 5.0)   -- 5s de espera después de explotar
                 else (True, t', rs6, [], cdActual)
         else
           if hayContactoProfe && cdActual <= 0
-            then (True, 3.0, rs6, [], cdActual)   -- ⏳ empieza cuenta atrás solo si no hay cooldown
+            then (True, 3.0, rs6, [], cdActual)   -- empieza cuenta atrás solo si no hay cooldown
             else (False, 0, rs6, [], cdActual)
 
 
