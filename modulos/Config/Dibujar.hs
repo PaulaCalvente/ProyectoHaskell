@@ -79,7 +79,7 @@ dibujarPutInfo m =
 dibujarRobotP :: MundoGloss -> (Float, Float) -> Picture
 dibujarRobotP m (x, y) =
   let imgProfe = if profesorActivo m
-                   then imagenProfeEnfadado m   -- ✅ nueva imagen si está enfadado
+                   then imagenProfeEnfadado m   -- nueva imagen si está enfadado
                    else imagenProfe m
   in Translate x (y + 10) $ Scale 0.3 0.3 $ fromMaybe Blank imgProfe
 
@@ -204,7 +204,7 @@ dibujarRobot m r =
           Nothing -> Color blue (rectangleSolid 30 15)
           Just torretaPic ->
             let torretaEscalada = Scale 0.15 0.15 torretaPic
-                pivoteTrasladado = Translate (-torretaLength / 2) 0 torretaEscalada
+                pivoteTrasladado = Translate (torretaLength / 2) 0 torretaEscalada
                 torretaRotada = Rotate (-ang) pivoteTrasladado
             in Translate torretaOffsetX torretaOffsetY torretaRotada
 

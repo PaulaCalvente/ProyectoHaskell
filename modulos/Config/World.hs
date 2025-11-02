@@ -311,7 +311,7 @@ actualizar dt m
 
     recent0        = recentCollisions m                       -- lee del estado
     recentTicked   = tickRecentCollisions dt recent0          -- decrementa TTLs
-    ttlForCollision = 1.2                                     -- segundos que recordamos la pareja
+    ttlForCollision = 2.5                                     -- segundos que recordamos la pareja
 
     (newPairs, recentUpdated) = detectNewPairs ttlForCollision (robots (worldState m1)) recentTicked
 
