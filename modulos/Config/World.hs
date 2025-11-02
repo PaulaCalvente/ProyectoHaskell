@@ -50,8 +50,8 @@ estadoInicial inicio fondo victoria derrota
             [ Robot
                 { idR = 1
                 , commonR = CommonData 1 0 pos1 (0, 0) (40, 50) (generarRecorrido 1)
-                , healthR = 50
-                , maxHealthR = 50
+                , healthR = 70
+                , maxHealthR = 70
                 , radarRange = 120
                 , turret = Turret 1 (1, 0) 0
                             (Projectile 1 (CommonData 1 8 (0,0) (250, 0)
@@ -64,8 +64,8 @@ estadoInicial inicio fondo victoria derrota
             , Robot
                 { idR = 2
                 , commonR = CommonData 2 0 pos2 (0, 0) (40, 50) (generarRecorrido 2)
-                , healthR = 140
-                , maxHealthR = 140
+                , healthR = 120
+                , maxHealthR = 120
                 , radarRange = 200
                 , turret = Turret 2 (-1, 0) 180
                             (Projectile 2 (CommonData 2 18 (0,0) (-180, 0)
@@ -203,10 +203,10 @@ reiniciarMundo m =
                 (imagenPlatano m)
                 (imagenExplosionComida m)
                 (imagenExplosionProfesor m)
-                (-200,100) (-50,100) (100,100) (250,100)
-                (-100,-100) (100,-100)
-                (-200,0) (200,0)
-                (-150,-150) (150,-150)
+                (-20,156) (-50,321) (155,83) (202,65)
+                (-54,-59) (233,-98)
+                (-235,255) (173,-300)
+                (-312,-200) (55,-133)
 
 
 
