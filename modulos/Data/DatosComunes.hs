@@ -17,7 +17,7 @@ type Cooldown = Float
 type TurretAction = Float
 type Duration = Float
 type CollisionPair    = (Id, Id)
-type RecentCollisions  = [(CollisionPair, Float)]  -- (pair, seconds remaining)
+type RecentCollisions  = [(CollisionPair, Float)] 
 
 -- CommonData: datos comunes para robots y proyectiles 
 data CommonData a = CommonData

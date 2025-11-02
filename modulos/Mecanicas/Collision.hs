@@ -162,7 +162,7 @@ detectNewPairs ttlNew robots recent =
   in (newPairs, updatedRecent)
 
 
--- crea Explosion para una pareja (buscamos ambos robots para posición/tamaño/damage si quieres)
+-- crea Explosion para una pareja
 explosionFromPair :: [Robot] -> (Id, Id) -> Explosion
 explosionFromPair robots (a,b) =
   let Just r1 = find (\r -> idR r == a) robots

@@ -18,6 +18,29 @@ import Test.QuickCheck (Gen, generate, choose, suchThat)
 -- Generadores QuickCheck para posiciones iniciales
 --------------------------------------------------------------------------------
 
+-- Definimos las posiciones y áreas de los escritorios
+-- Estas son las mismas posiciones donde se dibujan en Config.Dibujar
+posicionesEscritorios :: [(Float, Float)]
+posicionesEscritorios = [ (-250, 0), (250, 0), (-250, -200), (250, -200) ]
+
+-- Tamaño aproximado del escritorio en el mundo
+anchoEscritorio :: Float
+anchoEscritorio = 100
+
+altoEscritorio :: Float
+altoEscritorio = 80
+
+-- Función para verificar si una posición está dentro de algún escritorio
+estaDentroDeEscritorio :: (Float, Float) -> Bool
+estaDentroDeEscritorio (x, y) =
+  any (\(ex, ey) ->
+    let minX = ex - anchoEscritorio / 2
+        maxX = ex + anchoEscritorio / 2
+        minY = ey - altoEscritorio / 2
+        maxY = ey + altoEscritorio / 2
+    in x >= minX && x <= maxX && y >= minY && y <= maxY
+  ) posicionesEscritorios
+
 genPosicion :: Gen (Float, Float)
 genPosicion = do
   x <- choose (-ancho/2, ancho/2)
@@ -31,6 +54,7 @@ genPosicionUnica :: [(Float, Float)] -> Gen (Float, Float)
 genPosicionUnica existentes = do
   p <- genPosicion
   if all (\q -> distanceBetween p q > distMin) existentes
+     && not (estaDentroDeEscritorio p)  -- CONDICIÓN: No puede estar dentro de un escritorio
      then return p
      else genPosicionUnica existentes
 

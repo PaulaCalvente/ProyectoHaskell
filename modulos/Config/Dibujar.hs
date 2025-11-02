@@ -85,9 +85,9 @@ dibujarRobotP m (x, y) =
 
 
 ------------------------------------------------------------
--- CONTADOR SOBRE EL PROFESOR (versión mejorada y bonita)
+-- CONTADOR SOBRE EL PROFESOR
 ------------------------------------------------------------
--- Contador sobre el profesor (versión futurista con número centrado y brillante)
+-- Contador sobre el profesor
 dibujarCuentaAtrasProfesor :: MundoGloss -> Picture
 dibujarCuentaAtrasProfesor m
   | not (profesorActivo m) = Blank
