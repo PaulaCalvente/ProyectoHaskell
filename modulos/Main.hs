@@ -18,29 +18,6 @@ import Test.QuickCheck (Gen, generate, choose, suchThat)
 -- Generadores QuickCheck para posiciones iniciales
 --------------------------------------------------------------------------------
 
--- Definimos las posiciones y áreas de los escritorios
--- Estas son las mismas posiciones donde se dibujan en Config.Dibujar
-posicionesEscritorios :: [(Float, Float)]
-posicionesEscritorios = [ (-250, 0), (250, 0), (-250, -200), (250, -200) ]
-
--- Tamaño aproximado del escritorio en el mundo
-anchoEscritorio :: Float
-anchoEscritorio = 100
-
-altoEscritorio :: Float
-altoEscritorio = 80
-
--- Función para verificar si una posición está dentro de algún escritorio
-estaDentroDeEscritorio :: (Float, Float) -> Bool
-estaDentroDeEscritorio (x, y) =
-  any (\(ex, ey) ->
-    let minX = ex - anchoEscritorio / 2
-        maxX = ex + anchoEscritorio / 2
-        minY = ey - altoEscritorio / 2
-        maxY = ey + altoEscritorio / 2
-    in x >= minX && x <= maxX && y >= minY && y <= maxY
-  ) posicionesEscritorios
-
 genPosicion :: Gen (Float, Float)
 genPosicion = do
   x <- choose (-ancho/2, ancho/2)
@@ -65,7 +42,6 @@ generarPosiciones n = go n []
     go k acc = do
       p <- genPosicionUnica acc
       go (k - 1) (p : acc)
-
 --------------------------------------------------------------------------------
 -- Main
 --------------------------------------------------------------------------------
@@ -86,7 +62,7 @@ main = do
 
     profesor <- loadBMP "imagenes/imagenesBMP/profe.bmp"
 
-    -- NUEVO: cargar profesor enfadado
+    --  NUEVO: cargar profesor enfadado
     maybeProfeEnfadado <- loadJuicyPNG "imagenes/imagenesPNG/profesor_enfadado.png"
     case maybeProfeEnfadado of
       Nothing -> putStrLn "Advertencia: No se pudo cargar profesor_enfadado.png. Se usará profe normal."
@@ -184,7 +160,7 @@ main = do
                       pos1 pos2 pos3 pos4
                       posSandwich1 posSandwich2
                       posZumo1 posZumo2
-                      posPlatano1 posPlatano2
+                      posPlatano1 posPlatano2 
 
     -- Ejecutar el juego
     play
@@ -195,3 +171,4 @@ main = do
       dibujar
       manejarEvento
       actualizar
+      

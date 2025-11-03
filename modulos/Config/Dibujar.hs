@@ -17,6 +17,24 @@ import Utils
 ------------------------------------------------------------
 -- DIBUJADO PRINCIPAL
 ------------------------------------------------------------
+------------------------------------
+limitesEscritorios :: [((Float, Float), (Float, Float))]
+limitesEscritorios =
+  [ ((-300, -200), (-40,  40))
+  , ((-300, -200), (-240, -160))
+  , ((200,  300),  (-40,   40))
+  , ((200,  300),  (-240, -160))
+  ]
+
+-- Verifica si una posición está dentro de algún escritorio usando límites absolutos
+estaDentroDeEscritorio :: (Float, Float) -> Bool
+estaDentroDeEscritorio (x, y) =
+  any (\((minX, maxX), (minY, maxY)) ->
+        x >= minX && x <= maxX &&
+        y >= minY && y <= maxY)
+      limitesEscritorios
+
+
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
   Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
@@ -30,10 +48,10 @@ dibujar m = case modo m of
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map (dibujarProjectile m) (projectiles w))
       , Pictures (map (dibujarExplosion m) (explosiones m))
-      , dibujarEscritorios m
       , dibujarComida m
       , dibujarHUD (robots w)
       , dibujarPutInfo m
+      , dibujarEscritorios m
       ]
 
   Victoria rid ->
