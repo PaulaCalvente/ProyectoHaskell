@@ -67,6 +67,7 @@ main = do
     maybeSandwich <- cargarPNG "imagenes/imagenesPNG/sandwich.png"
     maybeZumo <- cargarPNG "imagenes/imagenesPNG/zumo.png"
     maybePlatano <- cargarPNG "imagenes/imagenesPNG/platano.png"
+    maybeExplosionRobot <- cargarPNG "imagenes/imagenesPNG/explosionRobots.png"
 
     ------------------------------------------------------------
     -- 3️⃣ Generar posiciones iniciales
@@ -84,7 +85,8 @@ main = do
                           maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
                           maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil 
                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
-                          maybeSandwich maybeZumo maybePlatano maybeExplosionComida maybeExplosionProfesor
+                          maybeSandwich maybeZumo maybePlatano maybeExplosionComida maybeExplosionProfesor maybeExplosionRobot
+                          
                           pos1 pos2 pos3 pos4
                           posSandwich1 posSandwich2
                           posZumo1 posZumo2

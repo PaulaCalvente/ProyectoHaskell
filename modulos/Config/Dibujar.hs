@@ -276,10 +276,15 @@ dibujarExplosion m (Explosion (x, y) _ ttl src _ _) =
       RobotHitByProjectile { idProjectile = pid } -> pid == -99
       _ -> False
 
+    esExplosionRobot = case src of
+      RobotCollidedWithRobot { idRobot1 = pid } -> pid == -100
+      _ -> False
+
     imgBase
       | esMuerte            = imagenExplosionMuerte m
       | esObstaculoComida   = imagenExplosionComida m
       | esExplosionProfesor = imagenExplosionProfesor m 
+      | esExplosionRobot   = imagenExplosionRobot m
       | ttl > 0.4           = imagenExplosion1 m
       | ttl > 0.2           = imagenExplosion2 m
       | ttl > 0             = imagenExplosion3 m

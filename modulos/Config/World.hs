@@ -38,6 +38,7 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
+              -> Maybe Picture
               -> (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
@@ -47,6 +48,7 @@ estadoInicial inicio fondo victoria derrota
                robot1 robot2 robot3 robot4
                torreta profe profeEnfadado proyectil
                explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano explosionComida explosionProfesor
+               explosionRobots
                pos1 pos2 pos3 pos4
                posSandwich1 posSandwich2
                posZumo1 posZumo2
@@ -138,6 +140,7 @@ estadoInicial inicio fondo victoria derrota
     , imagenPlatano = platano
     , imagenExplosionComida = explosionComida
     , imagenExplosionProfesor = explosionProfesor
+    , imagenExplosionRobot = explosionRobots
     , torneosRestantes = 1
     , posSandwich1 = posSandwich1
     , posSandwich2 = posSandwich2
@@ -200,6 +203,7 @@ reiniciarMundo m =
                 (imagenPlatano m)
                 (imagenExplosionComida m)
                 (imagenExplosionProfesor m)
+                (imagenExplosionRobot m)
                 (-20,156) (-50,321) (155,83) (202,65)
                 (-54,-59) (233,-98)
                 (-235,255) (173,-300)
@@ -243,7 +247,7 @@ actualizar dt m
         ps0 = projectiles w ++ nuevosProj
         psMov = moverProyectiles ps0 dt
 
-        distanciaA r pos = isRobotAlive r && distanceBetween (positionR r) pos <= 20
+        distanciaA r pos = isRobotAlive r && distanceBetween (positionR r) pos <= 50
         aplicarDanoComida pos = map (\r ->
           if distanciaA r pos
             then let vida = healthR r in if vida <= 10 then r { healthR = 0 } else r { healthR = vida - 10 }
@@ -393,6 +397,7 @@ reiniciarMundoIO m = do
                   (imagenPlatano m)
                   (imagenExplosionComida m)
                   (imagenExplosionProfesor m)
+                  (imagenExplosionRobot m)
                   pos1 pos2 pos3 pos4
                   posSandwich1 posSandwich2
                   posZumo1 posZumo2
