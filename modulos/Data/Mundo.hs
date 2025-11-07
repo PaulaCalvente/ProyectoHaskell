@@ -34,6 +34,7 @@ data MundoGloss = MundoGloss
   , imagenPlatano  :: Maybe Picture
   , imagenExplosionComida :: Maybe Picture
   , imagenExplosionProfesor :: Maybe Picture
+  , torneosRestantes :: Int
   , posSandwich1 :: (Float, Float)
   , posSandwich2 :: (Float, Float)
   , posZumo1     :: (Float, Float)

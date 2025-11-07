@@ -1,0 +1,4 @@
+bots=robot1,robot2,robot3,robot4
+area=800x600
+duracion=60
+torneos=2

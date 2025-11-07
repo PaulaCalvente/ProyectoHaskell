@@ -2,6 +2,8 @@ module Config.World where
 
 import Graphics.Gloss hiding (Vector, Point)
 import Graphics.Gloss.Interface.Pure.Game hiding (Vector, Point)
+import Test.QuickCheck (Gen, generate, choose)
+import System.IO.Unsafe (unsafePerformIO)
 
 import Data.Explosion
 import Data.Mundo
@@ -12,6 +14,7 @@ import Data.DatosComunes
 import Mecanicas.Collision
 
 import Config.Dibujar
+import Config.Generacion
 
 import Utils
 import Mecanicas.Movement
@@ -131,6 +134,7 @@ estadoInicial inicio fondo victoria derrota
     , imagenPlatano = platano
     , imagenExplosionComida = explosionComida
     , imagenExplosionProfesor = explosionProfesor
+    , torneosRestantes = 1
     , posSandwich1 = posSandwich1
     , posSandwich2 = posSandwich2
     , posZumo1 = posZumo1
@@ -218,8 +222,8 @@ actualizar dt m
   | modo m == Inicio = m
   | otherwise =
       case [r | r <- rsFinal, isRobotAlive r] of
-        [ultimo] -> m4 { modo = Victoria (idR ultimo) }
-        []       -> m4 { modo = Derrota }
+        [ultimo] -> reiniciarAutomatico (m4 { modo = Victoria (idR ultimo) })
+        []       -> reiniciarAutomatico (m4 { modo = Derrota })
         _        -> m4
   where
     w = worldState m
@@ -231,7 +235,8 @@ actualizar dt m
     -- COLISIONES CON OBJETOS DE COMIDA
     ------------------------------------------------------------
     distanciaA :: Robot -> (Float, Float) -> Bool
-    distanciaA r pos = isRobotAlive r && distanceBetween (positionR r) pos <= 20
+    distanciaA r pos =
+      isRobotAlive r && distanceBetween (positionR r) pos <= 20
 
     aplicarDanoComida :: (Float, Float) -> [Robot] -> [Robot]
     aplicarDanoComida pos =
@@ -305,42 +310,64 @@ actualizar dt m
     ------------------------------------------------------------
     -- RESTO DE LÓGICA GENERAL DEL JUEGO
     ------------------------------------------------------------
-    rsVivos = rs7
+
+    -- Solo robots vivos participan en física y daño
+    rsVivos = filter isRobotAlive rs7
+
+    ------------------------------------------------------------
+    -- 💥 IMPACTOS DE PROYECTILES ENTRE VIVOS
+    ------------------------------------------------------------
     impactosDetectados    = detectarImpactos rsVivos psMov
-    rsDanyados            = aplicarDaño rsVivos impactosDetectados
+    rsDanyadosTemp        = aplicarDaño rsVivos impactosDetectados
     nuevasExplosionesProj = generarExplosiones impactosDetectados
     psRestantes           = filtrarProyectilesRestantes psMov impactosDetectados
 
-    recent0        = recentCollisions m                       -- lee del estado
-    recentTicked   = tickRecentCollisions dt recent0          -- decrementa TTLs
-    ttlForCollision = 2.5                                     -- segundos que recordamos la pareja
+    ------------------------------------------------------------
+    -- 🤜💥 COLISIONES CUERPO A CUERPO (solo entre vivos)
+    ------------------------------------------------------------
+    recent0        = recentCollisions m
+    recentTicked   = tickRecentCollisions dt recent0
+    ttlForCollision = 2.5
 
-    (newPairs, recentUpdated) = detectNewPairs ttlForCollision (robots (worldState m1)) recentTicked
+    (newPairs, recentUpdated) = detectNewPairs ttlForCollision rsVivos recentTicked
+    explFromPairs  = map (explosionFromPair rsVivos) newPairs
 
-    explFromPairs  = map (explosionFromPair (robots (worldState m1))) newPairs
-
+    ------------------------------------------------------------
+    -- 💀 EXPLOSIONES DE MUERTE
+    ------------------------------------------------------------
     explosionesMuerte =
       [ Explosion (positionR r) (70,70) 2.5
           (RobotHitByProjectile (idR r) 0 0 (positionR r)) (idR r) 0
-      | r <- rsDanyados
+      | r <- rsDanyadosTemp
       , healthR r <= 0
       , not (haveExploded r)
       ]
 
-    rsFinal =
-      [ if healthR r <= 0
-          then r { haveExploded = True, healthR = 0 }
-          else r
-      | r <- rsDanyados
+    ------------------------------------------------------------
+    -- 🔧 ACTUALIZAMOS ROBOTS FINALES
+    ------------------------------------------------------------
+    -- Mezclamos los nuevos estados de los dañados con el resto de robots originales,
+    -- manteniendo a todos (incluso los muertos) visibles.
+    rsFinal = 
+      [ case lookup (idR r) [(idR r', r') | r' <- rsDanyadosTemp] of
+          Just rNuevo -> if healthR rNuevo <= 0
+                            then rNuevo { haveExploded = True, healthR = 0 }
+                            else rNuevo
+          Nothing -> r
+      | r <- rs7
       ]
 
+    ------------------------------------------------------------
+    -- 💣 EXPLOSIONES Y ESTADO GENERAL
+    ------------------------------------------------------------
     nuevasExplosionesTot =
-      nuevasExplosionesProj ++ explFromPairs ++ explosionesMuerte ++ explosionesObst ++ [ f (-1) (-1) | f <- expProfe ]
+      nuevasExplosionesProj ++ explFromPairs ++ explosionesMuerte ++
+      explosionesObst ++ [ f (-1) (-1) | f <- expProfe ]
 
     expsAct = actualizarExplosiones dt (explosiones m1) nuevasExplosionesTot
 
-    w' = (actualizarWorld w { robots = filter isRobotAlive rsFinal }
-                    (filter isRobotAlive rsFinal) psRestantes)
+    -- ✅ Física solo con vivos (para movimiento y colisiones)
+    w' = (actualizarWorld w { robots = rsVivos } rsVivos psRestantes)
            { robots = rsFinal }
 
     m4 = m1
@@ -351,3 +378,53 @@ actualizar dt m
       , cooldownProfesor = nuevoCooldown
       , recentCollisions = recentUpdated
       }
+
+
+------------------------------------------------------------
+-- FUNCIÓN AUXILIAR: REINICIA EL MUNDO CON POSICIONES ALEATORIAS
+------------------------------------------------------------
+reiniciarMundoIO :: MundoGloss -> IO MundoGloss
+reiniciarMundoIO m = do
+  [pos1, pos2, pos3, pos4,
+   posSandwich1, posSandwich2,
+   posZumo1, posZumo2,
+   posPlatano1, posPlatano2] <- generate (generarPosiciones 10)
+  pure $
+    estadoInicial (imagenInicio m)
+                  (fondoJuego m)
+                  (imagenVictoria m)
+                  (imagenDerrota m)
+                  (imagenRobot1 m)
+                  (imagenRobot2 m)
+                  (imagenRobot3 m)
+                  (imagenRobot4 m)
+                  (imagenTorreta m)
+                  (imagenProfe m)
+                  (imagenProfeEnfadado m)
+                  (imagenProyectil m)
+                  (imagenExplosion1 m)
+                  (imagenExplosion2 m)
+                  (imagenExplosion3 m)
+                  (imagenExplosionMuerte m)
+                  (imagenEscritorio m)
+                  (imagenSandwich m)
+                  (imagenZumo m)
+                  (imagenPlatano m)
+                  (imagenExplosionComida m)
+                  (imagenExplosionProfesor m)
+                  pos1 pos2 pos3 pos4
+                  posSandwich1 posSandwich2
+                  posZumo1 posZumo2
+                  posPlatano1 posPlatano2
+
+
+------------------------------------------------------------
+-- 🔁 Reinicia automáticamente el mundo tras unos segundos
+------------------------------------------------------------
+reiniciarAutomatico :: MundoGloss -> MundoGloss
+reiniciarAutomatico m
+  | torneosRestantes m > 1 =
+      let nuevo = unsafePerformIO (reiniciarMundoIO m)
+      in nuevo { modo = Jugando, torneosRestantes = torneosRestantes m - 1 }
+  | otherwise = m { modo = Victoria 0 }
+
