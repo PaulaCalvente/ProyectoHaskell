@@ -22,7 +22,7 @@ data MundoGloss = MundoGloss
   , imagenTorreta  :: Maybe Picture
   , imagenProfe    :: Maybe Picture
   , imagenProfeEnfadado :: Maybe Picture
-  , cooldownProfesor :: Float       -- tiempo restante antes de poder reactivarse
+  , cooldownProfesor :: Float
   , imagenProyectil  :: Maybe Picture
   , imagenExplosion1 :: Maybe Picture
   , imagenExplosion2 :: Maybe Picture
@@ -51,7 +51,12 @@ data MundoGloss = MundoGloss
   , tiempoExplosionProfesor :: Float
   , posicionProfesor :: (Float,Float)
   , explosiones    :: [Explosion]
-  , recentCollisions  :: RecentCollisions 
+  , recentCollisions  :: RecentCollisions
+  -- CAMPOS PARA ESTADÍSTICAS
+  , tiempoTranscurrido :: Float
+  , historialImpactos  :: [(Id, Int)]
+  , muertesRegistradas :: [(Id, Float)]
+  , todosLosResultados :: [ResultadoTorneo]
   }
 
 data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
@@ -66,3 +71,10 @@ data World = World
 ancho, alto :: Float
 ancho = 600
 alto  = 600
+
+data ResultadoTorneo = ResultadoTorneo
+  { numImpactosPorBot :: [(Id, Int)]
+  , porcentajeVidaPorBot :: [(Id, Float)]
+  , ganadorTorneo :: Maybe Id
+  , duracionTorneo :: Float
+  } deriving (Show)
