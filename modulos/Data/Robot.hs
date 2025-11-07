@@ -61,7 +61,7 @@ pointsR :: Robot -> [Point]
 pointsR = points . commonR
 
 velocidadPorRol :: Id -> Float
-velocidadPorRol 1 = 55
+velocidadPorRol 1 = 70
 velocidadPorRol 2 = 10
 velocidadPorRol 3 = 15
 velocidadPorRol 4 = 20

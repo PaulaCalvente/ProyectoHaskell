@@ -59,7 +59,7 @@ estadoInicial inicio fondo victoria derrota
                 , commonR = CommonData 1 0 pos1 (0, 0) (40, 50) (generarRecorrido 1)
                 , healthR = 70
                 , maxHealthR = 70
-                , radarRange = 120
+                , radarRange = 200
                 , turret = Turret 1 (1, 0) 0
                             (Projectile 1 (CommonData 1 8 (0,0) (250, 0)
                             (projectileRadius*2, projectileRadius*2) []) 1000)
@@ -73,7 +73,7 @@ estadoInicial inicio fondo victoria derrota
                 , commonR = CommonData 2 0 pos2 (0, 0) (40, 50) (generarRecorrido 2)
                 , healthR = 120
                 , maxHealthR = 120
-                , radarRange = 200
+                , radarRange = 120
                 , turret = Turret 2 (-1, 0) 180
                             (Projectile 2 (CommonData 2 18 (0,0) (-180, 0)
                             (projectileRadius*2, projectileRadius*2) []) 1000)
