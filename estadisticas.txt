@@ -1,61 +1,70 @@
 
 === TORNEO 1 ===
 Impactos por bot (proyectiles que impactaron):
-  Bot 1: 8
-  Bot 2: 3
-  Bot 3: 7
-  Bot 4: 7
+  Bot 1: 15
+  Bot 2: 8
+  Bot 3: 6
+  Bot 4: 5
 Porcentaje de tiempo con vida:
-  Bot 1: 30%
+  Bot 1: 100%
   Bot 2: 100%
-  Bot 3: 100%
-  Bot 4: 100%
-Ganador: Bot 4
+  Bot 3: 88%
+  Bot 4: 63%
+Ganador: Bot 2
 
 === TORNEO 2 ===
 Impactos por bot (proyectiles que impactaron):
-  Bot 1: 14
-  Bot 2: 2
-  Bot 3: 6
-  Bot 4: 7
+  Bot 1: 13
+  Bot 2: 6
+  Bot 3: 3
+  Bot 4: 2
 Porcentaje de tiempo con vida:
-  Bot 1: 49%
+  Bot 1: 67%
   Bot 2: 100%
-  Bot 3: 49%
+  Bot 3: 52%
   Bot 4: 100%
 Ganador: Bot 2
 
 === TORNEO 3 ===
 Impactos por bot (proyectiles que impactaron):
-  Bot 1: 13
-  Bot 2: 4
-  Bot 3: 2
-  Bot 4: 5
+  Bot 1: 14
+  Bot 2: 7
+  Bot 3: 5
+  Bot 4: 6
 Porcentaje de tiempo con vida:
-  Bot 1: 60%
+  Bot 1: 84%
   Bot 2: 100%
-  Bot 3: 47%
+  Bot 3: 100%
   Bot 4: 100%
-Ganador: Bot 2
+Ganador: Bot 4
 
 === TORNEO 4 ===
 Impactos por bot (proyectiles que impactaron):
-  Bot 1: 10
-  Bot 2: 4
-  Bot 3: 7
-  Bot 4: 3
+  Bot 1: 8
+  Bot 2: 3
+  Bot 3: 8
+  Bot 4: 11
 Porcentaje de tiempo con vida:
-  Bot 1: 45%
+  Bot 1: 32%
   Bot 2: 100%
-  Bot 3: 94%
+  Bot 3: 100%
+  Bot 4: 100%
+Ganador: Bot 4
+
+=== TORNEO 5 ===
+Impactos por bot (proyectiles que impactaron):
+  Bot 2: 3
+  Bot 4: 4
+Porcentaje de tiempo con vida:
+  Bot 2: 100%
   Bot 4: 100%
 Ganador: Bot 4
 
 === ESTADÍSTICAS AGREGADAS (TODOS LOS TORNEOS) ===
 
-Media de impactos por bot por torneo: 6
-Media de porcentaje de vida: 80%
-Máximo impactos en un torneo (por un bot): 14
+Media de impactos por bot por torneo: 7
+Media de porcentaje de vida: 88%
+Máximo impactos en un torneo (por un bot): 15
 Máximo porcentaje de vida: 100%
 
 Fin del archivo.

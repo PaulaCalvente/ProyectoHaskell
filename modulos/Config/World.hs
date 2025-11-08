@@ -179,8 +179,9 @@ manejarEvento _ m = m
 
 esFinJuego :: Modo -> Bool
 esFinJuego (Victoria _) = True
-esFinJuego Derrota = True
-esFinJuego _ = False
+esFinJuego Derrota      = True
+esFinJuego _            = False
+
 reiniciarMundo :: MundoGloss -> MundoGloss
 reiniciarMundo m =
   estadoInicial (imagenInicio m)
@@ -242,6 +243,21 @@ generarResultadoTorneo m =
        , duracionTorneo = duracion
        }
 
+-- Cuenta victorias por bot a partir de los resultados
+victoriasPorBot :: [ResultadoTorneo] -> M.Map Id Int
+victoriasPorBot =
+  foldr (\res mp -> case ganadorTorneo res of
+                      Just i  -> M.insertWith (+) i 1 mp
+                      Nothing -> mp)
+        M.empty
+
+-- Devuelve la lista de bots con el máximo nº de victorias
+campeonesEmpatados :: [ResultadoTorneo] -> [Id]
+campeonesEmpatados resultados =
+  case M.toList (victoriasPorBot resultados) of
+    [] -> []
+    xs -> let maxV = maximum (map snd xs)
+          in [ i | (i,v) <- xs, v == maxV ]
 
 ------------------------------------------------------------
 -- UPDATE PRINCIPAL
@@ -425,38 +441,59 @@ campeonGlobalSimple resultados =
   case M.toList vittorie of
     [] -> Nothing
     xs ->
-      let maxV = maximum (map snd xs) -- mayor nº de victorias
-      in Just (minimum [ i | (i,v) <- xs, v == maxV ]) -- desempate por Id mínimo
+      let maxV = maximum (map snd xs)
+      in Just (minimum [ i | (i,v) <- xs, v == maxV ])
   where
-   -- 'victorias' acumula 1 por cada torneo que gana un bot
     vittorie =
-      foldr (\res m -> case ganadorTorneo res of
-                         Just i  -> M.insertWith (+) i 1 m
-                         Nothing -> m)
+      foldr (\res mp -> case ganadorTorneo res of
+                          Just i  -> M.insertWith (+) i 1 mp
+                          Nothing -> mp)
             M.empty resultados
 
 reiniciarAutomatico :: MundoGloss -> MundoGloss
 reiniciarAutomatico m
   | torneosRestantes m > 1 =
       let nuevo = unsafePerformIO (reiniciarMundoIO m)
-      in nuevo 
+      in nuevo
            { modo               = Jugando
            , torneosRestantes   = torneosRestantes m - 1
            , tiempoTranscurrido = 0
            , historialImpactos  = []
            , muertesRegistradas = []
-           , todosLosResultados = todosLosResultados m 
+           , todosLosResultados = todosLosResultados m
            }
-    | otherwise = 
+  | otherwise =
       unsafePerformIO $ do
-        -- Elegimos campeón global con todos los ResultadosTorneo:
-        let finalMode =
-              maybe Derrota Victoria (campeonGlobalSimple (todosLosResultados m)) 
+        let res        = todosLosResultados m
+            finalistas = campeonesEmpatados res
+        case finalistas of
+          []  -> escribirEstadisticas res >> pure (m { modo = Derrota })
+          [g] -> escribirEstadisticas res >> pure (m { modo = Victoria g })
+          _   -> iniciarPlayoffIO finalistas m
 
-        let mFinal = m { modo = finalMode }
+-- Playoff entre empatados (mismo motor + 1 partida extra)
+iniciarPlayoffIO :: [Id] -> MundoGloss -> IO MundoGloss
+iniciarPlayoffIO finalistas m = do
+  [p1,p2,p3,p4, s1,s2, z1,z2, pl1,pl2] <- generate (generarPosiciones 10)
 
-        -- Guardamos estadísticas (por torneo + agregadas):
-        escribirEstadisticas (todosLosResultados mFinal)
+  let base =
+        estadoInicial (imagenInicio m) (fondoJuego m) (imagenVictoria m) (imagenDerrota m)
+                      (imagenRobot1 m) (imagenRobot2 m) (imagenRobot3 m) (imagenRobot4 m)
+                      (imagenTorreta m) (imagenProfe m) (imagenProfeEnfadado m) (imagenProyectil m)
+                      (imagenExplosion1 m) (imagenExplosion2 m) (imagenExplosion3 m) (imagenExplosionMuerte m)
+                      (imagenEscritorio m) (imagenSandwich m) (imagenZumo m) (imagenPlatano m)
+                      (imagenExplosionComida m) (imagenExplosionProfesor m) (imagenExplosionRobot m)
+                      p1 p2 p3 p4 s1 s2 z1 z2 pl1 pl2
 
-        pure mFinal
+      rsPlayoff = [ r | r <- robots (worldState base), idR r `elem` finalistas ]
+      wPlayoff  = (worldState base) { robots = rsPlayoff }
 
+  pure base
+    { worldState         = wPlayoff
+    , modo               = Jugando
+    , torneosRestantes   = 1
+    , tiempoTranscurrido = 0
+    , historialImpactos  = []
+    , muertesRegistradas = []
+    , todosLosResultados = todosLosResultados m
+    }
