@@ -27,7 +27,7 @@ main = do
     ------------------------------------------------------------
     -- 1️⃣ Leer configuración desde config.txt
     ------------------------------------------------------------
-    cfg <- leerConfig "config.txt"
+    cfg <- leerConfig "modulos/config.txt"
     putStrLn "✅ Archivo de configuración cargado correctamente."
     putStrLn $ "Bots: " ++ show (bots cfg)
     putStrLn $ "Área: " ++ show (area cfg)

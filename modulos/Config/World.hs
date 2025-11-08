@@ -166,19 +166,21 @@ estadoInicial inicio fondo victoria derrota
     , todosLosResultados = []
     }
 
+------------------------------------------------------------
+-- INPUT / EVENTOS
+------------------------------------------------------------
+
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
   | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
   | esFinJuego (modo m), dentroBotonReiniciar pos = reiniciarMundo m
   | otherwise = m
-
 manejarEvento _ m = m
 
 esFinJuego :: Modo -> Bool
 esFinJuego (Victoria _) = True
 esFinJuego Derrota = True
 esFinJuego _ = False
-
 reiniciarMundo :: MundoGloss -> MundoGloss
 reiniciarMundo m =
   estadoInicial (imagenInicio m)
@@ -209,9 +211,13 @@ reiniciarMundo m =
                 (-235,255) (173,-300)
                 (-312,-200) (55,-133)
 
+------------------------------------------------------------
+-- RESUMEN DEL TORNEO
+------------------------------------------------------------
+
 generarResultadoTorneo :: MundoGloss -> ResultadoTorneo
 generarResultadoTorneo m = 
-  let
+   let
     w = worldState m
     todosBots = robots w
     idsBots = map idR todosBots
@@ -236,6 +242,11 @@ generarResultadoTorneo m =
        , duracionTorneo = duracion
        }
 
+
+------------------------------------------------------------
+-- UPDATE PRINCIPAL
+------------------------------------------------------------
+
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
   | modo m == Inicio = m
@@ -254,7 +265,7 @@ actualizar dt m
             else r)
         procesarComida activo pos rs =
           if activo && any (`distanciaA` pos) rs
-            then (True, aplicarDanoComida pos rs,
+             then (True, aplicarDanoComida pos rs,
                   [Explosion pos (30,30) 0.6 (RobotHitByProjectile (-1) (-1) 10 pos) (-1) (-1)],
                   (10000,10000))
             else (False, rs, [], pos)
@@ -368,6 +379,10 @@ actualizar dt m
              in reiniciarAutomatico mConRes
            else m2
 
+------------------------------------------------------------
+-- REINICIO AUTOMÁTICO + CAMPEÓN GLOBAL
+------------------------------------------------------------
+
 reiniciarMundoIO :: MundoGloss -> IO MundoGloss
 reiniciarMundoIO m = do
   [pos1, pos2, pos3, pos4,
@@ -403,19 +418,45 @@ reiniciarMundoIO m = do
                   posZumo1 posZumo2
                   posPlatano1 posPlatano2
 
+-- | Devuelve el Id del campeón global (si lo hay).
+--   Regla: mayor nº de victorias; si hay empate, el Id más bajo.
+campeonGlobalSimple :: [ResultadoTorneo] -> Maybe Id
+campeonGlobalSimple resultados =
+  case M.toList vittorie of
+    [] -> Nothing
+    xs ->
+      let maxV = maximum (map snd xs) -- mayor nº de victorias
+      in Just (minimum [ i | (i,v) <- xs, v == maxV ]) -- desempate por Id mínimo
+  where
+   -- 'victorias' acumula 1 por cada torneo que gana un bot
+    vittorie =
+      foldr (\res m -> case ganadorTorneo res of
+                         Just i  -> M.insertWith (+) i 1 m
+                         Nothing -> m)
+            M.empty resultados
+
 reiniciarAutomatico :: MundoGloss -> MundoGloss
 reiniciarAutomatico m
   | torneosRestantes m > 1 =
       let nuevo = unsafePerformIO (reiniciarMundoIO m)
       in nuevo 
-           { modo = Jugando
-           , torneosRestantes = torneosRestantes m - 1
+           { modo               = Jugando
+           , torneosRestantes   = torneosRestantes m - 1
            , tiempoTranscurrido = 0
-           , historialImpactos = []
+           , historialImpactos  = []
            , muertesRegistradas = []
-           , todosLosResultados = todosLosResultados m
+           , todosLosResultados = todosLosResultados m 
            }
-  | otherwise = 
+    | otherwise = 
       unsafePerformIO $ do
-        escribirEstadisticas (todosLosResultados m)
-        return (m { modo = Derrota })
+        -- Elegimos campeón global con todos los ResultadosTorneo:
+        let finalMode =
+              maybe Derrota Victoria (campeonGlobalSimple (todosLosResultados m)) 
+
+        let mFinal = m { modo = finalMode }
+
+        -- Guardamos estadísticas (por torneo + agregadas):
+        escribirEstadisticas (todosLosResultados mFinal)
+
+        pure mFinal
+
