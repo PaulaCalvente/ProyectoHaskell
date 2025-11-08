@@ -61,7 +61,7 @@ splitBy c s =
 ------------------------------------------------------------
 lanzarTorneos :: ConfigTorneo -> IO ()
 lanzarTorneos cfg = do
-  putStrLn $ "🔧 Configuración del torneo:"
+  putStrLn $ " Configuración del torneo:"
   putStrLn $ "  Bots: " ++ show (bots cfg)
   putStrLn $ "  Área: " ++ show (area cfg)
   putStrLn $ "  Duración máxima: " ++ show (duracion cfg) ++ " segundos"
@@ -75,11 +75,11 @@ lanzarTorneos cfg = do
 ------------------------------------------------------------
 ejecutarSecuencia :: Int -> Int -> IO ()
 ejecutarSecuencia total actual
-  | actual > total = putStrLn "✅ Todos los torneos han terminado."
+  | actual > total = putStrLn "Todos los torneos han terminado."
   | otherwise = do
-      putStrLn $ "🏁 Iniciando torneo " ++ show actual ++ " de " ++ show total
+      putStrLn $ "Iniciando torneo " ++ show actual ++ " de " ++ show total
       -- Aquí podrías llamar a tu main del juego real:
       -- main
-      putStrLn "🎮 Ejecutando torneo..."
-      putStrLn "💥 Finalizado."
+      putStrLn "Ejecutando torneo..."
+      putStrLn "Finalizado."
       ejecutarSecuencia total (actual + 1)

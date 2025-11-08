@@ -434,7 +434,7 @@ reiniciarMundoIO m = do
                   posZumo1 posZumo2
                   posPlatano1 posPlatano2
 
--- | Devuelve el Id del campeón global (si lo hay).
+--  Devuelve el Id del campeón global (si lo hay).
 --   Regla: mayor nº de victorias; si hay empate, el Id más bajo.
 campeonGlobalSimple :: [ResultadoTorneo] -> Maybe Id
 campeonGlobalSimple resultados =

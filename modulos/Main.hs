@@ -25,17 +25,17 @@ import System.IO
 main :: IO ()
 main = do
     ------------------------------------------------------------
-    -- 1️⃣ Leer configuración desde config.txt
+    -- 1️º Leer configuración desde config.txt
     ------------------------------------------------------------
-    cfg <- leerConfig "modulos/config.txt"
-    putStrLn "✅ Archivo de configuración cargado correctamente."
+    cfg <- leerConfig "config.txt"
+    putStrLn "Archivo de configuración cargado correctamente."
     putStrLn $ "Bots: " ++ show (bots cfg)
     putStrLn $ "Área: " ++ show (area cfg)
     putStrLn $ "Duración: " ++ show (duracion cfg) ++ "s"
     putStrLn $ "Torneos consecutivos: " ++ show (numTorneos cfg)
 
     ------------------------------------------------------------
-    -- 2️⃣ Cargar imágenes del juego
+    -- 2º Cargar imágenes del juego
     ------------------------------------------------------------
     inicio   <- loadBMP "imagenes/imagenesBMP/inicio.bmp"
     clase    <- loadBMP "imagenes/imagenesBMP/clase.bmp"
@@ -70,7 +70,7 @@ main = do
     maybeExplosionRobot <- cargarPNG "imagenes/imagenesPNG/explosionRobots.png"
 
     ------------------------------------------------------------
-    -- 3️⃣ Generar posiciones iniciales
+    -- 3️º Generar posiciones iniciales
     ------------------------------------------------------------
     [pos1, pos2, pos3, pos4,
      posSandwich1, posSandwich2,
@@ -78,7 +78,7 @@ main = do
      posPlatano1, posPlatano2] <- generate (generarPosiciones 10)
 
 ------------------------------------------------------------
--- 4️⃣ Crear el mundo inicial con el número de torneos desde config.txt
+-- 4️º Crear el mundo inicial con el número de torneos desde config.txt
 ------------------------------------------------------------
     let numT = numTorneos cfg
         mundoInicial = (estadoInicial inicio clase victoria derrota
@@ -94,13 +94,13 @@ main = do
                           { torneosRestantes = numT }
 
     ------------------------------------------------------------
-    -- 5️⃣ Lanzar torneos consecutivos (automático)
+    -- 5️º Lanzar torneos consecutivos (automático)
     ------------------------------------------------------------
     lanzarTorneos cfg
-    putStrLn "🏁 Iniciando juego..."
+    putStrLn "Iniciando juego..."
 
     ------------------------------------------------------------
-    -- 6️⃣ Ejecutar Gloss (el juego)
+    -- 6️º Ejecutar Gloss (el juego)
     ------------------------------------------------------------
     play
       (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))
