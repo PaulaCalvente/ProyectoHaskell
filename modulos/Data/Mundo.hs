@@ -15,6 +15,7 @@ data MundoGloss = MundoGloss
   , fondoJuego     :: Picture
   , imagenVictoria :: Picture
   , imagenDerrota  :: Picture
+  , imagenCarga    :: Picture
   , imagenRobot1   :: Maybe Picture
   , imagenRobot2   :: Maybe Picture
   , imagenRobot3   :: Maybe Picture
@@ -60,7 +61,7 @@ data MundoGloss = MundoGloss
   , todosLosResultados :: [ResultadoTorneo]
   }
 
-data Modo = Inicio | Jugando | Victoria Int | Derrota deriving (Eq, Show)
+data Modo = Inicio |Cargando | Jugando | Victoria Int | Derrota deriving (Eq, Show)
 
 data World = World
   { robots      :: [Robot]

@@ -41,6 +41,8 @@ main = do
     clase    <- loadBMP "imagenes/imagenesBMP/clase.bmp"
     victoria <- loadBMP "imagenes/imagenesBMP/victoria.bmp"
     derrota  <- loadBMP "imagenes/imagenesBMP/derrota.bmp"
+    imagenCarga <- loadBMP "imagenes/imagenesBMP/imagenTorneo.bmp"
+
 
     let cargarPNG ruta = do
           img <- loadJuicyPNG ruta
@@ -69,6 +71,7 @@ main = do
     maybePlatano <- cargarPNG "imagenes/imagenesPNG/platano.png"
     maybeExplosionRobot <- cargarPNG "imagenes/imagenesPNG/explosionRobots.png"
 
+
     ------------------------------------------------------------
     -- 3️º Generar posiciones iniciales
     ------------------------------------------------------------
@@ -81,7 +84,7 @@ main = do
 -- 4️º Crear el mundo inicial con el número de torneos desde config.txt
 ------------------------------------------------------------
     let numT = numTorneos cfg
-        mundoInicial = (estadoInicial inicio clase victoria derrota
+        mundoInicial = (estadoInicial inicio clase victoria derrota imagenCarga
                           maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
                           maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil 
                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio

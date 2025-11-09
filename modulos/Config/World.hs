@@ -32,7 +32,7 @@ import Data.Maybe (fromMaybe)
 -- ESTADO INICIAL
 ------------------------------------------------------------
 
-estadoInicial :: Picture -> Picture -> Picture -> Picture
+estadoInicial :: Picture -> Picture -> Picture -> Picture -> Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture
               -> Maybe Picture -> Maybe Picture -> Maybe Picture
@@ -44,7 +44,7 @@ estadoInicial :: Picture -> Picture -> Picture -> Picture
               -> (Float, Float) -> (Float, Float)
               -> (Float, Float) -> (Float, Float)
               -> MundoGloss
-estadoInicial inicio fondo victoria derrota
+estadoInicial inicio fondo victoria derrota imagenCarga
                robot1 robot2 robot3 robot4
                torreta profe profeEnfadado proyectil
                explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano explosionComida explosionProfesor
@@ -122,6 +122,7 @@ estadoInicial inicio fondo victoria derrota
     , fondoJuego = fondo
     , imagenVictoria = victoria
     , imagenDerrota = derrota
+    , imagenCarga = imagenCarga
     , imagenRobot1 = robot1
     , imagenRobot2 = robot2
     , imagenRobot3 = robot3
@@ -172,7 +173,7 @@ estadoInicial inicio fondo victoria derrota
 
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
-  | modo m == Inicio, dentroBoton pos = m { modo = Jugando }
+  | modo m == Inicio, dentroBoton pos = m { modo = Cargando, tiempoTranscurrido = 0 }
   | esFinJuego (modo m), dentroBotonReiniciar pos = reiniciarMundo m
   | otherwise = m
 manejarEvento _ m = m
@@ -188,6 +189,7 @@ reiniciarMundo m =
                 (fondoJuego m)
                 (imagenVictoria m)
                 (imagenDerrota m)
+                (imagenCarga m)
                 (imagenRobot1 m)
                 (imagenRobot2 m)
                 (imagenRobot3 m)
@@ -265,6 +267,13 @@ campeonesEmpatados resultados =
 
 actualizar :: Float -> MundoGloss -> MundoGloss
 actualizar dt m
+  -- NUEVO: Modo de carga (3 segundos mostrando la imagen)
+  | modo m == Cargando =
+      let t = tiempoTranscurrido m + dt
+      in if t >= 3  -- Duración de la pantalla de carga (3 segundos)
+           then m { modo = Jugando, tiempoTranscurrido = 0 }
+           else m { tiempoTranscurrido = t }
+
   | modo m == Inicio = m
   | esFinJuego (modo m) = m  -- Ya terminó: no hacer nada
   | otherwise =
@@ -395,6 +404,7 @@ actualizar dt m
              in reiniciarAutomatico mConRes
            else m2
 
+
 ------------------------------------------------------------
 -- REINICIO AUTOMÁTICO + CAMPEÓN GLOBAL
 ------------------------------------------------------------
@@ -410,6 +420,7 @@ reiniciarMundoIO m = do
                   (fondoJuego m)
                   (imagenVictoria m)
                   (imagenDerrota m)
+                  (imagenCarga m)
                   (imagenRobot1 m)
                   (imagenRobot2 m)
                   (imagenRobot3 m)
@@ -455,7 +466,7 @@ reiniciarAutomatico m
   | torneosRestantes m > 1 =
       let nuevo = unsafePerformIO (reiniciarMundoIO m)
       in nuevo
-           { modo               = Jugando
+           { modo               = Cargando
            , torneosRestantes   = torneosRestantes m - 1
            , tiempoTranscurrido = 0
            , historialImpactos  = []
@@ -477,7 +488,7 @@ iniciarPlayoffIO finalistas m = do
   [p1,p2,p3,p4, s1,s2, z1,z2, pl1,pl2] <- generate (generarPosiciones 10)
 
   let base =
-        estadoInicial (imagenInicio m) (fondoJuego m) (imagenVictoria m) (imagenDerrota m)
+        estadoInicial (imagenInicio m) (fondoJuego m) (imagenVictoria m) (imagenDerrota m) (imagenCarga m)
                       (imagenRobot1 m) (imagenRobot2 m) (imagenRobot3 m) (imagenRobot4 m)
                       (imagenTorreta m) (imagenProfe m) (imagenProfeEnfadado m) (imagenProyectil m)
                       (imagenExplosion1 m) (imagenExplosion2 m) (imagenExplosion3 m) (imagenExplosionMuerte m)

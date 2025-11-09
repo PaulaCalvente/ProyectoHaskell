@@ -38,6 +38,7 @@ estaDentroDeEscritorio (x, y) =
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
   Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
+  Cargando  -> Pictures [ imagenCarga m ]
 
   Jugando ->
     let w = worldState m
