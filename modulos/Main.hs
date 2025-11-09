@@ -81,20 +81,24 @@ main = do
      posPlatano1, posPlatano2] <- generate (generarPosiciones 10)
 
 ------------------------------------------------------------
--- 4️º Crear el mundo inicial con el número de torneos desde config.txt
+-- 4️º Crear el mundo inicial con el número de torneos y duración desde config.txt
 ------------------------------------------------------------
     let numT = numTorneos cfg
+        duracionCfg = duracion cfg  -- 👈 LEER DURACIÓN DEL CONFIG
+        listaBots = bots cfg  -- 👈 la lista del config
         mundoInicial = (estadoInicial inicio clase victoria derrota imagenCarga
                           maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
                           maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil 
                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
                           maybeSandwich maybeZumo maybePlatano maybeExplosionComida maybeExplosionProfesor maybeExplosionRobot
-                          
+                          listaBots  -- 👈 PASAR LA LISTA
                           pos1 pos2 pos3 pos4
                           posSandwich1 posSandwich2
                           posZumo1 posZumo2
                           posPlatano1 posPlatano2)
-                          { torneosRestantes = numT }
+                          { torneosRestantes = numT
+                          , duracionMaxima = duracionCfg  -- 👈 ASIGNAR DURACIÓN
+                          }
 
     ------------------------------------------------------------
     -- 5️º Lanzar torneos consecutivos (automático)
@@ -113,4 +117,3 @@ main = do
       dibujar
       manejarEvento
       actualizar
-

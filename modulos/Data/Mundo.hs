@@ -37,6 +37,8 @@ data MundoGloss = MundoGloss
   , imagenExplosionProfesor :: Maybe Picture
   , imagenExplosionRobot :: Maybe Picture
   , torneosRestantes :: Int
+  , duracionMaxima :: Float
+  , listaBotsConfig :: [String]
   , posSandwich1 :: (Float, Float)
   , posSandwich2 :: (Float, Float)
   , posZumo1     :: (Float, Float)
@@ -57,6 +59,10 @@ data MundoGloss = MundoGloss
   -- CAMPOS PARA ESTADÍSTICAS
   , tiempoTranscurrido :: Float
   , historialImpactos  :: [(Id, Int)]
+  , dañoInfligido      :: [(Id, Float)]
+  , dañoRecibido       :: [(Id, Float)]
+  , colisionesRobot    :: [(Id, Int)]
+  , obstaculosRecogidos :: [(Id, Int)]
   , muertesRegistradas :: [(Id, Float)]
   , todosLosResultados :: [ResultadoTorneo]
   }
@@ -76,6 +82,10 @@ alto  = 600
 
 data ResultadoTorneo = ResultadoTorneo
   { numImpactosPorBot :: [(Id, Int)]
+  , danoInfligidoPorBot :: [(Id, Float)]
+  , danoRecibidoPorBot  :: [(Id, Float)]
+  , colisionesPorBot    :: [(Id, Int)]
+  , obstaculosPorBot    :: [(Id, Int)]
   , porcentajeVidaPorBot :: [(Id, Float)]
   , ganadorTorneo :: Maybe Id
   , duracionTorneo :: Float
