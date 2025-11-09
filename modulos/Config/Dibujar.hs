@@ -403,9 +403,9 @@ dibujarBarraVida panelWideRel panelHeightRel r idx =
       vidaTxt = show (round vida)
       vidaX = panelWideRel - 75
   in Pictures
-       [ Translate (panelWideRel - 220) (baseY + 30) $
+       [ Translate (panelWideRel - 220) (baseY + 10) $
            Scale 0.15 0.15 $ Color colorTexto $ Text nombreTxt
-       , Translate (panelWideRel - 150) (baseY + 15) $
+       , Translate (panelWideRel - 150) (baseY - 5) $
            Pictures
              [ Color white $ rectangleWire (anchoTotal + 4) (altoBarra + 4)
              , Color (greyN 0.3) $ rectangleSolid anchoTotal altoBarra
