@@ -35,10 +35,32 @@ estaDentroDeEscritorio (x, y) =
       limitesEscritorios
 
 
+
+
 dibujar :: MundoGloss -> Picture
 dibujar m = case modo m of
   Inicio  -> Pictures [ imagenInicio m, dibujarBoton ]
-  Cargando  -> Pictures [ imagenCarga m ]
+
+  -- mostrar "Torneo N" arriba de la imagen de carga
+  Cargando ->
+    let idx = length (todosLosResultados m) + 1  -- Torneo actual = jugados + 1
+        banda =
+          let anchoB = 450
+              altoB  = 70
+              yTop   = 290
+          in Pictures
+               [ Color (makeColor 0 0 0 0.5)
+                   $ Translate 0 yTop
+                   $ rectangleSolid anchoB altoB
+               , Translate (-100) (yTop - 25)
+                   $ Scale 0.35 0.35
+                   $ Color white
+                   $ Text ("Torneo " ++ show idx)
+               ]
+    in Pictures
+         [ imagenCarga m
+         , banda
+         ]
 
   Jugando ->
     let w = worldState m
