@@ -67,7 +67,7 @@ dibujar m = case modo m of
     in Pictures
       [ fondoJuego m
       , dibujarRobotP m (posicionProfesor m)     -- profesor (usa normal o enfadado)
-      , dibujarCuentaAtrasProfesor m             -- contador visible
+      , dibujarCuentaAtrasProfesor m             
       , Pictures (map (dibujarRobot m) [r | r <- robots w, healthR r > 0])
       , Pictures (map (dibujarProjectile m) (projectiles w))
       , Pictures (map (dibujarExplosion m) (explosiones m))
@@ -115,12 +115,12 @@ dibujarPutInfo m =
   in Pictures (fondo : linePictures)
 
 ------------------------------------------------------------
--- DIBUJAR PROFESOR (usa imagen enfadada si está activo)
+-- DIBUJAR PROFESOR 
 ------------------------------------------------------------
 dibujarRobotP :: MundoGloss -> (Float, Float) -> Picture
 dibujarRobotP m (x, y) =
   let imgProfe = if profesorActivo m
-                   then imagenProfeEnfadado m   -- nueva imagen si está enfadado
+                   then imagenProfeEnfadado m  
                    else imagenProfe m
   in Translate x (y + 10) $ Scale 0.3 0.3 $ fromMaybe Blank imgProfe
 
@@ -181,8 +181,6 @@ dibujarCuentaAtrasProfesor m
                  ]
       in Translate x (y + 105)
            $ Pictures [halo, nucleo, anilloExterno, textoPrincipal]
-
-
 
 ------------------------------------------------------------
 -- ESCRITORIOS
@@ -282,7 +280,7 @@ dibujarProjectile m p =
          in Translate x y (Scale escala escala proyectilPic)
 
 ------------------------------------------------------------
--- EXPLOSIONES (incluye profesor explosivo)
+-- EXPLOSIONES 
 ------------------------------------------------------------
 dibujarExplosion :: MundoGloss -> Explosion -> Picture
 dibujarExplosion m (Explosion (x, y) _ ttl src _ _) =
@@ -329,7 +327,6 @@ dibujarBoton = Pictures
 dentroBoton :: (Float, Float) -> Bool
 dentroBoton (mx, my) = mx >= -115 && mx <= 85 && my >= -185 && my <= -95
 
-
 ------------------------------------------------------------
 -- BOTÓN DE REINICIO
 ------------------------------------------------------------
@@ -369,7 +366,6 @@ dibujarBotonReiniciar =
 dentroBotonReiniciar :: (Float, Float) -> Bool
 dentroBotonReiniciar (mx, my) =
   mx >= -130 && mx <= 130 && my >= (-215) && my <= (-145)
-
 
 ------------------------------------------------------------
 -- HUD IZQUIERDO

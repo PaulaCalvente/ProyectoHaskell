@@ -64,14 +64,12 @@ calcularVector :: Float -> (Float, Float)
 calcularVector angDegree =
   (cos angDegree, sin angDegree)
 
--- 👇 NUEVO: Definimos aquí generarRecorrido (antes estaba en Mecanicas.Movement)
 generarRecorrido :: Id -> [Position]
 generarRecorrido id = take 11 $ zip xs ys
   where
     xs = [ fromIntegral ((id * i * 1111) `mod` 500) - 250 | i <- [1..] ]
     ys = [ fromIntegral ((id * i * 713) `mod` 500) - 250 | i <- [1..] ]
 
--- 👇 NUEVO: mapeo de perfil base por ID
 perfilBaseRobot :: Id -> Robot
 perfilBaseRobot id =
   case id of
@@ -129,7 +127,6 @@ perfilBaseRobot id =
           }
     _ -> perfilBaseRobot ((id - 1) `mod` 4 + 1)  -- fallback cíclico
 
--- 👇 NUEVO: convertir nombre de bot a ID base (1-4)
 nombreABaseId :: String -> Maybe Id
 nombreABaseId s
   | "robot1" `isInfixOf` map toLower s = Just 1

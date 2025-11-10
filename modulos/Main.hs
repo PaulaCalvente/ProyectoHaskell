@@ -84,30 +84,30 @@ main = do
 -- 4️º Crear el mundo inicial con el número de torneos y duración desde config.txt
 ------------------------------------------------------------
     let numT = numTorneos cfg
-        duracionCfg = duracion cfg  -- 👈 LEER DURACIÓN DEL CONFIG
-        listaBots = bots cfg  -- 👈 la lista del config
+        duracionCfg = duracion cfg  
+        listaBots = bots cfg
         mundoInicial = (estadoInicial inicio clase victoria derrota imagenCarga
                           maybeRobot1 maybeRobot2 maybeRobot3 maybeRobot4
                           maybeTorreta maybeProfe maybeProfeEnfadado maybeProyectil 
                           maybeExplosion1 maybeExplosion2 maybeExplosion3 maybeExplosionMuerte maybeEscritorio
                           maybeSandwich maybeZumo maybePlatano maybeExplosionComida maybeExplosionProfesor maybeExplosionRobot
-                          listaBots  -- 👈 PASAR LA LISTA
+                          listaBots 
                           pos1 pos2 pos3 pos4
                           posSandwich1 posSandwich2
                           posZumo1 posZumo2
                           posPlatano1 posPlatano2)
                           { torneosRestantes = numT
-                          , duracionMaxima = duracionCfg  -- 👈 ASIGNAR DURACIÓN
+                          , duracionMaxima = duracionCfg  
                           }
 
     ------------------------------------------------------------
-    -- 5️º Lanzar torneos consecutivos (automático)
+    -- 5️º Lanzar torneos consecutivos
     ------------------------------------------------------------
     lanzarTorneos cfg
     putStrLn "Iniciando juego..."
 
     ------------------------------------------------------------
-    -- 6️º Ejecutar Gloss (el juego)
+    -- 6️º Ejecutar juego
     ------------------------------------------------------------
     play
       (InWindow "Niños y Chicles" (round ancho, round alto) (100, 100))

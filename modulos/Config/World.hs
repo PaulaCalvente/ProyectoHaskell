@@ -30,29 +30,25 @@ import Data.Maybe (fromMaybe, mapMaybe)
 import Control.Monad (replicateM)
 
 ------------------------------------------------------------
--- NUEVO: crear robots desde la lista del config
+-- crear robots desde la lista del config
 ------------------------------------------------------------
 crearRobotsDesdeConfig :: [String] -> [(Float, Float)] -> [Robot]
 crearRobotsDesdeConfig nombresBots posiciones =
-  let baseIds = mapMaybe nombreABaseId nombresBots  -- [1,3,2] etc.
+  let baseIds = mapMaybe nombreABaseId nombresBots 
       numPedidos = length nombresBots
       numReales = length posiciones
 
-      -- Si hay menos posiciones que bots pedidos, generamos más (aunque no debería pasar)
       posicionesUsar = if numReales < numPedidos
                         then take numPedidos (cycle posiciones)
                         else posiciones
 
-      -- Si se piden más bots de los perfiles definidos, rellenamos con aleatorios de 1-4
       baseIdsCompletos =
         if length baseIds < numPedidos
           then baseIds ++ take (numPedidos - length baseIds) (randomIds (numPedidos - length baseIds))
           else take numPedidos baseIds
 
-      -- 👇 USAMOS QuickCheck en lugar de System.Random
       randomIds n = unsafePerformIO $ generate (replicateM n (choose (1, 4)))
 
-      -- Asignar ID único a cada robot (1,2,3,... secuencial)
       robotsConIdUnico = zip [1..] (zip baseIdsCompletos posicionesUsar)
 
   in [ let (baseId, pos) = datos
@@ -87,7 +83,7 @@ estadoInicial inicio fondo victoria derrota imagenCarga
                torreta profe profeEnfadado proyectil
                explosion1 explosion2 explosion3 explosionMuerte escritorio sandwich zumo platano explosionComida explosionProfesor
                explosionRobots
-               listaBotsConfig  -- 👈 NUEVO parámetro
+               listaBotsConfig  
                pos1 pos2 pos3 pos4
                posSandwich1 posSandwich2
                posZumo1 posZumo2
@@ -128,7 +124,7 @@ estadoInicial inicio fondo victoria derrota imagenCarga
     , imagenExplosionRobot = explosionRobots
     , torneosRestantes = 1
     , duracionMaxima = 60.0
-    , listaBotsConfig = listaBotsConfig  -- 👈 GUARDAR LA LISTA
+    , listaBotsConfig = listaBotsConfig 
     , posSandwich1 = posSandwich1
     , posSandwich2 = posSandwich2
     , posZumo1 = posZumo1
@@ -156,11 +152,6 @@ estadoInicial inicio fondo victoria derrota imagenCarga
     , muertesRegistradas = []
     , todosLosResultados = []
     }
-
-------------------------------------------------------------
--- El resto del archivo (manejarEvento, reiniciarMundo, etc.) se mantiene IGUAL
--- Solo modifica `reiniciarMundo` y `reiniciarMundoIO` para pasar listaBotsConfig
-------------------------------------------------------------
 
 manejarEvento :: Event -> MundoGloss -> MundoGloss
 manejarEvento (EventKey (MouseButton LeftButton) Down _ pos) m
@@ -208,7 +199,7 @@ reiniciarMundo m =
                 (-312,-200) (55,-133)
 
 ------------------------------------------------------------
--- RESUMEN DEL TORNEO (igual)
+-- RESUMEN DEL TORNEO 
 ------------------------------------------------------------
 
 generarResultadoTorneo :: MundoGloss -> ResultadoTorneo
@@ -218,8 +209,7 @@ generarResultadoTorneo m =
     todosBots = robots w
     idsBots = map idR todosBots
     duracion = min (tiempoTranscurrido m) (duracionMaxima m)
-    
-    -- Impactos (ya existía)
+    -- Impactos
     impactosMap = historialImpactos m
     impactosCompletos = [ (id, fromMaybe 0 (lookup id impactosMap)) | id <- idsBots ]
     
@@ -277,7 +267,7 @@ campeonesEmpatados resultados =
           in [ i | (i,v) <- xs, v == maxV ]
 
 ------------------------------------------------------------
--- UPDATE PRINCIPAL (igual, ya usa duracionMaxima)
+-- UPDATE PRINCIPAL 
 ------------------------------------------------------------
 
 actualizar :: Float -> MundoGloss -> MundoGloss
@@ -367,7 +357,7 @@ actualizar dt m
         rsVivos = filter isRobotAlive rs7
         impactosDetectados = detectarImpactos rsVivos psMov
 
-        -- Acumular impactos (ya existía)
+        -- Acumular impactos 
         nuevosImpactos = [ (idProjectile, 1) | (_, idProjectile, _, _) <- impactosDetectados ]
         historialActualizado = 
           foldl (\acc (idBot, cuenta) ->
@@ -377,7 +367,7 @@ actualizar dt m
                  _  -> (idBot, sum (map snd antes) + cuenta) : despues
           ) (historialImpactos m) nuevosImpactos
 
-        -- NUEVO: Acumular daño infligido (por quien dispara)
+        -- Acumular daño infligido 
         nuevosDanosInfligidos = [ (idProjectile, dmg) | (_, idProjectile, dmg, _) <- impactosDetectados ]
         danosInfligidosActualizados =
           foldl (\acc (idBot, dmg) ->
@@ -387,7 +377,7 @@ actualizar dt m
                  _  -> (idBot, sum (map snd antes) + dmg) : despues
           ) (dañoInfligido m) nuevosDanosInfligidos
 
-        -- NUEVO: Acumular daño recibido (por quien recibe)
+        --  Acumular daño recibido 
         nuevosDanosRecibidos = [ (idRobot, dmg) | (idRobot, _, dmg, _) <- impactosDetectados ]
         danosRecibidosActualizados =
           foldl (\acc (idBot, dmg) ->
@@ -407,7 +397,7 @@ actualizar dt m
         (newPairs, recentUpdated) = detectNewPairs ttlForCollision rsVivos recentTicked
         explFromPairs = map (explosionFromPair rsVivos) newPairs
 
-        -- NUEVO: Acumular colisiones por bot
+        -- Acumular colisiones por bot
         idsEnColision = concatMap (\(a,b) -> [a,b]) newPairs
         colisionesActualizadas =
           foldl (\acc idBot ->
@@ -553,7 +543,7 @@ iniciarPlayoffIO finalistas m = do
   -- Generar posiciones solo para los finalistas
   posicionesPlayoff <- generate (generarPosiciones (length finalistas))
 
-  -- Crear robots solo para los finalistas, con IDs secuenciales 1,2,... pero manteniendo perfil base
+  -- Crear robots solo para los finalistas, con IDs secuenciales 
   let robotsPlayoff = zipWith (\idBot pos -> 
           let rBase = perfilBaseRobot idBot
           in rBase

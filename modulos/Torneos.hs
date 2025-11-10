@@ -56,9 +56,6 @@ splitBy c s =
            [] -> []
            (_:xs) -> splitBy c xs
 
-------------------------------------------------------------
--- Ejemplo: iniciar varios torneos seguidos
-------------------------------------------------------------
 lanzarTorneos :: ConfigTorneo -> IO ()
 lanzarTorneos cfg = do
   putStrLn $ " Configuración del torneo:"
@@ -69,17 +66,11 @@ lanzarTorneos cfg = do
   putStrLn "---------------------------------------------"
   ejecutarSecuencia (numTorneos cfg) 1
 
-------------------------------------------------------------
--- Simulación o lanzamiento real
--- (sustituye esta parte por tu ejecución real del juego)
-------------------------------------------------------------
 ejecutarSecuencia :: Int -> Int -> IO ()
 ejecutarSecuencia total actual
   | actual > total = putStrLn "Todos los torneos han terminado."
   | otherwise = do
       putStrLn $ "Iniciando torneo " ++ show actual ++ " de " ++ show total
-      -- Aquí podrías llamar a tu main del juego real:
-      -- main
       putStrLn "Ejecutando torneo..."
       putStrLn "Finalizado."
       ejecutarSecuencia total (actual + 1)

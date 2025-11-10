@@ -8,13 +8,12 @@ escribirEstadisticas resultados = withFile "estadisticas.txt" WriteMode $ \h -> 
   -- Por torneo
   mapM_ (escribirTorneo h) (zip [1..] resultados)
 
-  -- Agregado: estadísticas agregadas
+  -- estadísticas agregadas
   hPutStrLn h "\n=== ESTADÍSTICAS AGREGADAS (TODOS LOS TORNEOS) ===\n"
 
   let todosImpactos = concatMap (map snd . numImpactosPorBot) resultados
       todosPorcentajes = concatMap (map snd . porcentajeVidaPorBot) resultados
 
-  -- Medias básicas (ya existían)
   let mediaImpactos = 
         if null todosImpactos 
            then 0 
@@ -27,14 +26,13 @@ escribirEstadisticas resultados = withFile "estadisticas.txt" WriteMode $ \h -> 
   hPutStrLn h $ "Media de impactos por bot por torneo: " ++ show (round mediaImpactos)
   hPutStrLn h $ "Media de porcentaje de vida: " ++ show (round mediaVida) ++ "%"
 
-  -- Máximos (ya existían)
   let maxImpactos = if null todosImpactos then 0 else maximum todosImpactos
       maxVida = if null todosPorcentajes then 0 else maximum todosPorcentajes
 
   hPutStrLn h $ "Máximo impactos en un torneo (por un bot): " ++ show maxImpactos
   hPutStrLn h $ "Máximo porcentaje de vida: " ++ show (round maxVida) ++ "%"
 
-  -- 👇 NUEVO: Promedio de obstáculos recogidos por torneo
+  -- Promedio de obstáculos recogidos por torneo
   let todosObstaculos = concatMap (map snd . obstaculosPorBot) resultados
       mediaObstaculos = 
         if null todosObstaculos
@@ -43,7 +41,7 @@ escribirEstadisticas resultados = withFile "estadisticas.txt" WriteMode $ \h -> 
 
   hPutStrLn h $ "Media de obstáculos recogidos por bot por torneo: " ++ show (round mediaObstaculos)
 
-  -- También: total promedio por torneo
+  -- total promedio por torneo
   let obstaculosPorTorneo = map (sum . map snd . obstaculosPorBot) resultados
       mediaTotalObstaculos = 
         if null obstaculosPorTorneo
